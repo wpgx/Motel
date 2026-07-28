@@ -23,6 +23,10 @@ def strip_number(ext_line):
     title_clean = re.sub(r'^\s*\d+\s*-\s*', '', title.strip())
     return f'{head}, {title_clean}'
 
+def is_welcome(ext, url):
+    low = (ext + url).lower()
+    return 'welcome' in low and ('motel' in low or 'welcome.mp4' in low or 'tvg-id="welcome"' in low)
+
 def is_alive(url):
     if url == WELCOME_URL: return True
     try:
@@ -35,14 +39,19 @@ def is_alive(url):
 def main():
     final = parse_m3u(FINAL)
     backup = parse_m3u(BACKUP)
+
+    # REMOVE all old welcomes from final
+    final = [(e,u) for e,u in final if not is_welcome(e,u)]
+
     final_urls = {u for _,u in final}
-    spares = [(e,u) for e,u in backup if u not in final_urls and u!= WELCOME_URL]
+    spares = [(e,u) for e,u in backup if u not in final_urls and not is_welcome(e,u)]
+
     new_list=['#EXTM3U url-tvg="https://raw.githubusercontent.com/BuddyChewChew/xumo-playlist-generator/main/playlists/xumo_epg.xml.gz"']
     new_list.append(WELCOME_EXT)
     new_list.append(WELCOME_URL)
+
     spare_idx=0
     for ext,url in final:
-        if url == WELCOME_URL: continue
         if is_alive(url):
             c_ext, c_url = strip_number(ext), url
         else:
@@ -53,8 +62,9 @@ def main():
                 c_ext, c_url = strip_number(ext), url
         new_list.append(c_ext)
         new_list.append(c_url)
+
     FINAL.write_text('\n'.join(new_list))
-    print(f"Done - Welcome from xman.deecee.ca first")
+    print(f"Cleaned - only 1 Welcome now from xman")
 
 if __name__=="__main__":
     main()
