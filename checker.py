@@ -6,7 +6,7 @@ BACKUP = Path("backup_pool.m3u")
 TIMEOUT=10
 
 # --- PERMANENT WELCOME CHANNEL (Channel 1) ---
-WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel Welcome" group-title="Motel Info" tvg-logo="https://raw.githubusercontent.com/wpgx/Motel/main/welcome.jpg", 01 - Cairns Motel - Welcome to Summerside, PEI'
+WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel Welcome" group-title="Motel Info" tvg-logo="https://raw.githubusercontent.com/wpgx/Motel/main/welcome.jpg", 00 - Cairns Motel - Welcome to Summerside, PEI'
 WELCOME_URL = 'https://raw.githubusercontent.com/wpgx/Motel/main/welcome.mp4'
 
 def parse_m3u(path):
