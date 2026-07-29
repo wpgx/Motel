@@ -5,8 +5,8 @@ FINAL = Path("final_60.m3u")
 BACKUP = Path("backup_pool.m3u")
 TIMEOUT=10
 
-WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel Welcome" group-title="Motel Info" tvg-logo="https://xman.deecee.ca/welcome.jpg", Cairns Motel - Welcome to Summerside, PEI'
-WELCOME_URL = 'https://xman.deecee.ca/welcome.mp4'
+WELCOME_EXT = '#EXTINF:0, Cairns Motel - Welcome to Summerside, PEI'
+WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
 
 def parse_m3u(path):
     lines=path.read_text(errors='ignore').splitlines()
