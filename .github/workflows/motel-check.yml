@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -11,10 +12,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install requests
-      - run: python .github/scripts/checker_1.py
-      - run: |
+      - name: Install requests
+        run: pip install requests
+      - name: Run Checker 1
+        run: python checker_1.py
+      - name: Commit final_60 only
+        run: |
           git config user.name "auto"
           git config user.email "auto@auto.com"
           git add -f final_60.m3u
-          git diff --staged --quiet || (git commit -m "auto update final_60" && git push)
+          git diff --staged --quiet || (git commit -m "auto update final_60 65ch" && git push)
