@@ -1,48 +1,61 @@
+import requests, re
 from pathlib import Path
-import datetime
-FULL=Path("full_ca_us.m3u")
-FINAL=Path("final_60.m3u")
-WELCOME_EXT='#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel" group-title="Motel Info",Cairns Motel - Welcome'
-WELCOME_URL='https://xman.deecee.ca/welcome/welcome.m3u8'
-BANNED=["deal or no deal","wu tang","wu-tang","wutang"]
 
-def parse(txt):
- lines=txt.splitlines(); out=[]
- for i,l in enumerate(lines):
-  if l.strip().startswith('#EXTINF') and i+1 < len(lines):
-   u=lines[i+1].strip()
-   if u.startswith("http"): out.append((l.strip(),u.strip()))
- return out
+FULL = Path("full_ca_us.m3u")
+FINAL = Path("final_60.m3u")
 
-flex=parse(FULL.read_text(errors='ignore'))
-print(f"FULL {len(flex)} channels - ready to write 65")
+WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel" group-title="Motel Info",Cairns Motel - Welcome'
+WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
+BANNED = ["deal or no deal","wu tang","wu-tang","wutang","stargate"]
+EPG = 'https://iptv-org.github.io/epg/guides/ca.xml'
 
-def banned(s): return any(b in s.lower() for b in BANNED)
+def is_alive(url):
+    try:
+        r = requests.head(url, timeout=8, allow_redirects=True, headers={"User-Agent":"VLC/3.0"})
+        if r.status_code in (200, 302, 301):
+            return True
+        # some servers block HEAD, try GET small range
+        r = requests.get(url, timeout=10, stream=True, headers={"User-Agent":"VLC/3.0"})
+        return r.status_code == 200
+    except:
+        return False
 
-EPG='https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
-final=[f'#EXTM3U url-tvg="{EPG}"',f'#EXTINF:-1 tvg-id="updated" tvg-name="Updated" group-title="Info",Updated {datetime.datetime.utcnow()} UTC - 65 Ch',WELCOME_URL,WELCOME_EXT,WELCOME_URL]
-seen=set([WELCOME_URL])
+txt = FULL.read_text(errors='ignore')
+lines = txt.splitlines()
+pairs = []
+for i in range(len(lines)-1):
+    if '#EXTINF' in lines[i] and lines[i+1].strip().startswith('http'):
+        ext = lines[i].strip()
+        url = lines[i+1].strip()
+        low = ext.lower()
+        if any(b in low for b in BANNED): continue
+        pairs.append((ext,url))
 
-# PEI first
-for e,u in flex:
- if len(final)//2 >= 13: break
- if banned(e): continue
- if any(k in e.lower() for k in ["pei","compass","cbc","ctv atlantic"]):
-  if u not in seen: final.append(e); final.append(u); seen.add(u)
+print(f"Loaded {len(pairs)} from full")
 
-# News
-for e,u in flex:
- if len(final)//2 >= 33: break
- if banned(e): continue
- if 'news' in e.lower():
-  if u not in seen: final.append(e); final.append(u); seen.add(u)
+alive = []
+for ext,url in pairs:
+    if is_alive(url):
+        alive.append((ext,url))
+        print(f"OK {len(alive)}/64 {url[:80]}")
+    if len(alive) >= 64:
+        break
 
-# Fill to 65
-for e,u in flex:
- if len(final)//2 >= 65: break
- if banned(e): continue
- if u not in seen: final.append(e); final.append(u); seen.add(u)
+print(f"Found {len(alive)} alive")
 
-final.append(WELCOME_EXT); final.append(WELCOME_URL); final.append("")
-FINAL.write_text("\n".join(final)+"\n")
-print(f"WROTE {len(final)//2} - no deal/wutang, guide intact")
+out = [f'#EXTM3U url-tvg="{EPG}"']
+out.append(WELCOME_EXT)
+out.append(WELCOME_URL)
+seen = {WELCOME_URL}
+for ext,url in alive:
+    if url not in seen:
+        out.append(ext)
+        out.append(url)
+        seen.add(url)
+
+# always Welcome at end too
+out.append(WELCOME_EXT)
+out.append(WELCOME_URL)
+
+FINAL.write_text("\n".join(out)+"\n")
+print(f"WROTE {len(out)//2} channels = {len(out)} lines to final_60.m3u")
