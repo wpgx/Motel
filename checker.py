@@ -8,6 +8,27 @@ WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info" tvg-logo="ht
 WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
 HEADERS = {"User-Agent": "VLC/3.0.19 LibVLC/3.0.19"}
 
+# NEW - auto-download pools
+REMOTE_POOLS = {
+    "https://i.mjh.nz/PlutoTV/ca.m3u8": Path("pluto_ca.m3u"),
+    "https://i.mjh.nz/PlutoTV/us.m3u8": Path("pluto_us.m3u"),
+    "https://i.mjh.nz/SamsungTVPlus/ca.m3u8": Path("samsung_ca.m3u"),
+    "https://i.mjh.nz/SamsungTVPlus/us.m3u8": Path("samsung_us.m3u"),
+}
+
+def download_pools():
+    print("=== Downloading fresh Pluto / Samsung pools ===")
+    for url, path in REMOTE_POOLS.items():
+        try:
+            r = requests.get(url, timeout=15, headers=HEADERS)
+            if r.status_code == 200 and "#EXTINF" in r.text:
+                path.write_text(r.text, encoding='utf-8')
+                print(f" OK {path.name} - {r.text.count('#EXTINF')} chans")
+            else:
+                print(f" FAIL {url} - {r.status_code}")
+        except Exception as e:
+            print(f" ERR {url} - {e}")
+
 def parse_m3u(path):
     if not path.exists(): return []
     lines = path.read_text(errors='ignore').splitlines()
@@ -53,10 +74,13 @@ def is_alive(url):
 
 def load_spares():
     spares=[]
-    for p in [BACKUP, MASTER]:
+    # Local + newly downloaded remote pools
+    all_pools = [BACKUP, MASTER] + list(REMOTE_POOLS.values())
+    for p in all_pools:
         if p.exists():
             for e,u in parse_m3u(p):
                 if not is_bad(u) and not is_welcome(e,u):
+                    # Skip ads / duplicate groups
                     spares.append((clean_no_numbers(e),u))
     seen=set(); uniq=[]
     for e,u in spares:
@@ -65,7 +89,8 @@ def load_spares():
     return uniq
 
 def main():
-    print("=== SAFE checker - NO numbers, replace dead only ===")
+    print("=== SAFE checker - NO numbers, replace dead only + Pluto/Samsung filler ===")
+    download_pools()
     final=parse_m3u(FINAL)
     cleaned=[]
     for e,u in final:
@@ -78,9 +103,9 @@ def main():
     spares=load_spares()
     final_urls={u for _,u in cleaned}
     spares=[(e,u) for e,u in spares if u not in final_urls]
-    print(f"Start: {len(cleaned)} good, spares: {len(spares)}")
+    print(f"Start: {len(cleaned)} good, spares: {len(spares)} (incl. fresh Pluto/Samsung)")
 
-    new_list=['#EXTM3U url-tvg="https://raw.githubusercontent.com/BuddyChewChew/xumo-playlist-generator/main/playlists/xumo_epg.xml.gz"']
+    new_list=['#EXTM3U url-tvg="https://raw.githubusercontent.com/BuddyChewChew/xumo-playlist-generator/main/playlists/xumo_epg.xml.gz, https://i.mjh.nz/PlutoTV/us.xml, https://i.mjh.nz/PlutoTV/ca.xml, https://i.mjh.nz/SamsungTVPlus/us.xml"']
     new_list.append(WELCOME_EXT)
     new_list.append(WELCOME_URL)
     spare_idx=0
@@ -107,7 +132,7 @@ def main():
             new_list.append(se); new_list.append(su)
 
     FINAL.write_text('\n'.join(new_list)+'\n')
-    print(f"DONE - {len(new_list)//2} chans, NO numbers, NO crash Ch60")
+    print(f"DONE - {len(new_list)//2} chans, NO numbers, NO crash Ch60, Pluto/Samsung merged")
 
 if __name__=="__main__":
     main()
