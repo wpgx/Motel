@@ -1,4 +1,4 @@
-name: Restore 2220
+name: Restore final guide
 on: workflow_dispatch
 jobs:
   restore:
@@ -7,21 +7,22 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 30 }
       - run: |
-          echo "Searching history..."
-          git log --oneline -20 -- full_ca_us.m3u
-          for i in 1 2 3 4 5 6 7 8 9 10; do
-            LINES=$(git show HEAD~$i:full_ca_us.m3u 2>/dev/null | wc -l)
+          git log --oneline -20 -- final_60.m3u
+          # find last commit where final_60 was good (programs few hundred)
+          # look for the one BEFORE yesterday
+          for i in 2 3 4 5 6 7 8 9 10; do
+            LINES=$(git show HEAD~$i:final_60.m3u 2>/dev/null | wc -l)
             echo "HEAD~$i = $LINES lines"
-            if [ "$LINES" -gt 4000 ]; then
-              echo "FOUND 2220 at HEAD~$i"
-              git show HEAD~$i:full_ca_us.m3u > full_ca_us.m3u
+            if [ "$LINES" -gt 120 ]; then
+              git show HEAD~$i:final_60.m3u > final_60.m3u
+              echo "RESTORED final_60 from HEAD~$i"
+              head -5 final_60.m3u
               break
             fi
           done
-          wc -l full_ca_us.m3u
       - run: |
           git config user.name "restore"
           git config user.email "restore@local"
-          git add full_ca_us.m3u
-          git commit -m "Restore 2220 wonderful" || echo "already restored"
+          git add final_60.m3u
+          git commit -m "Restore final_60 with guide" || echo "no change"
           git push
