@@ -19,48 +19,53 @@ def parse(txt):
             if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
-print("START CA+US pool")
+def has_guide_and_english(ext):
+    low=ext.lower()
+    # MUST have tvg-id="something" not empty
+    if 'tvg-id=""' in low: return False
+    if 'tvg-id=' not in low: return False
+    # quick foreign filter
+    bad_words=["arabic","spanish","french","hindi","punjabi","urdu","tagalog","vietnamese","chinese","korean","portuguese","italian","russian"]
+    # check group-title and title
+    for b in bad_words:
+        # allow "french" if it's in english description? no, drop all
+        if b in low:
+            # exception: keep "french" if it's CBC french? No for PEI motel we want English only
+            return False
+    return True
+
+print("START strict guide+english")
 all_txt = ""
 if POOL.exists():
     all_txt += "\n" + POOL.read_text(errors='ignore')
-    print(f" pool {all_txt.count('#EXTINF')}")
 
 ca = fetch("https://iptv-org.github.io/iptv/countries/ca.m3u")
 us = fetch("https://iptv-org.github.io/iptv/countries/us.m3u")
-# only keep US that looks like main networks, not 3000 locals
-# we keep all CA, but filter US to keep under 700 total
-all_chans = parse(all_txt + "\n" + ca)
-# add US only if we still under 800
-us_chans = parse(us)
-for ext,url in us_chans:
-    low=ext.lower()
-    # skip US locals that are foreign language
-    if any(x in low for x in ["spanish","french","arabic","hindi"]): continue
-    if 'tvg-id=""' in low: continue
-    all_chans.append((ext,url))
-    if len(all_chans) > 750: break
 
-# dedup
+all_chans = parse(all_txt + "\n" + ca + "\n" + us)
+
 seen=set(); flex=[]
 for ext,url in all_chans:
-    if url not in seen:
-        seen.add(url)
-        flex.append((ext,url))
+    if url in seen: continue
+    if not has_guide_and_english(ext): continue
+    seen.add(url)
+    flex.append((ext,url))
 
-print(f" flex deduped {len(flex)}")
+print(f" after strict filter {len(flex)} (was {len(all_chans)})")
 
 out=[f'#EXTM3U url-tvg="{EPG}"']
 for e,u in flex: out.append(e); out.append(u)
 FULL.write_text("\n".join(out)+"\n", encoding='utf-8')
+print(f"WROTE full_ca_us {len(flex)} - all have guide + english")
 
-# final_60 with news priority
-pri=["cbc news","ctv news","global news","cp24","cbc winnipeg","ctv winnipeg","citytv winnipeg","global winnipeg"]
-pri_list=[c for c in flex if any(k in c[0].lower() for k in pri)]
-oth=[c for c in flex if c not in pri_list]
+# PEI final_60
+pei_keys=["cbc pei","compass","ctv atlantic","global halifax","global maritimes","cbc news","ctv news","cp24","global news"]
+pri=[c for c in flex if any(k in c[0].lower() for k in pei_keys)]
+oth=[c for c in flex if c not in pri]
 final=[f'#EXTM3U url-tvg="{EPG}"', WELCOME_EXT, WELCOME_URL]
-for e,u in pri_list+oth:
+for e,u in pri+oth:
     if len(final)>=122: break
     final.append(e); final.append(u)
 FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE full {len(flex)} final {len(final)//2}")
+print(f"WROTE PEI final_60 {len(final)//2}")
 print("DONE")
