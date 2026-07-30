@@ -1,49 +1,76 @@
-import requests, re
+import requests
 from pathlib import Path
 
 FULL = Path("full_ca_us.m3u")
 FINAL = Path("final_60.m3u")
 POOL = Path("backup_pool.m3u")
+EPG = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
 WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info", Cairns Motel - Welcome'
 WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
-EPG = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
+HEADERS = {"User-Agent": "VLC/3.0.19"}
+TIMEOUT = 6
 
-print("START checker_1.py")
+def fetch(url):
+    try:
+        t = requests.get(url, timeout=20, headers=HEADERS).text
+        print(f" fetched {url} -> {t.count('#EXTINF')} chans")
+        return t
+    except Exception as e:
+        print(f" fail {url} {e}")
+        return ""
 
-# 1. BUILD full_ca_us - ALWAYS from backup_pool if it exists
-if POOL.exists():
-    txt = POOL.read_text(errors='ignore')
-    print(f" backup_pool found {txt.count('#EXTINF')} chans")
-else:
-    print(" NO backup_pool, downloading free-tv")
-    txt = requests.get("https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8", timeout=30).text
-    print(f" free-tv {txt.count('#EXTINF')} chans")
+def is_alive(url):
+    if WELCOME_URL in url: return True
+    if ".mp4" in url.lower(): return False
+    try:
+        r = requests.get(url, timeout=TIMEOUT, headers=HEADERS, allow_redirects=True)
+        if r.status_code >= 400: return False
+        if len(r.text) < 500: return False
+        return "#EXTM3U" in r.text or "#EXT-X" in r.text
+    except:
+        return False
 
-# add EPG header if missing
-if not txt.startswith("#EXTM3U"):
-    txt = f'#EXTM3U url-tvg="{EPG}"\n' + txt
-elif 'url-tvg' not in txt.splitlines()[0]:
+def parse(txt):
     lines = txt.splitlines()
-    lines[0] = f'#EXTM3U url-tvg="{EPG}"'
-    txt = "\n".join(lines)
+    out = []
+    for i,l in enumerate(lines):
+        if l.strip().startswith('#EXTINF') and i+1 < len(lines):
+            u = lines[i+1].strip()
+            if u.startswith("http"):
+                out.append((l.strip(), u.strip()))
+    return out
 
-FULL.write_text(txt, encoding='utf-8')
-print(f"WROTE full_ca_us.m3u {txt.count('#EXTINF')} chans")
+print("START flexible checker_1")
 
-# 2. BUILD final_60 - simple copy of first 60 alive-ish from pool + welcome
-lines = txt.splitlines()
-chans = []
-for i,l in enumerate(lines):
-    if l.strip().startswith('#EXTINF') and i+1 < len(lines):
-        url = lines[i+1].strip()
-        if url.startswith("http") and ".mp4" not in url.lower():
-            chans.append((l,url))
+# --- BUILD FLEXIBLE FULL ---
+all_chans = []
+if POOL.exists():
+    all_chans += parse(POOL.read_text(errors='ignore'))
 
-out = [f'#EXTM3U url-tvg="{EPG}"', WELCOME_EXT, WELCOME_URL]
-for e,u in chans[:60]:
-    out.append(e)
-    out.append(u)
+# add iptv-org official
+all_chans += parse(fetch("https://iptv-org.github.io/iptv/countries/ca.m3u"))
+all_chans += parse(fetch("https://iptv-org.github.io/iptv/countries/us.m3u"))
+# add free-tv if alive
+free = fetch("https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8")
+if free.count('#EXTINF') > 50:  # only if not dead
+    all_chans += parse(free)
 
-FINAL.write_text("\n".join(out)+"\n", encoding='utf-8')
-print(f"WROTE final_60.m3u {len(out)//2} chans")
-print("DONE")
+# dedup by URL, keep first
+seen = set()
+flex = []
+for ext,url in all_chans:
+    if url not in seen:
+        seen.add(url)
+        flex.append((ext,url))
+
+print(f" FLEXIBLE total deduped {len(flex)}")
+
+# write full_ca_us.m3u
+out_lines = [f'#EXTM3U url-tvg="{EPG}"']
+for e,u in flex:
+    out_lines.append(e)
+    out_lines.append(u)
+FULL.write_text("\n".join(out_lines)+"\n", encoding='utf-8')
+print(f"WROTE full_ca_us.m3u {len(flex)}")
+
+# --- BUILD final_60 alive + news priority
