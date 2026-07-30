@@ -1,134 +1,125 @@
-#EXTM3U url-tvg="https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml"
-#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel" group-title="Motel Info",Cairns Motel - Welcome
+#EXTM3U url-tvg="https://raw.githubusercontent.com/BuddyChewChew/xumo-playlist-generator/main/playlists/xumo_epg.xml.gz"
+#EXTINF:-1 tvg-id="welcome" group-title="Motel Info" tvg-logo="https://motel.deecee.ca/logo.png", Cairns Motel - Welcome
 https://xman.deecee.ca/welcome/welcome.m3u8
-#EXTINF:-1 tvg-id="99991158" tvg-name="CBS News 24/7" tvg-logo="https://image.xumo.com/v1/channels/channel/99991158/168x168.png?type=color_onBlack" group-title="News",CBS News 24/7
-https://dai.google.com/linear/hls/event/Sid4xiTQTkCT1SLu6rjUSQ/master.m3u8?imafw_csid=vcbs_xumo_ctv_allos_live_cbsnews;imafw__fw_h_referer=com.xumo.app&imafw__fw_did=dpid:&imafw__fw_is_lat=&imafw__fw_vcid2=&imafw__fw_app_bundle=web.xumo.com&imafw_is_lat=
-#EXTINF:-1 tvg-id="99991709" tvg-name="Hallmark Movies & More" tvg-logo="https://image.xumo.com/v1/channels/channel/99991709/168x168.png?type=color_onBlack" group-title="Movies",Hallmark Movies & More
+#EXTINF:-1 tvg-id="99991709" tvg-name="Hallmark Movies & More" tvg-logo="https://image.xumo.com/v1/channels/channel/99991709/168x168.png?type=color_onBlack" group-title="Movies", Hallmark Movies & More
 https://live-content.xumo.com/2777/content/XM0KEA7FN4WJMX/25007660/master.m3u8
-#EXTINF:-1 tvg-id="99991312" tvg-name="Gravitas Movies" tvg-logo="https://image.xumo.com/v1/channels/channel/99991312/168x168.png?type=color_onBlack" group-title="Movies",Gravitas Movies
+#EXTINF:-1 tvg-id="99991312" tvg-name="Gravitas Movies" tvg-logo="https://image.xumo.com/v1/channels/channel/99991312/168x168.png?type=color_onBlack" group-title="Movies", Gravitas Movies
 https://live-content.xumo.com/247/content/XM0YMRCBUUFA5F/29017562/master.m3u8
-#EXTINF:-1 tvg-id="99991399" tvg-name="Magnolia Selects" tvg-logo="https://image.xumo.com/v1/channels/channel/99991399/168x168.png?type=color_onBlack" group-title="Movies",Magnolia Selects
-https://magnolia-xumo-us.amagi.tv/hls/amagi_hls_data_magnoliaA-cinelife-xumo/CDN/master.m3u8?is_lat=0&us_privacy=
-#EXTINF:-1 tvg-id="99991300" tvg-name="Stash TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991300/168x168.png?type=color_onBlack" group-title="Movies",Stash TV
+#EXTINF:-1 tvg-id="99991300" tvg-name="Stash TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991300/168x168.png?type=color_onBlack" group-title="Movies", Stash TV
 https://live-content.xumo.com/2492/content/XM09W4ZS0DSS5A/26095133/master.m3u8
-#EXTINF:-1 tvg-id="99991745" tvg-name="The Wu Tang Collection TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991745/168x168.png?type=color_onBlack" group-title="Action & Drama",The Wu Tang Collection TV
+#EXTINF:-1 tvg-id="99991745" tvg-name="The Wu Tang Collection TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991745/168x168.png?type=color_onBlack" group-title="Action & Drama", The Wu Tang Collection TV
 https://live-content.xumo.com/2185/content/XM0I9X1A59VNGY/25397967/master.m3u8
-#EXTINF:-1 tvg-id="99991337" tvg-name="FilmRise" tvg-logo="https://image.xumo.com/v1/channels/channel/99991337/168x168.png?type=color_onBlack" group-title="Movies",FilmRise
+#EXTINF:-1 tvg-id="99991337" tvg-name="FilmRise" tvg-logo="https://image.xumo.com/v1/channels/channel/99991337/168x168.png?type=color_onBlack" group-title="Movies", FilmRise
 https://live-content.xumo.com/197/content/XM0RHAMPLTRQ4L/27500407/master.m3u8
-#EXTINF:-1 tvg-id="99991336" tvg-name="Maverick Black Cinema" tvg-logo="https://image.xumo.com/v1/channels/channel/99991336/168x168.png?type=color_onBlack" group-title="Movies",Maverick Black Cinema
+#EXTINF:-1 tvg-id="99991336" tvg-name="Maverick Black Cinema" tvg-logo="https://image.xumo.com/v1/channels/channel/99991336/168x168.png?type=color_onBlack" group-title="Movies", Maverick Black Cinema
 https://live-content.xumo.com/259/content/XM0KPD078LB49O/24418591/master.m3u8
-#EXTINF:-1 tvg-id="99951218" tvg-name="Xumo Free Nature & Wildlife TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99951218/168x168.png?type=color_onBlack" group-title="Animals & Nature",Xumo Free Nature & Wildlife TV
+#EXTINF:-1 tvg-id="99951218" tvg-name="Xumo Free Nature & Wildlife TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99951218/168x168.png?type=color_onBlack" group-title="Animals & Nature", Xumo Free Nature & Wildlife TV
 https://live-content.xumo.com/3878/content/XM02AP56UHAORH/27308171/master.m3u8
-#EXTINF:-1 tvg-id="99991113" tvg-name="Deal Or No Deal" tvg-logo="https://image.xumo.com/v1/channels/channel/99991113/168x168.png?type=color_onBlack" group-title="Game Shows",Deal Or No Deal
+#EXTINF:-1 tvg-id="99991113" tvg-name="Deal Or No Deal" tvg-logo="https://image.xumo.com/v1/channels/channel/99991113/168x168.png?type=color_onBlack" group-title="Game Shows", Deal Or No Deal
 https://live-content.xumo.com/2041/content/XM0Y1SBKJ1P1Y4/26786893/master.m3u8
-#EXTINF:-1 tvg-id="99951192" tvg-name="Anger Management" tvg-logo="https://image.xumo.com/v1/channels/channel/99951192/168x168.png?type=color_onBlack" group-title="Comedy",Anger Management
+#EXTINF:-1 tvg-id="99951192" tvg-name="Anger Management" tvg-logo="https://image.xumo.com/v1/channels/channel/99951192/168x168.png?type=color_onBlack" group-title="Comedy", Anger Management
 https://live-content.xumo.com/3828/content/XM068BCC2LIBWF/24349173/master.m3u8
-#EXTINF:-1 tvg-id="99991331" tvg-name="The Asylum" tvg-logo="https://image.xumo.com/v1/channels/channel/99991331/168x168.png?type=color_onBlack" group-title="Horror & Sci-Fi",The Asylum
+#EXTINF:-1 tvg-id="99991331" tvg-name="The Asylum" tvg-logo="https://image.xumo.com/v1/channels/channel/99991331/168x168.png?type=color_onBlack" group-title="Horror & Sci-Fi", The Asylum
 https://live-content.xumo.com/275/content/XM0P1TRTO23H0R/26762454/master.m3u8
-#EXTINF:-1 tvg-id="9999615" tvg-name="Dark Matter TV" tvg-logo="https://image.xumo.com/v1/channels/channel/9999615/168x168.png?type=color_onBlack" group-title="Horror & Sci-Fi",Dark Matter TV
+#EXTINF:-1 tvg-id="9999615" tvg-name="Dark Matter TV" tvg-logo="https://image.xumo.com/v1/channels/channel/9999615/168x168.png?type=color_onBlack" group-title="Horror & Sci-Fi", Dark Matter TV
 https://live-content.xumo.com/3346/content/XM0VG61BTFM6TJ/26496047/master.m3u8
-#EXTINF:-1 tvg-id="99991769" tvg-name="Paranormal Files" tvg-logo="https://image.xumo.com/v1/channels/channel/99991769/168x168.png?type=color_onBlack" group-title="Horror & Sci-Fi",Paranormal Files
+#EXTINF:-1 tvg-id="99991769" tvg-name="Paranormal Files" tvg-logo="https://image.xumo.com/v1/channels/channel/99991769/168x168.png?type=color_onBlack" group-title="Horror & Sci-Fi", Paranormal Files
 https://live-content.xumo.com/2487/content/XM0NEP74S547GZ/26725816/master.m3u8
-#EXTINF:-1 tvg-id="99991645" tvg-name="CBS Sports HQ" tvg-logo="https://image.xumo.com/v1/channels/channel/99991645/168x168.png?type=color_onBlack" group-title="Sports",CBS Sports HQ
-https://dai.google.com/linear/hls/event/9Lq0ERvoSR-z9AwvFS-xYA/master.m3u8?imafw_csid=;imafw__fw_h_referer=com.xumo.app&imafw__fw_did=dpid:&imafw__fw_is_lat=&imafw__fw_vcid2=&imafw__fw_app_bundle=web.xumo.com&imafw_is_lat=
-#EXTINF:-1 tvg-id="99991738" tvg-name="NFL Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99991738/168x168.png?type=color_onBlack" group-title="Sports",NFL Channel
+#EXTINF:-1 tvg-id="99991738" tvg-name="NFL Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99991738/168x168.png?type=color_onBlack" group-title="Sports", NFL Channel
 https://c300.play.lura.app/play/v1/live/ZHx8AbT0xVvm1el0epd7vw/master.m3u8?ts=1668459044045&app=Mp8DA1vKVAoO4yHJ0QFZ3w&exp=2299179044&auth=8HJTwR6prnzFjGE2Ki_8pfvwxMRvWtSwRm3R54TN3_w&PlatformChild=&usprivacy=&coppa=0&autoplay=auto&videomute=0&encoder=DC1-XUMO&fwDid=da09ab77-07f0-4cb6-976e-391934a9dd8d&tmsid=121705&palnonce=&rdid=da09ab77-07f0-4cb6-976e-391934a9dd8d&islat=0&atts=&attmas=&idfv=&screenw=1920&screenh=1080&title=
-#EXTINF:-1 tvg-id="99991341" tvg-name="TNA Wrestling Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99991341/168x168.png?type=color_onBlack" group-title="Combat Sports",TNA Wrestling Channel
+#EXTINF:-1 tvg-id="99991341" tvg-name="TNA Wrestling Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99991341/168x168.png?type=color_onBlack" group-title="Combat Sports", TNA Wrestling Channel
 https://live-content.xumo.com/2073/content/XM0OQQ7H7NJB0U/25632629/master.m3u8
-#EXTINF:-1 tvg-id="99951207" tvg-name="Fifth Gear" tvg-logo="https://image.xumo.com/v1/channels/channel/99951207/168x168.png?type=color_onBlack" group-title="Automotive",Fifth Gear
+#EXTINF:-1 tvg-id="99951207" tvg-name="Fifth Gear" tvg-logo="https://image.xumo.com/v1/channels/channel/99951207/168x168.png?type=color_onBlack" group-title="Automotive", Fifth Gear
 https://live-content.xumo.com/3867/content/XM0178SRJ9F8HS/24445433/master.m3u8
-#EXTINF:-1 tvg-id="99991384" tvg-name="Xumo Free Crime TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991384/168x168.png?type=color_onBlack" group-title="Crime TV",Xumo Free Crime TV
+#EXTINF:-1 tvg-id="99991384" tvg-name="Xumo Free Crime TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991384/168x168.png?type=color_onBlack" group-title="Crime TV", Xumo Free Crime TV
 https://live-content.xumo.com/234/content/XM03J1TVMZM4K4/27833226/master.m3u8
-#EXTINF:-1 tvg-id="99991680" tvg-name="Unsolved Mysteries" tvg-logo="https://image.xumo.com/v1/channels/channel/99991680/168x168.png?type=color_onBlack" group-title="Crime TV",Unsolved Mysteries
+#EXTINF:-1 tvg-id="99991680" tvg-name="Unsolved Mysteries" tvg-logo="https://image.xumo.com/v1/channels/channel/99991680/168x168.png?type=color_onBlack" group-title="Crime TV", Unsolved Mysteries
 https://live-content.xumo.com/260/content/XM0LA9G69HZHSE/22090797/master.m3u8
-#EXTINF:-1 tvg-id="99991367" tvg-name="Forensic Files" tvg-logo="https://image.xumo.com/v1/channels/channel/99991367/168x168.png?type=color_onBlack" group-title="Crime TV",Forensic Files
+#EXTINF:-1 tvg-id="99991367" tvg-name="Forensic Files" tvg-logo="https://image.xumo.com/v1/channels/channel/99991367/168x168.png?type=color_onBlack" group-title="Crime TV", Forensic Files
 https://live-content.xumo.com/260/content/XM063D2I57E04J/27519157/master.m3u8
-#EXTINF:-1 tvg-id="99951544" tvg-name="World's Wildest Police Videos" tvg-logo="https://image.xumo.com/v1/channels/channel/99951544/168x168.png?type=color_onBlack" group-title="Crime TV",World's Wildest Police Videos
+#EXTINF:-1 tvg-id="99951544" tvg-name="World's Wildest Police Videos" tvg-logo="https://image.xumo.com/v1/channels/channel/99951544/168x168.png?type=color_onBlack" group-title="Crime TV", World's Wildest Police Videos
 https://live-content.xumo.com/4426/content/XM0Q1KVWXA6U4P/28954309/master.m3u8
-#EXTINF:-1 tvg-id="99991784" tvg-name="Xumo Free Action & Drama TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991784/168x168.png?type=color_onBlack" group-title="Action & Drama",Xumo Free Action & Drama TV
+#EXTINF:-1 tvg-id="99991784" tvg-name="Xumo Free Action & Drama TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991784/168x168.png?type=color_onBlack" group-title="Action & Drama", Xumo Free Action & Drama TV
 https://live-content.xumo.com/3484/content/XM0Y5GZ309DZ6O/25887042/master.m3u8
-#EXTINF:-1 tvg-id="99951412" tvg-name="Xena Warrior Princess" tvg-logo="https://image.xumo.com/v1/channels/channel/99951412/168x168.png?type=color_onBlack" group-title="Action & Drama",Xena Warrior Princess
+#EXTINF:-1 tvg-id="99951412" tvg-name="Xena Warrior Princess" tvg-logo="https://image.xumo.com/v1/channels/channel/99951412/168x168.png?type=color_onBlack" group-title="Action & Drama", Xena Warrior Princess
 https://live-content.xumo.com/4226/content/XM0LU1X5C7HKFI/27662159/master.m3u8
-#EXTINF:-1 tvg-id="99951435" tvg-name="Bizaar" tvg-logo="https://image.xumo.com/v1/channels/channel/99951435/168x168.png?type=color_onBlack" group-title="Action & Drama",Bizaar
+#EXTINF:-1 tvg-id="99951435" tvg-name="Bizaar" tvg-logo="https://image.xumo.com/v1/channels/channel/99951435/168x168.png?type=color_onBlack" group-title="Action & Drama", Bizaar
 https://live-content.xumo.com/4237/content/XM078376ZY2K51/28202668/master.m3u8
-#EXTINF:-1 tvg-id="99991348" tvg-name="KOCOWA K-Drama" tvg-logo="https://image.xumo.com/v1/channels/channel/99991348/168x168.png?type=color_onBlack" group-title="Action & Drama",KOCOWA K-Drama
+#EXTINF:-1 tvg-id="99991348" tvg-name="KOCOWA K-Drama" tvg-logo="https://image.xumo.com/v1/channels/channel/99991348/168x168.png?type=color_onBlack" group-title="Action & Drama", KOCOWA K-Drama
 https://live-content.xumo.com/285/content/XM0BN04QQHEZ40/29159648/master.m3u8
-#EXTINF:-1 tvg-id="99991105" tvg-name="Xumo Free Comedy TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991105/168x168.png?type=color_onBlack" group-title="Comedy",Xumo Free Comedy TV
+#EXTINF:-1 tvg-id="99991105" tvg-name="Xumo Free Comedy TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991105/168x168.png?type=color_onBlack" group-title="Comedy", Xumo Free Comedy TV
 https://live-content.xumo.com/905/content/XM01AYII4JLJUR/25925605/master.m3u8
-#EXTINF:-1 tvg-id="99991153" tvg-name="FailArmy" tvg-logo="https://image.xumo.com/v1/channels/channel/99991153/168x168.png?type=color_onBlack" group-title="Comedy",FailArmy
+#EXTINF:-1 tvg-id="99991153" tvg-name="FailArmy" tvg-logo="https://image.xumo.com/v1/channels/channel/99991153/168x168.png?type=color_onBlack" group-title="Comedy", FailArmy
 https://live-content.xumo.com/56/content/XM0KGRUAWT6XSF/27121191/master.m3u8
-#EXTINF:-1 tvg-id="99991176" tvg-name="Just for Laughs Comedy" tvg-logo="https://image.xumo.com/v1/channels/channel/99991176/168x168.png?type=color_onBlack" group-title="Comedy",Just for Laughs Comedy
+#EXTINF:-1 tvg-id="99991176" tvg-name="Just for Laughs Comedy" tvg-logo="https://image.xumo.com/v1/channels/channel/99991176/168x168.png?type=color_onBlack" group-title="Comedy", Just for Laughs Comedy
 https://live-content.xumo.com/117/content/XM0OY0I3UNZ9MD/6394742/master.m3u8
-#EXTINF:-1 tvg-id="99991204" tvg-name="Just for Laughs Gags" tvg-logo="https://image.xumo.com/v1/channels/channel/99991204/168x168.png?type=color_onBlack" group-title="Comedy",Just for Laughs Gags
+#EXTINF:-1 tvg-id="99991204" tvg-name="Just for Laughs Gags" tvg-logo="https://image.xumo.com/v1/channels/channel/99991204/168x168.png?type=color_onBlack" group-title="Comedy", Just for Laughs Gags
 https://live-content.xumo.com/146/content/XM0I2H4SZE5XOR/22182166/master.m3u8
-#EXTINF:-1 tvg-id="99991349" tvg-name="It's Showtime at the Apollo" tvg-logo="https://image.xumo.com/v1/channels/channel/99991349/168x168.png?type=color_onBlack" group-title="Comedy",It's Showtime at the Apollo
+#EXTINF:-1 tvg-id="99991349" tvg-name="It's Showtime at the Apollo" tvg-logo="https://image.xumo.com/v1/channels/channel/99991349/168x168.png?type=color_onBlack" group-title="Comedy", It's Showtime at the Apollo
 https://live-content.xumo.com/1836/content/XM0UQ8CCXPIEMG/21862229/master.m3u8
-#EXTINF:-1 tvg-id="99991197" tvg-name="NatureVision" tvg-logo="https://image.xumo.com/v1/channels/channel/99991197/168x168.png?type=color_onBlack" group-title="Animals & Nature",NatureVision
+#EXTINF:-1 tvg-id="99991197" tvg-name="NatureVision" tvg-logo="https://image.xumo.com/v1/channels/channel/99991197/168x168.png?type=color_onBlack" group-title="Animals & Nature", NatureVision
 https://live-content.xumo.com/133/content/XM0O84M9LE81MK/4985159/master.m3u8
-#EXTINF:-1 tvg-id="99991174" tvg-name="The Pet Collective" tvg-logo="https://image.xumo.com/v1/channels/channel/99991174/168x168.png?type=color_onBlack" group-title="Animals & Nature",The Pet Collective
+#EXTINF:-1 tvg-id="99991174" tvg-name="The Pet Collective" tvg-logo="https://image.xumo.com/v1/channels/channel/99991174/168x168.png?type=color_onBlack" group-title="Animals & Nature", The Pet Collective
 https://live-content.xumo.com/115/content/XM0E4VZF4GPPMR/26808970/master.m3u8
-#EXTINF:-1 tvg-id="99951347" tvg-name="The Yorkshire Vet & Friends" tvg-logo="https://image.xumo.com/v1/channels/channel/99951347/168x168.png?type=color_onBlack" group-title="Animals & Nature",The Yorkshire Vet & Friends
+#EXTINF:-1 tvg-id="99951347" tvg-name="The Yorkshire Vet & Friends" tvg-logo="https://image.xumo.com/v1/channels/channel/99951347/168x168.png?type=color_onBlack" group-title="Animals & Nature", The Yorkshire Vet & Friends
 https://live-content.xumo.com/4102/content/XM0EURCTXWALER/27334964/master.m3u8
-#EXTINF:-1 tvg-id="99951138" tvg-name="McLeod's Daughters" tvg-logo="https://image.xumo.com/v1/channels/channel/99951138/168x168.png?type=color_onBlack" group-title="Westerns & Country",McLeod's Daughters
+#EXTINF:-1 tvg-id="99951138" tvg-name="McLeod's Daughters" tvg-logo="https://image.xumo.com/v1/channels/channel/99951138/168x168.png?type=color_onBlack" group-title="Westerns & Country", McLeod's Daughters
 https://live-content.xumo.com/3750/content/XM07FF6T6X30E5/24051510/master.m3u8
-#EXTINF:-1 tvg-id="99951216" tvg-name="The Rifleman" tvg-logo="https://image.xumo.com/v1/channels/channel/99951216/168x168.png?type=color_onBlack" group-title="Westerns & Country",The Rifleman
+#EXTINF:-1 tvg-id="99951216" tvg-name="The Rifleman" tvg-logo="https://image.xumo.com/v1/channels/channel/99951216/168x168.png?type=color_onBlack" group-title="Westerns & Country", The Rifleman
 https://live-content.xumo.com/260/content/XM0VW42UX68C93/22043271/master.m3u8
-#EXTINF:-1 tvg-id="99991293" tvg-name="This Old House" tvg-logo="https://image.xumo.com/v1/channels/channel/99991293/168x168.png?type=color_onBlack" group-title="Home & Design",This Old House
+#EXTINF:-1 tvg-id="99991293" tvg-name="This Old House" tvg-logo="https://image.xumo.com/v1/channels/channel/99991293/168x168.png?type=color_onBlack" group-title="Home & Design", This Old House
 https://live-content.xumo.com/283/content/XM0LNSVYG0NYYA/21512671/master.m3u8
-#EXTINF:-1 tvg-id="99991759" tvg-name="Today's Homeowner" tvg-logo="https://image.xumo.com/v1/channels/channel/99991759/168x168.png?type=color_onBlack" group-title="Home & Design",Today's Homeowner
+#EXTINF:-1 tvg-id="99991759" tvg-name="Today's Homeowner" tvg-logo="https://image.xumo.com/v1/channels/channel/99991759/168x168.png?type=color_onBlack" group-title="Home & Design", Today's Homeowner
 https://live-content.xumo.com/2559/content/XM07QHI20KMKWZ/22766147/master.m3u8
-#EXTINF:-1 tvg-id="99951482" tvg-name="@Home DIY" tvg-logo="https://image.xumo.com/v1/channels/channel/99951482/168x168.png?type=color_onBlack" group-title="Home & Design",@Home DIY
+#EXTINF:-1 tvg-id="99951482" tvg-name="@Home DIY" tvg-logo="https://image.xumo.com/v1/channels/channel/99951482/168x168.png?type=color_onBlack" group-title="Home & Design", @Home DIY
 https://live-content.xumo.com/4373/content/XM0CMPXO3PR5UL/28945402/master.m3u8
-#EXTINF:-1 tvg-id="99951130" tvg-name="Fear Factor" tvg-logo="https://image.xumo.com/v1/channels/channel/99951130/168x168.png?type=color_onBlack" group-title="Game Shows",Fear Factor
+#EXTINF:-1 tvg-id="99951130" tvg-name="Fear Factor" tvg-logo="https://image.xumo.com/v1/channels/channel/99951130/168x168.png?type=color_onBlack" group-title="Game Shows", Fear Factor
 https://live-content.xumo.com/3542/content/XM0GFDPA5HITSY/24016585/master.m3u8
-#EXTINF:-1 tvg-id="99991232" tvg-name="Family Feud" tvg-logo="https://image.xumo.com/v1/channels/channel/99991232/168x168.png?type=color_onBlack" group-title="Game Shows",Family Feud
+#EXTINF:-1 tvg-id="99991232" tvg-name="Family Feud" tvg-logo="https://image.xumo.com/v1/channels/channel/99991232/168x168.png?type=color_onBlack" group-title="Game Shows", Family Feud
 https://live-content.xumo.com/170/content/XM023AUNY1L72C/28104752/master.m3u8
-#EXTINF:-1 tvg-id="99991659" tvg-name="25 Words or Less" tvg-logo="https://image.xumo.com/v1/channels/channel/99991659/168x168.png?type=color_onBlack" group-title="Game Shows",25 Words or Less
+#EXTINF:-1 tvg-id="99991659" tvg-name="25 Words or Less" tvg-logo="https://image.xumo.com/v1/channels/channel/99991659/168x168.png?type=color_onBlack" group-title="Game Shows", Words or Less
 https://live-content.xumo.com/1102/content/XM0E8LHMUS2AA8/27646293/master.m3u8
-#EXTINF:-1 tvg-id="99951457" tvg-name="America's Got Talent" tvg-logo="https://image.xumo.com/v1/channels/channel/99951457/168x168.png?type=color_onBlack" group-title="Game Shows",America's Got Talent
+#EXTINF:-1 tvg-id="99951457" tvg-name="America's Got Talent" tvg-logo="https://image.xumo.com/v1/channels/channel/99951457/168x168.png?type=color_onBlack" group-title="Game Shows", America's Got Talent
 https://live-content.xumo.com/4266/content/XM0NR1EFC7ZVIY/28055110/master.m3u8
-#EXTINF:-1 tvg-id="9995117" tvg-name="Xumo Free Food TV" tvg-logo="https://image.xumo.com/v1/channels/channel/9995117/168x168.png?type=color_onBlack" group-title="Food",Xumo Free Food TV
+#EXTINF:-1 tvg-id="9995117" tvg-name="Xumo Free Food TV" tvg-logo="https://image.xumo.com/v1/channels/channel/9995117/168x168.png?type=color_onBlack" group-title="Food", Xumo Free Food TV
 https://live-content.xumo.com/1101/content/XM0BJ9KR3CMZ8L/26205903/master.m3u8
-#EXTINF:-1 tvg-id="99951151" tvg-name="Lidia's Kitchen" tvg-logo="https://image.xumo.com/v1/channels/channel/99951151/168x168.png?type=color_onBlack" group-title="Food",Lidia's Kitchen
+#EXTINF:-1 tvg-id="99951151" tvg-name="Lidia's Kitchen" tvg-logo="https://image.xumo.com/v1/channels/channel/99951151/168x168.png?type=color_onBlack" group-title="Food", Lidia's Kitchen
 https://live-content.xumo.com/2064/content/XM0QOX1YDZ89I4/24135675/master.m3u8
-#EXTINF:-1 tvg-id="99991111" tvg-name="Xumo Free Travel & Lifestyle TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991111/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle",Xumo Free Travel & Lifestyle TV
+#EXTINF:-1 tvg-id="99991111" tvg-name="Xumo Free Travel & Lifestyle TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991111/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle", Xumo Free Travel & Lifestyle TV
 https://live-content.xumo.com/234/content/XM0LXREE53YOLI/28648881/master.m3u8
-#EXTINF:-1 tvg-id="99991271" tvg-name="HSN" tvg-logo="https://image.xumo.com/v1/channels/channel/99991271/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle",HSN
+#EXTINF:-1 tvg-id="99991271" tvg-name="HSN" tvg-logo="https://image.xumo.com/v1/channels/channel/99991271/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle", HSN
 https://qvc-amd-live.akamaized.net/hls/live/2034113/lshsn1usott/master.m3u8
-#EXTINF:-1 tvg-id="99991344" tvg-name="QVC" tvg-logo="https://image.xumo.com/v1/channels/channel/99991344/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle",QVC
+#EXTINF:-1 tvg-id="99991344" tvg-name="QVC" tvg-logo="https://image.xumo.com/v1/channels/channel/99991344/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle", QVC
 https://qvc-amd-live.akamaized.net/hls/live/2034113/lsqvc1usott/master.m3u8
-#EXTINF:-1 tvg-id="99991370" tvg-name="ShopLC" tvg-logo="https://image.xumo.com/v1/channels/channel/99991370/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle",ShopLC
+#EXTINF:-1 tvg-id="99991370" tvg-name="ShopLC" tvg-logo="https://image.xumo.com/v1/channels/channel/99991370/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle", ShopLC
 https://cdn-shop-lc-01.akamaized.net/Content/HLS_HLS/Live/channel(XUMOSCTE35)/master.m3u8
-#EXTINF:-1 tvg-id="99991338" tvg-name="JTV Jewelry Love" tvg-logo="https://image.xumo.com/v1/channels/channel/99991338/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle",JTV Jewelry Love
+#EXTINF:-1 tvg-id="99991338" tvg-name="JTV Jewelry Love" tvg-logo="https://image.xumo.com/v1/channels/channel/99991338/168x168.png?type=color_onBlack" group-title="Travel & Lifestyle", JTV Jewelry Love
 https://jewelrytv-xumo.amagi.tv/playlist.m3u8
-#EXTINF:-1 tvg-id="99991747" tvg-name="Telemundo Al Día" tvg-logo="https://image.xumo.com/v1/channels/channel/99991747/168x168.png?type=color_onBlack" group-title="Latino",Telemundo Al Día
+#EXTINF:-1 tvg-id="99991747" tvg-name="Telemundo Al Día" tvg-logo="https://image.xumo.com/v1/channels/channel/99991747/168x168.png?type=color_onBlack" group-title="Latino", Telemundo Al Día
 https://live-content.xumo.com/2561/content/XM06PMDPCBGO7W/28943235/master.m3u8
-#EXTINF:-1 tvg-id="99991142" tvg-name="Cine Romántico" tvg-logo="https://image.xumo.com/v1/channels/channel/99991142/168x168.png?type=color_onBlack" group-title="Latino",Cine Romántico
+#EXTINF:-1 tvg-id="99991142" tvg-name="Cine Romántico" tvg-logo="https://image.xumo.com/v1/channels/channel/99991142/168x168.png?type=color_onBlack" group-title="Latino", Cine Romántico
 https://live-content.xumo.com/2068/content/XM0NTFW2TU197O/23740461/master.m3u8
-#EXTINF:-1 tvg-id="99991364" tvg-name="Xumo Free Reality TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991364/168x168.png?type=color_onBlack" group-title="Reality TV",Xumo Free Reality TV
+#EXTINF:-1 tvg-id="99991364" tvg-name="Xumo Free Reality TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991364/168x168.png?type=color_onBlack" group-title="Reality TV", Xumo Free Reality TV
 https://live-content.xumo.com/3992/content/XM0KFIWOL4BWY3/25824431/master.m3u8
-#EXTINF:-1 tvg-id="99951252" tvg-name="Cheaters" tvg-logo="https://image.xumo.com/v1/channels/channel/99951252/168x168.png?type=color_onBlack" group-title="Reality TV",Cheaters
+#EXTINF:-1 tvg-id="99951252" tvg-name="Cheaters" tvg-logo="https://image.xumo.com/v1/channels/channel/99951252/168x168.png?type=color_onBlack" group-title="Reality TV", Cheaters
 https://live-content.xumo.com/260/content/XM0L5DTIGDLRAX/25099990/master.m3u8
-#EXTINF:-1 tvg-id="99991681" tvg-name="Hell's Kitchen" tvg-logo="https://image.xumo.com/v1/channels/channel/99991681/168x168.png?type=color_onBlack" group-title="Reality TV",Hell's Kitchen
+#EXTINF:-1 tvg-id="99991681" tvg-name="Hell's Kitchen" tvg-logo="https://image.xumo.com/v1/channels/channel/99991681/168x168.png?type=color_onBlack" group-title="Reality TV", Hell's Kitchen
 https://live-content.xumo.com/260/content/XM0DMCHVXXXCXD/22430756/master.m3u8
-#EXTINF:-1 tvg-id="99951341" tvg-name="Untold Stories of the ER" tvg-logo="https://image.xumo.com/v1/channels/channel/99951341/168x168.png?type=color_onBlack" group-title="Reality TV",Untold Stories of the ER
+#EXTINF:-1 tvg-id="99951341" tvg-name="Untold Stories of the ER" tvg-logo="https://image.xumo.com/v1/channels/channel/99951341/168x168.png?type=color_onBlack" group-title="Reality TV", Untold Stories of the ER
 https://live-content.xumo.com/260/content/XM0FN3KSJNIR8C/28857935/master.m3u8
-#EXTINF:-1 tvg-id="99951408" tvg-name="The Osbournes" tvg-logo="https://image.xumo.com/v1/channels/channel/99951408/168x168.png?type=color_onBlack" group-title="Reality TV",The Osbournes
+#EXTINF:-1 tvg-id="99951408" tvg-name="The Osbournes" tvg-logo="https://image.xumo.com/v1/channels/channel/99951408/168x168.png?type=color_onBlack" group-title="Reality TV", The Osbournes
 https://live-content.xumo.com/4221/content/XM0LNW8AZFNFIW/27722096/master.m3u8
-#EXTINF:-1 tvg-id="99951509" tvg-name="Highway Thru Hell" tvg-logo="https://image.xumo.com/v1/channels/channel/99951509/168x168.png?type=color_onBlack" group-title="Reality TV",Highway Thru Hell
+#EXTINF:-1 tvg-id="99951509" tvg-name="Highway Thru Hell" tvg-logo="https://image.xumo.com/v1/channels/channel/99951509/168x168.png?type=color_onBlack" group-title="Reality TV", Highway Thru Hell
 https://live-content.xumo.com/4375/content/XM0KPF0V2IFR1U/28674883/master.m3u8
-#EXTINF:-1 tvg-id="99951146" tvg-name="Family Affair Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99951146/168x168.png?type=color_onBlack" group-title="Classic TV",Family Affair Channel
+#EXTINF:-1 tvg-id="99951146" tvg-name="Family Affair Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99951146/168x168.png?type=color_onBlack" group-title="Classic TV", Family Affair Channel
 https://live-content.xumo.com/3769/content/XM0OAOXKT50VR2/24100451/master.m3u8
-#EXTINF:-1 tvg-id="99991157" tvg-name="Johnny Carson TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991157/168x168.png?type=color_onBlack" group-title="Classic TV",Johnny Carson TV
+#EXTINF:-1 tvg-id="99991157" tvg-name="Johnny Carson TV" tvg-logo="https://image.xumo.com/v1/channels/channel/99991157/168x168.png?type=color_onBlack" group-title="Classic TV", Johnny Carson TV
 https://live-content.xumo.com/197/content/XM0M3UF6WTQMEH/28961870/master.m3u8
-#EXTINF:-1 tvg-id="99991106" tvg-name="RiffTrax" tvg-logo="https://image.xumo.com/v1/channels/channel/99991106/168x168.png?type=color_onBlack" group-title="Classic TV",RiffTrax
+#EXTINF:-1 tvg-id="99991106" tvg-name="RiffTrax" tvg-logo="https://image.xumo.com/v1/channels/channel/99991106/168x168.png?type=color_onBlack" group-title="Classic TV", RiffTrax
 https://live-content.xumo.com/1089/content/XM03QCK57M55HD/21602620/master.m3u8
-#EXTINF:-1 tvg-id="99991379" tvg-name="Combat War Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99991379/168x168.png?type=color_onBlack" group-title="History & Learning",Combat War Channel
+#EXTINF:-1 tvg-id="99991379" tvg-name="Combat War Channel" tvg-logo="https://image.xumo.com/v1/channels/channel/99991379/168x168.png?type=color_onBlack" group-title="History & Learning", Combat War Channel
 https://live-content.xumo.com/1080/content/XM0A8GRPWHXYXQ/26867024/master.m3u8
-#EXTINF:-1 tvg-id="99951189" tvg-name="FAITHOPE" tvg-logo="https://image.xumo.com/v1/channels/channel/99951189/168x168.png?type=color_onBlack" group-title="Faith & Family",FAITHOPE
+#EXTINF:-1 tvg-id="99951189" tvg-name="FAITHOPE" tvg-logo="https://image.xumo.com/v1/channels/channel/99951189/168x168.png?type=color_onBlack" group-title="Faith & Family", FAITHOPE
 https://live-content.xumo.com/3812/content/XM09L128CEFXKV/24322429/master.m3u8
-#EXTINF:-1 tvg-id="99951401" tvg-name="Highway to Heaven" tvg-logo="https://image.xumo.com/v1/channels/channel/99951401/168x168.png?type=color_onBlack" group-title="Faith & Family",Highway to Heaven
+#EXTINF:-1 tvg-id="99951401" tvg-name="Highway to Heaven" tvg-logo="https://image.xumo.com/v1/channels/channel/99951401/168x168.png?type=color_onBlack" group-title="Faith & Family", Highway to Heaven
 https://live-content.xumo.com/260/content/XM05PTB1FV6I96/28858282/master.m3u8
-#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel" group-title="Motel Info",Cairns Motel - Welcome
-https://xman.deecee.ca/welcome/welcome.m3u8
-
