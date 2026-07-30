@@ -16,43 +16,51 @@ def parse(txt):
     for i,l in enumerate(lines):
         if l.strip().startswith('#EXTINF') and i+1 < len(lines):
             u=lines[i+1].strip()
-            if u.startswith("http"): out.append((l,u))
+            if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
-def is_english_guided(ext):
-    low=ext.lower()
-    if 'tvg-id' not in low or 'tvg-id=""' in low: return False
-    bad=["arabic","french","spanish","hindi","punjabi","urdu","tagalog","vietnamese","chinese"]
-    return not any(b in low for b in bad)
-
-print("START fast flexible")
+print("START CA+US pool")
 all_txt = ""
-if POOL.exists(): all_txt += "\n" + POOL.read_text(errors='ignore')
-all_txt += "\n" + fetch("https://iptv-org.github.io/iptv/languages/eng.m3u")
-all_txt += "\n" + fetch("https://iptv-org.github.io/iptv/countries/ca.m3u")
+if POOL.exists():
+    all_txt += "\n" + POOL.read_text(errors='ignore')
+    print(f" pool {all_txt.count('#EXTINF')}")
 
-chans=parse(all_txt)
+ca = fetch("https://iptv-org.github.io/iptv/countries/ca.m3u")
+us = fetch("https://iptv-org.github.io/iptv/countries/us.m3u")
+# only keep US that looks like main networks, not 3000 locals
+# we keep all CA, but filter US to keep under 700 total
+all_chans = parse(all_txt + "\n" + ca)
+# add US only if we still under 800
+us_chans = parse(us)
+for ext,url in us_chans:
+    low=ext.lower()
+    # skip US locals that are foreign language
+    if any(x in low for x in ["spanish","french","arabic","hindi"]): continue
+    if 'tvg-id=""' in low: continue
+    all_chans.append((ext,url))
+    if len(all_chans) > 750: break
+
+# dedup
 seen=set(); flex=[]
-for ext,url in chans:
-    if url in seen: continue
-    if not is_english_guided(ext): continue
-    seen.add(url); flex.append((ext,url))
+for ext,url in all_chans:
+    if url not in seen:
+        seen.add(url)
+        flex.append((ext,url))
 
-print(f" filtered to {len(flex)} english+guide")
+print(f" flex deduped {len(flex)}")
 
 out=[f'#EXTM3U url-tvg="{EPG}"']
 for e,u in flex: out.append(e); out.append(u)
 FULL.write_text("\n".join(out)+"\n", encoding='utf-8')
-print(f"WROTE full_ca_us {len(flex)}")
 
-# final_60 = first 60 news priority, no alive test for speed
-pri_keys=["cbc news","ctv news","global news","cp24","cbc winnipeg","ctv winnipeg","ctv","cbc"]
-pri=[c for c in flex if any(k in c[0].lower() for k in pri_keys)]
-oth=[c for c in flex if c not in pri]
+# final_60 with news priority
+pri=["cbc news","ctv news","global news","cp24","cbc winnipeg","ctv winnipeg","citytv winnipeg","global winnipeg"]
+pri_list=[c for c in flex if any(k in c[0].lower() for k in pri)]
+oth=[c for c in flex if c not in pri_list]
 final=[f'#EXTM3U url-tvg="{EPG}"', WELCOME_EXT, WELCOME_URL]
-for e,u in pri+oth:
+for e,u in pri_list+oth:
     if len(final)>=122: break
     final.append(e); final.append(u)
 FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE final_60 {len(final)//2}")
+print(f"WROTE full {len(flex)} final {len(final)//2}")
 print("DONE")
