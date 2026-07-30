@@ -8,12 +8,10 @@ WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info" tvg-logo="ht
 WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
 HEADERS = {"User-Agent": "VLC/3.0.19 LibVLC/3.0.19"}
 
-# NEW - auto-download pools
 REMOTE_POOLS = {
     "https://i.mjh.nz/PlutoTV/ca.m3u8": Path("pluto_ca.m3u"),
     "https://i.mjh.nz/PlutoTV/us.m3u8": Path("pluto_us.m3u"),
     "https://i.mjh.nz/SamsungTVPlus/ca.m3u8": Path("samsung_ca.m3u"),
-    "https://i.mjh.nz/SamsungTVPlus/us.m3u8": Path("samsung_us.m3u"),
 }
 
 def download_pools():
@@ -58,7 +56,7 @@ def is_welcome(ext,url):
 def is_bad(url):
     u=url.lower()
     if '.mp4' in u: return True
-    if 'dai.google.com' in u: return True  # Ch60 crash
+    if 'dai.google.com' in u: return True
     if '.m3u8' not in u: return True
     return False
 
@@ -66,21 +64,23 @@ def is_alive(url):
     if url==WELCOME_URL: return True
     if is_bad(url): return False
     try:
-        r=requests.head(url, timeout=TIMEOUT, headers=HEADERS, allow_redirects=True)
-        if r.status_code in (403,401,404): return False
+        # Use GET not HEAD - catches 403 that HEAD misses
+        r=requests.get(url, timeout=TIMEOUT, headers=HEADERS, allow_redirects=True, stream=True)
+        if r.status_code in (403,401,404,500,502,503):
+            print(f"  -> {r.status_code} dead: {url[:80]}")
+            return False
         return True
-    except:
-        return True
+    except Exception as e:
+        print(f"  -> EXCEPTION dead: {e}")
+        return False
 
 def load_spares():
     spares=[]
-    # Local + newly downloaded remote pools
     all_pools = [BACKUP, MASTER] + list(REMOTE_POOLS.values())
     for p in all_pools:
         if p.exists():
             for e,u in parse_m3u(p):
                 if not is_bad(u) and not is_welcome(e,u):
-                    # Skip ads / duplicate groups
                     spares.append((clean_no_numbers(e),u))
     seen=set(); uniq=[]
     for e,u in spares:
@@ -89,7 +89,7 @@ def load_spares():
     return uniq
 
 def main():
-    print("=== SAFE checker - NO numbers, replace dead only + Pluto/Samsung filler ===")
+    print("=== SAFE checker - drops 403 dead, replaces from Pluto/Samsung ===")
     download_pools()
     final=parse_m3u(FINAL)
     cleaned=[]
@@ -103,7 +103,7 @@ def main():
     spares=load_spares()
     final_urls={u for _,u in cleaned}
     spares=[(e,u) for e,u in spares if u not in final_urls]
-    print(f"Start: {len(cleaned)} good, spares: {len(spares)} (incl. fresh Pluto/Samsung)")
+    print(f"Start: {len(cleaned)} good, spares: {len(spares)}")
 
     new_list=['#EXTM3U url-tvg="https://raw.githubusercontent.com/BuddyChewChew/xumo-playlist-generator/main/playlists/xumo_epg.xml.gz, https://i.mjh.nz/PlutoTV/us.xml, https://i.mjh.nz/PlutoTV/ca.xml, https://i.mjh.nz/SamsungTVPlus/us.xml"']
     new_list.append(WELCOME_EXT)
@@ -113,7 +113,7 @@ def main():
         if is_alive(url):
             new_list.append(ext); new_list.append(url)
         else:
-            print(f"DEAD: {ext.split(',')[-1]}")
+            print(f"DEAD: {ext.split(',')[-1]} - REPLACING")
             replaced=False
             while spare_idx < len(spares):
                 se,su = spares[spare_idx]; spare_idx+=1
@@ -121,18 +121,18 @@ def main():
                     new_list.append(se); new_list.append(su)
                     print(f" -> Replaced with {se.split(',')[-1]}")
                     replaced=True; break
+                else:
+                    print(f"  spare dead, skipping {se.split(',')[-1]}")
             if not replaced:
-                print(" -> No spare, KEEPING")
-                new_list.append(ext); new_list.append(url)
+                print(" -> No spare found, dropping")
 
-    # Fill back to 60 if we dropped some
     while len(new_list)//2 < 60 and spare_idx < len(spares):
         se,su = spares[spare_idx]; spare_idx+=1
-        if su not in new_list:
+        if su not in new_list and is_alive(su):
             new_list.append(se); new_list.append(su)
 
     FINAL.write_text('\n'.join(new_list)+'\n')
-    print(f"DONE - {len(new_list)//2} chans, NO numbers, NO crash Ch60, Pluto/Samsung merged")
+    print(f"DONE - {len(new_list)//2} chans - 403s dropped and replaced")
 
 if __name__=="__main__":
     main()
