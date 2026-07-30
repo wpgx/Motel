@@ -1,5 +1,5 @@
 from pathlib import Path
-import requests, re, datetime
+import requests
 FULL = Path("full_ca_us.m3u")
 FINAL = Path("final_60.m3u")
 EPG_OUT = Path("custom_epg.xml")
@@ -14,57 +14,44 @@ def parse(txt):
             if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
-def alive(url):
+def is_good(url):
     if WELCOME_URL in url: return True
     if ".mp4" in url.lower(): return False
     try:
         r=requests.get(url, timeout=4, headers={"User-Agent":"VLC/3.0.19"}, stream=True)
-        return r.status_code < 400
+        if r.status_code in (403,404) or r.status_code >= 400:
+            print(f" SKIP {r.status_code}")
+            return False
+        return True
     except: return False
 
 flex = parse(FULL.read_text(errors='ignore'))
 print(f" FULL {len(flex)}")
 
-# 3 EPGs in header - ca + us + our custom fallback
-EPG_HEADER = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml,https://xman.deecee.ca/custom_epg.xml'
+# ORIGINAL GUIDE - back to how it was
+EPG_ORIG = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
 
-final=[f'#EXTM3U url-tvg="{EPG_HEADER}"', WELCOME_EXT, WELCOME_URL]
+final=[f'#EXTM3U url-tvg="{EPG_ORIG}"', WELCOME_EXT, WELCOME_URL]
 
-# add with alive check to skip TSN 404 etc
 for e,u in flex:
     if len(final)//2 >= 66: break
     if u in "\n".join(final): continue
-    if alive(u):
+    if is_good(u):
         final.append(e); final.append(u)
-        print(f" OK {e[:60]}")
-    else:
-        print(f" DEAD SKIP {e[:60]}")
 
 FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE final {len(final)//2}")
+print(f"WROTE final_60 {len(final)//2} - no 403/404")
 
-# tiny custom EPG only for fallback
-now=datetime.datetime.utcnow()
-start=now.strftime("%Y%m%d%H%M%S +0000")
-stop=(now+datetime.timedelta(days=7)).strftime("%Y%m%d%H%M%S +0000") # 7 days of regular
+# restore FULL header to original too
+full_txt=FULL.read_text(errors='ignore')
+first_line=full_txt.splitlines()[0]
+full_txt=full_txt.replace(first_line, f'#EXTM3U url-tvg="{EPG_ORIG}"', 1)
+FULL.write_text(full_txt, encoding='utf-8')
+print("RESTORED FULL guide to original ca+us")
 
-xml=['<?xml version="1.0" encoding="UTF-8"?><tv>']
-xml.append('<channel id="welcome"><display-name>Cairns Motel</display-name></channel>')
-xml.append(f'<programme start="{start}" stop="{stop}" channel="welcome"><title>Welcome</title><desc>Regularly scheduled programming</desc></programme>')
+# delete custom EPG so Sparkle doesn't see it
+if EPG_OUT.exists():
+    EPG_OUT.write_text('<?xml version="1.0"?><tv></tv>', encoding='utf-8')
+    print("WIPED custom_epg.xml - Sparkle won't crash now")
 
-for ext,url in parse("\n".join(final)):
-    m=re.search(r'tvg-id="([^"]*)"', ext)
-    if m and m.group(1):
-        tid=m.group(1)
-        xml.append(f'<channel id="{tid}"><display-name>{tid}</display-name></channel>')
-        xml.append(f'<programme start="{start}" stop="{stop}" channel="{tid}"><title>Regularly scheduled programming</title><desc>Regularly scheduled programming</desc></programme>')
-
-xml.append('</tv>')
-EPG_OUT.write_text("\n".join(xml), encoding='utf-8')
-print("WROTE custom_epg.xml small - no red flag")
-
-# also fix FULL header to same 3 EPGs
-full_text=FULL.read_text(errors='ignore')
-full_text=full_text.replace(full_text.splitlines()[0], f'#EXTM3U url-tvg="{EPG_HEADER}"', 1)
-FULL.write_text(full_text, encoding='utf-8')
-print("FIXED FULL header to 3 EPGs - DONE")
+print("DONE - guide back to original, No Information will show but no crash")
