@@ -16,9 +16,10 @@ jobs:
         run: pip install requests
       - name: Run Checker 1
         run: python checker_1.py
-      - name: Commit final_60 only
+      - name: Commit both playlists
         run: |
           git config user.name "auto"
           git config user.email "auto@auto.com"
           git add -f final_60.m3u
-          git diff --staged --quiet || (git commit -m "auto update final_60 65ch" && git push)
+          git add -f full_ca_us.m3u
+          git diff --staged --quiet || (git commit -m "auto update full 4000 + final 65 with guide" && git push)
