@@ -14,57 +14,47 @@ def parse(txt):
             if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
-def alive(url):
+def is_good(url):
     if WELCOME_URL in url: return True
     if ".mp4" in url.lower(): return False
     try:
         r=requests.get(url, timeout=4, headers={"User-Agent":"VLC/3.0.19"}, stream=True)
-        return r.status_code < 400
-    except: return False
+        if r.status_code == 403 or r.status_code == 404 or r.status_code >= 400:
+            print(f" SKIP {r.status_code} {url[:60]}")
+            return False
+        return True
+    except Exception as e:
+        print(f" SKIP ERR {url[:60]}")
+        return False
 
 flex = parse(FULL.read_text(errors='ignore'))
 print(f" FULL {len(flex)}")
 
-# 3 EPGs in header - ca + us + our custom fallback
 EPG_HEADER = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml,https://xman.deecee.ca/custom_epg.xml'
 
 final=[f'#EXTM3U url-tvg="{EPG_HEADER}"', WELCOME_EXT, WELCOME_URL]
 
-# add with alive check to skip TSN 404 etc
 for e,u in flex:
     if len(final)//2 >= 66: break
     if u in "\n".join(final): continue
-    if alive(u):
+    if is_good(u):
         final.append(e); final.append(u)
-        print(f" OK {e[:60]}")
-    else:
-        print(f" DEAD SKIP {e[:60]}")
+        print(f" OK {e[:70]}")
 
 FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE final {len(final)//2}")
 
-# tiny custom EPG only for fallback
+# tiny fallback EPG = Regularly scheduled programming for 7 days
 now=datetime.datetime.utcnow()
 start=now.strftime("%Y%m%d%H%M%S +0000")
-stop=(now+datetime.timedelta(days=7)).strftime("%Y%m%d%H%M%S +0000") # 7 days of regular
-
+stop=(now+datetime.timedelta(days=7)).strftime("%Y%m%d%H%M%S +0000")
 xml=['<?xml version="1.0" encoding="UTF-8"?><tv>']
-xml.append('<channel id="welcome"><display-name>Cairns Motel</display-name></channel>')
-xml.append(f'<programme start="{start}" stop="{stop}" channel="welcome"><title>Welcome</title><desc>Regularly scheduled programming</desc></programme>')
-
 for ext,url in parse("\n".join(final)):
     m=re.search(r'tvg-id="([^"]*)"', ext)
     if m and m.group(1):
         tid=m.group(1)
         xml.append(f'<channel id="{tid}"><display-name>{tid}</display-name></channel>')
-        xml.append(f'<programme start="{start}" stop="{stop}" channel="{tid}"><title>Regularly scheduled programming</title><desc>Regularly scheduled programming</desc></programme>')
-
+        xml.append(f'<programme start="{start}" stop="{stop}" channel="{tid}"><title>Regularly scheduled programming</title></programme>')
 xml.append('</tv>')
 EPG_OUT.write_text("\n".join(xml), encoding='utf-8')
-print("WROTE custom_epg.xml small - no red flag")
 
-# also fix FULL header to same 3 EPGs
-full_text=FULL.read_text(errors='ignore')
-full_text=full_text.replace(full_text.splitlines()[0], f'#EXTM3U url-tvg="{EPG_HEADER}"', 1)
-FULL.write_text(full_text, encoding='utf-8')
-print("FIXED FULL header to 3 EPGs - DONE")
+print(f"DONE final {len(final)//2} - 0x 403/404")
