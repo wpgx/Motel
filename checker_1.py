@@ -1,9 +1,11 @@
 from pathlib import Path
+import requests
 FULL = Path("full_ca_us.m3u")
 FINAL = Path("final_60.m3u")
 EPG = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
 WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info", Cairns Motel - Welcome'
 WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
+HEADERS = {"User-Agent": "VLC/3.0.19"}
 
 def parse(txt):
     lines=txt.splitlines(); out=[]
@@ -13,50 +15,43 @@ def parse(txt):
             if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
-print("FORCE CLEAN 2220")
-txt = FULL.read_text(errors='ignore')
-chans = parse(txt)
-print(f" INPUT {len(chans)}")
+def alive(url):
+    if WELCOME_URL in url: return True
+    try:
+        r = requests.get(url, timeout=6, headers=HEADERS, stream=True)
+        if r.status_code == 403 or r.status_code >= 400:
+            print(f" 403 DEAD {url[:60]}")
+            return False
+        return True
+    except:
+        return False
 
-clean=[]
-for ext,url in chans:
-    low=ext.lower()
-    # KEEP if it looks like canadian/us english
-    # DROP if obvious foreign country codes
-    if any(x in low for x in [" tvg-id=\"mx_"," tvg-id=\"es_"," tvg-id=\"fr_"," tvg-id=\"ar_"," tvg-id=\"in_"," tvg-id=\"br_"," tvg-id=\"pt_"," tvg-id=\"de_"," tvg-id=\"it_"," tvg-id=\"tr_"]):
-        continue
-    if any(w in low for w in ["méxico","españa","france","deutsch","hindi","punjabi","urdu","arabic","turk"]):
-        continue
-    # keep everything else (including no-guide TSN which has tvg-id="ca_..." or no tvg-id but english name)
-    clean.append((ext,url))
+flex = parse(FULL.read_text(errors='ignore'))
+print(f" FULL {len(flex)}")
 
-# dedup
-seen=set(); flex=[]
-for ext,url in clean:
-    if url not in seen:
-        seen.add(url)
-        flex.append((ext,url))
+news_keys=["cbc pei","compass","ctv atlantic","global halifax","global maritimes","cbc news","ctv news","cp24","global news"]
+sports_keys=["tsn","sportsnet","snet","espn"]
 
-print(f" CLEANED {len(flex)} (was 2220)")
-
-out=[f'#EXTM3U url-tvg="{EPG}"']
-for e,u in flex: out.append(e); out.append(u)
-FULL.write_text("\n".join(out)+"\n", encoding='utf-8')
-
-# final 65
-news=["cbc pei","compass","ctv atlantic","global halifax","cbc news","ctv news"]
-sports=["tsn","sportsnet"]
-news_list=[c for c in flex if any(k in c[0].lower() for k in news)]
-sports_list=[c for c in flex if any(k in c[0].lower() for k in sports)][:5]
-others=[c for c in flex if c not in news_list and c not in sports_list]
+news=[c for c in flex if any(k in c[0].lower() for k in news_keys)]
+sports=[c for c in flex if any(k in c[0].lower() for k in sports_keys) and c not in news]
+others=[c for c in flex if c not in news and c not in sports]
 
 final=[f'#EXTM3U url-tvg="{EPG}"', WELCOME_EXT, WELCOME_URL]
-for e,u in news_list[:15]: final.append(e); final.append(u)
-for e,u in sports_list: final.append(e); final.append(u)
-for e,u in others:
-    if len(final)>=132: break
-    final.append(e); final.append(u)
+
+def add_until(src, target_total):
+    for e,u in src:
+        if len(final)//2 >= target_total: break
+        if u in "\n".join(final): continue
+        if alive(u):
+            final.append(e); final.append(u)
+            print(f" OK {e[:70]}")
+        else:
+            print(f" SKIP DEAD {e[:70]}")
+
+# 15 news + 5 sports + 45 rest = 65 total (including welcome = 66 lines? actually 65 chans + welcome = 65)
+add_until(news, 16) # welcome + 15 news
+add_until(sports, 21) # +5 sports
+add_until(others, 66) # to 65 chans + welcome
 
 FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE full {len(flex)} final {len(final)//2}")
-print("DONE")
+print(f"WROTE final_60.m3u {len(final)//2} chans - 0 dead 403s")
