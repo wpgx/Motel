@@ -1,0 +1,29 @@
+name: Restore 2220
+on: workflow_dispatch
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 20 }
+      - run: |
+          git log --oneline -- full_ca_us.m3u
+          # find the good commit - trying last 5
+          for i in 1 2 3 4 5; do
+            if git show HEAD~$i:full_ca_us.m3u | grep -q "cbc pei"; then
+              LINES=$(git show HEAD~$i:full_ca_us.m3u | wc -l)
+              echo "Found HEAD~$i with $LINES lines"
+              if [ $LINES -gt 4000 ]; then
+                git show HEAD~$i:full_ca_us.m3u > full_ca_us.m3u
+                echo "RESTORED to $LINES lines = ~$((LINES/2)) channels"
+                break
+              fi
+            fi
+          done
+          wc -l full_ca_us.m3u
+      - run: |
+          git config user.name "restore"
+          git config user.email "restore@local"
+          git add full_ca_us.m3u
+          git commit -m "Restore 2220 wonderful" || echo "nothing"
+          git push
