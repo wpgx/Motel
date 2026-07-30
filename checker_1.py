@@ -1,9 +1,8 @@
 from pathlib import Path
-import requests
+import requests, re
 FULL = Path("full_ca_us.m3u")
 FINAL = Path("final_60.m3u")
-EPG_OUT = Path("custom_epg.xml")
-WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info", Cairns Motel - Welcome'
+WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel" group-title="Motel Info",Cairns Motel - Welcome'
 WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
 
 def parse(txt):
@@ -14,44 +13,55 @@ def parse(txt):
             if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
+def sparkle_safe(ext, url):
+    # must be m3u8
+    if not url.lower().endswith(".m3u8"): return False
+    if ".mp4" in url.lower(): return False
+    # must have tvg-id
+    if 'tvg-id="' not in ext: return False
+    # no spaces in url
+    if " " in url: return False
+    return True
+
 def is_good(url):
     if WELCOME_URL in url: return True
-    if ".mp4" in url.lower(): return False
     try:
         r=requests.get(url, timeout=4, headers={"User-Agent":"VLC/3.0.19"}, stream=True)
-        if r.status_code in (403,404) or r.status_code >= 400:
-            print(f" SKIP {r.status_code}")
-            return False
-        return True
+        return r.status_code not in (403,404) and r.status_code < 400
     except: return False
 
 flex = parse(FULL.read_text(errors='ignore'))
-print(f" FULL {len(flex)}")
-
-# ORIGINAL GUIDE - back to how it was
 EPG_ORIG = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
 
 final=[f'#EXTM3U url-tvg="{EPG_ORIG}"', WELCOME_EXT, WELCOME_URL]
+print(f" FULL {len(flex)}")
 
+# PEI first
 for e,u in flex:
     if len(final)//2 >= 66: break
+    if not sparkle_safe(e,u): continue
+    if any(k in e.lower() for k in ["cbc pei","compass","ctv atlantic","global halifax"]):
+        if u not in "\n".join(final) and is_good(u):
+            final.append(e); final.append(u)
+            print(f" OK PEI {e[:60]}")
+
+# then fill with only sparkle-safe + 403/404 filtered
+for e,u in flex:
+    if len(final)//2 >= 66: break
+    if not sparkle_safe(e,u): 
+        print(f" SKIP UNSAFE {e[:60]}")
+        continue
     if u in "\n".join(final): continue
     if is_good(u):
         final.append(e); final.append(u)
 
 FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE final_60 {len(final)//2} - no 403/404")
+print(f"WROTE final_60 {len(final)//2} Sparkle-safe")
 
-# restore FULL header to original too
-full_txt=FULL.read_text(errors='ignore')
-first_line=full_txt.splitlines()[0]
-full_txt=full_txt.replace(first_line, f'#EXTM3U url-tvg="{EPG_ORIG}"', 1)
-FULL.write_text(full_txt, encoding='utf-8')
-print("RESTORED FULL guide to original ca+us")
-
-# delete custom EPG so Sparkle doesn't see it
-if EPG_OUT.exists():
-    EPG_OUT.write_text('<?xml version="1.0"?><tv></tv>', encoding='utf-8')
-    print("WIPED custom_epg.xml - Sparkle won't crash now")
-
-print("DONE - guide back to original, No Information will show but no crash")
+# also clean FULL of mp4 etc so it doesn't bleed into future finals
+clean=[f'#EXTM3U url-tvg="{EPG_ORIG}"']
+for e,u in flex:
+    if sparkle_safe(e,u) or WELCOME_URL in u:
+        clean.append(e); clean.append(u)
+Path("full_ca_us.m3u").write_text("\n".join(clean)+"\n", encoding='utf-8')
+print(f"CLEANED FULL {len(clean)//2} - removed mp4/bad")
