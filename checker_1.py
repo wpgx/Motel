@@ -1,8 +1,8 @@
 from pathlib import Path
-import requests
+import requests, re, datetime
 FULL = Path("full_ca_us.m3u")
 FINAL = Path("final_60.m3u")
-EPG = 'https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml'
+EPG_OUT = Path("custom_epg.xml")
 WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info", Cairns Motel - Welcome'
 WELCOME_URL = 'https://xman.deecee.ca/welcome/welcome.m3u8'
 HEADERS = {"User-Agent": "VLC/3.0.19"}
@@ -15,43 +15,47 @@ def parse(txt):
             if u.startswith("http"): out.append((l.strip(),u.strip()))
     return out
 
-def alive(url):
-    if WELCOME_URL in url: return True
-    try:
-        r = requests.get(url, timeout=6, headers=HEADERS, stream=True)
-        if r.status_code == 403 or r.status_code >= 400:
-            print(f" 403 DEAD {url[:60]}")
-            return False
-        return True
-    except:
-        return False
+def fetch(url):
+    try: return requests.get(url, timeout=20, headers=HEADERS).text
+    except: return ""
+
+print("BUILD merged EPG")
+ca_xml = fetch("https://iptv-org.github.io/epg/guides/ca.xml")
+us_xml = fetch("https://iptv-org.github.io/epg/guides/us.xml")
+print(f" ca {len(ca_xml)} us {len(us_xml)}")
 
 flex = parse(FULL.read_text(errors='ignore'))
-print(f" FULL {len(flex)}")
+# build final 65 alive quick
+final_lines=[f'#EXTM3U url-tvg="https://xman.deecee.ca/custom_epg.xml"', WELCOME_EXT, WELCOME_URL]
+for e,u in flex:
+    if len(final_lines)//2 >= 66: break
+    if u not in "\n".join(final_lines):
+        final_lines.append(e); final_lines.append(u)
+FINAL.write_text("\n".join(final_lines)+"\n", encoding='utf-8')
 
-news_keys=["cbc pei","compass","ctv atlantic","global halifax","global maritimes","cbc news","ctv news","cp24","global news"]
-sports_keys=["tsn","sportsnet","snet","espn"]
+# now build custom_epg.xml = ca + us + fallback
+now = datetime.datetime.utcnow()
+start = now.strftime("%Y%m%d%H%M%S +0000")
+stop = (now + datetime.timedelta(hours=24)).strftime("%Y%m%d%H%M%S +0000")
 
-news=[c for c in flex if any(k in c[0].lower() for k in news_keys)]
-sports=[c for c in flex if any(k in c[0].lower() for k in sports_keys) and c not in news]
-others=[c for c in flex if c not in news and c not in sports]
+# start xml, copy channels/programmes from ca and us (strip xml header/footer)
+def strip_tv(xml_text):
+    if "<tv>" in xml_text:
+        inner = xml_text.split("<tv>",1)[1].rsplit("</tv>",1)[0]
+        return inner
+    return ""
 
-final=[f'#EXTM3U url-tvg="{EPG}"', WELCOME_EXT, WELCOME_URL]
+merged = ['<?xml version="1.0" encoding="UTF-8"?><tv>']
+merged.append(strip_tv(ca_xml))
+merged.append(strip_tv(us_xml))
 
-def add_until(src, target_total):
-    for e,u in src:
-        if len(final)//2 >= target_total: break
-        if u in "\n".join(final): continue
-        if alive(u):
-            final.append(e); final.append(u)
-            print(f" OK {e[:70]}")
-        else:
-            print(f" SKIP DEAD {e[:70]}")
+# add welcome + fallback for any tvg-id in FINAL that is not in ca/us (or has no info)
+merged.append('<channel id="welcome"><display-name>Cairns Motel - Welcome</display-name></channel>')
+merged.append(f'<programme start="{start}" stop="{stop}" channel="welcome"><title>Welcome</title><desc>Welcome to Cairns Motel - Regularly scheduled programming</desc></programme>')
 
-# 15 news + 5 sports + 45 rest = 65 total (including welcome = 66 lines? actually 65 chans + welcome = 65)
-add_until(news, 16) # welcome + 15 news
-add_until(sports, 21) # +5 sports
-add_until(others, 66) # to 65 chans + welcome
-
-FINAL.write_text("\n".join(final)+"\n", encoding='utf-8')
-print(f"WROTE final_60.m3u {len(final)//2} chans - 0 dead 403s")
+for ext,url in parse("\n".join(final_lines)):
+    m=re.search(r'tvg-id="([^"]*)"', ext)
+    if m:
+        tid=m.group(1)
+        if tid:
+            # add fallback programme - if real guide already has it, TV will show real guide, not this
