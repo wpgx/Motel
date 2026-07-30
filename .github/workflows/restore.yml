@@ -1,28 +1,26 @@
-name: Restore final guide
+name: Restore FULL
 on: workflow_dispatch
 jobs:
   restore:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 30 }
+        with: { fetch-depth: 0 }
       - run: |
-          git log --oneline -20 -- final_60.m3u
-          # find last commit where final_60 was good (programs few hundred)
-          # look for the one BEFORE yesterday
-          for i in 2 3 4 5 6 7 8 9 10; do
-            LINES=$(git show HEAD~$i:final_60.m3u 2>/dev/null | wc -l)
-            echo "HEAD~$i = $LINES lines"
-            if [ "$LINES" -gt 120 ]; then
-              git show HEAD~$i:final_60.m3u > final_60.m3u
-              echo "RESTORED final_60 from HEAD~$i"
-              head -5 final_60.m3u
-              break
+          # find last good full_ca_us with >1000 lines
+          for c in $(git log --all --pretty=format:%H -- full_ca_us.m3u | head -20); do
+            lines=$(git show $c:full_ca_us.m3u 2>/dev/null | wc -l)
+            echo "$c $lines lines"
+            if [ "$lines" -gt 1000 ]; then
+              echo "RESTORING $c with $lines lines"
+              git show $c:full_ca_us.m3u > full_ca_us.m3u
+              git config user.name "restore"
+              git config user.email "restore@local"
+              git add full_ca_us.m3u
+              git commit -m "restore full $lines lines from $c"
+              git push -f
+              exit 0
             fi
           done
-      - run: |
-          git config user.name "restore"
-          git config user.email "restore@local"
-          git add final_60.m3u
-          git commit -m "Restore final_60 with guide" || echo "no change"
-          git push
+          echo "NO GOOD FULL FOUND - need to rebuild from sources"
+          exit 1
