@@ -30,9 +30,10 @@ jobs:
           cp ./plutotv_ca.m3u8 ./dctv.m3u8
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
-          sed -i 's|https://xman.deecee.ca.*plutotv_ca.xml|https://motel.deecee.ca/dctv.xml|g' ./dctv.m3u8
-          sed -i 's|http://xman.deecee.ca.*plutotv_ca.xml|https://motel.deecee.ca/dctv.xml|g' ./dctv.m3u8
-          head -5 ./dctv.m3u8
+          sed -i 's|url-tvg="[^"]*"|url-tvg="https://motel.deecee.ca/dctv.xml"|g' ./dctv.m3u8
+          echo "--- CHECK FIRST LINE ---"
+          head -3 ./dctv.m3u8
+          echo "------------------------"
 
       - name: Commit
         run: |
