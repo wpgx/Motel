@@ -1,5 +1,5 @@
           touch .nojekyll
-          # Build welcome.m3u8 with jsDelivr URLs so .ts files actually serve
+          # Build welcome.m3u8 with jsDelivr URLs so .ts files actually serve  
           if compgen -G "welcome*.ts" > /dev/null; then
             echo "#EXTM3U" > welcome.m3u8
             echo "#EXT-X-VERSION:3" >> welcome.m3u8
