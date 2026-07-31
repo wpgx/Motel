@@ -1,7 +1,7 @@
 name: Update Pluto CA
 on:
   schedule:
-    - cron: '0 */6 * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 jobs:
   update:
@@ -9,41 +9,29 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: |
+          node-version: '22'
+      - name: Install deps
+        run: |
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
-      - name: Build
+      - name: Build clean Pluto CA playlist
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp || true
-          cp ./plutotv_ca.xml ./dctv.xml || true
+          cp ./plutotv_ca.m3u8 ./dctv.m3u8
+          cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
           touch .nojekyll
-          echo "Trying to build HLS from welcome.mp4..."
-          rm -f welcome.m3u8 welcome*.ts
-          # Try your mp4, if it fails make a placeholder that WORKS
-          ffmpeg -y -i welcome.mp4 -c:v libx264 -c:a aac -hls_time 6 -hls_list_size 0 -hls_segment_filename "welcome%d.ts" -f hls welcome.m3u8 || \
-          ffmpeg -y -f lavfi -i color=c=0x0a2540:s=1280x720:d=15 -f lavfi -i anullsrc -vf "drawtext=text='Welcome to our motel!':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -c:v libx264 -c:a aac -t 15 -hls_time 6 -hls_list_size 0 -hls_segment_filename "welcome%d.ts" -f hls welcome.m3u8
-          ls -lh welcome*
-          cat welcome.m3u8
-          printf "#EXTM3U\n" > dctv.m3u8
-          printf '#EXTINF:-1 tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/welcome.jpg",Welcome to our motel!\n' >> dctv.m3u8
-          printf 'https://motel.deecee.ca/welcome.m3u8\n' >> dctv.m3u8
-          grep -v "^#EXTM3U" ./plutotv_ca.tmp >> dctv.m3u8 || true
-          rm -f ./plutotv_ca.tmp
+          echo "motel.deecee.ca" > CNAME
+          ls -lh
       - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
           git add -A
           git add .nojekyll -f
-          git rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml 2>/dev/null || true
-          git commit -m "Auto-build HLS with fallback" || true
+          git commit -m "Clean Pluto CA only" || true
           git push
