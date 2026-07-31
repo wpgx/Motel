@@ -31,19 +31,22 @@ jobs:
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
           
+          # FIX 404 - force GitHub to serve .ts files
+          touch .nojekyll
+          
           echo "#EXTM3U" > ./dctv.m3u8
-          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/logo.png", ★ Welcome to Dee'\''s Motel' >> ./dctv.m3u8
+          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!' >> ./dctv.m3u8
           echo 'https://motel.deecee.ca/welcome.m3u8' >> ./dctv.m3u8
           echo '' >> ./dctv.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./dctv.m3u8
           rm -f ./plutotv_ca.tmp
-          echo "--- First 15 lines of final dctv.m3u8 ---"
-          head -15 ./dctv.m3u8
+          echo "--- First 5 lines ---"
+          head -5 ./dctv.m3u8
 
       - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
-          git add ./dctv.m3u8 ./dctv.xml
+          git add ./dctv.m3u8 ./dctv.xml .nojekyll
           git rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml 2>/dev/null || true
           git diff --staged --quiet || (git commit -m "Update dctv $(date -u)" && git push)
