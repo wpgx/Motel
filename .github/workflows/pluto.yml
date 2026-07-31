@@ -12,41 +12,53 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
       - name: Clone scraper and install
         run: |
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper
           npm install
-
-      - name: Run scraper and add welcome
+      - name: Run scraper and fix welcome
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
           cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
-          
-          # FIX 404 - force GitHub to serve .ts files
+
+          # --- FIX WELCOME.M3U8 TO MATCH REAL TS NAMES ---
           touch .nojekyll
-          
+          if compgen -G "welcome*.ts" > /dev/null; then
+            echo "Found TS files, rebuilding welcome.m3u8 to match:"
+            ls -1 welcome*.ts
+            echo "#EXTM3U" > welcome.m3u8
+            echo "#EXT-X-VERSION:3" >> welcome.m3u8
+            echo "#EXT-X-TARGETDURATION:8" >> welcome.m3u8
+            echo "#EXT-X-MEDIA-SEQUENCE:0" >> welcome.m3u8
+            echo "#EXT-X-PLAYLIST-TYPE:VOD" >> welcome.m3u8
+            for f in $(ls welcome*.ts | sort -V); do
+              echo "#EXTINF:4.0," >> welcome.m3u8
+              echo "$f" >> welcome.m3u8
+            done
+            echo "#EXT-X-ENDLIST" >> welcome.m3u8
+          fi
+
+          # --- BUILD DCTV.M3U8 WITH CHANNEL 1 ---
           echo "#EXTM3U" > ./dctv.m3u8
-          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!' >> ./dctv.m3u8
+          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/welcome.jpg", Welcome to our motel!' >> ./dctv.m3u8
           echo 'https://motel.deecee.ca/welcome.m3u8' >> ./dctv.m3u8
           echo '' >> ./dctv.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./dctv.m3u8
           rm -f ./plutotv_ca.tmp
-          echo "--- First 5 lines ---"
-          head -5 ./dctv.m3u8
-
+          head -10 ./dctv.m3u8
+          head -10 ./welcome.m3u8
       - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
-          git add ./dctv.m3u8 ./dctv.xml .nojekyll
+          git add -A
+          git add .nojekyll -f
           git rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Update dctv $(date -u)" && git push)
+          git diff --staged --quiet || (git commit -m "Fix welcome naming + Welcome to our motel!" && git push)
