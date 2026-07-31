@@ -24,25 +24,17 @@ jobs:
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
           touch .nojekyll
-          # DO NOT DELETE welcome*.ts - rebuild m3u8 with jsDelivr
-          if ls welcome*.ts 1> /dev/null 2>&1; then
-            echo "#EXTM3U" > welcome.m3u8
-            echo "#EXT-X-VERSION:3" >> welcome.m3u8
-            echo "#EXT-X-TARGETDURATION:8" >> welcome.m3u8
-            echo "#EXT-X-MEDIA-SEQUENCE:0" >> welcome.m3u8
-            echo "#EXT-X-PLAYLIST-TYPE:VOD" >> welcome.m3u8
-            for f in $(ls welcome*.ts | sort -V); do
-              echo "#EXTINF:4.0," >> welcome.m3u8
-              echo "https://cdn.jsdelivr.net/gh/wpgx/Motel@main/$f" >> welcome.m3u8
-            done
-            echo "#EXT-X-ENDLIST" >> welcome.m3u8
-          fi
+          # Keep welcome.mp4 as Channel 1 - passes Sparkle runtime check
           echo "#EXTM3U" > dctv.m3u8
           echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/welcome.jpg", Welcome to our motel!' >> dctv.m3u8
-          echo 'welcome.m3u8' >> dctv.m3u8
+          echo 'https://motel.deecee.ca/welcome.mp4' >> dctv.m3u8
           echo '' >> dctv.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./dctv.m3u8
           rm -f ./plutotv_ca.tmp
+          # Keep welcome.m3u8 simple too
+          echo "#EXTM3U" > welcome.m3u8
+          echo "#EXTINF:-1,Welcome" >> welcome.m3u8
+          echo "https://motel.deecee.ca/welcome.mp4" >> welcome.m3u8
       - name: Commit
         run: |
           git config user.name "pluto-bot"
@@ -50,4 +42,4 @@ jobs:
           git add -A
           git add .nojekyll -f
           git rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Welcome to our motel! keep ts" && git push)
+          git diff --staged --quiet || (git commit -m "fix welcome to mp4 for Sparkle" && git push)
