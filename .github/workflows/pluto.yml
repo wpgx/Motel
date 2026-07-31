@@ -23,17 +23,13 @@ jobs:
           cd /tmp/scraper
           npm install
 
-      - name: Run scraper and rename to dctv in root
+      - name: Run scraper
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
           cp ./plutotv_ca.m3u8 ./dctv.m3u8
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
-          sed -i 's|url-tvg="[^"]*"|url-tvg="https://motel.deecee.ca/dctv.xml"|g' ./dctv.m3u8
-          echo "--- CHECK FIRST LINE ---"
-          head -3 ./dctv.m3u8
-          echo "------------------------"
 
       - name: Commit
         run: |
