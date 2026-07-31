@@ -23,13 +23,25 @@ jobs:
           cd /tmp/scraper
           npm install
 
-      - name: Run scraper
+      - name: Run scraper and add welcome
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          cp ./plutotv_ca.m3u8 ./dctv.m3u8
+          cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
+          
+          echo "#EXTM3U" > ./dctv.m3u8
+          if [ -f ./welcome.m3u8 ]; then
+            echo "Adding welcome.m3u8 on top"
+            grep -v "^#EXTM3U" ./welcome.m3u8 >> ./dctv.m3u8 || true
+          elif [ -f ./welcome.m3u ]; then
+            grep -v "^#EXTM3U" ./welcome.m3u >> ./dctv.m3u8 || true
+          fi
+          grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./dctv.m3u8
+          rm -f ./plutotv_ca.tmp
+          echo "--- First 15 lines of final dctv.m3u8 ---"
+          head -15 ./dctv.m3u8
 
       - name: Commit
         run: |
