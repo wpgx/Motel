@@ -23,17 +23,7 @@ jobs:
           cd /tmp/scraper
           npm install
 
-      - name: Run scraper
+      - name: Run scraper and rename to dctv in root
         run: |
-          mkdir -p ./pluto
-          echo '{"outdir":"./pluto","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          ls -lh ./pluto/
-          wc -l ./pluto/plutotv_ca.m3u8
-
-      - name: Commit
-        run: |
-          git config user.name "pluto-bot"
-          git config user.email "bot@github.com"
-          git add ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml
-          git diff --staged --quiet || (git commit -m "Update Pluto CA $(date -u)" && git push)
+          echo '{"outdir":"./tmp_pluto","mapping":{"ca":"207.161.77.221"}}' > ./config.json
+          node /tmp
