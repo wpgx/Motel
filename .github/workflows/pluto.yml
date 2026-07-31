@@ -16,25 +16,33 @@ jobs:
       - run: |
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
-      - name: Build dctv.m3u8 with Welcome Ch1
+      - name: Build
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          # backup pluto
           cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
           cp ./plutotv_ca.xml ./dctv.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
           touch .nojekyll
-          # ALWAYS create dctv.m3u8 with Welcome as Ch 1
-          printf "#EXTM3U\n" > dctv.m3u8
-          printf '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/welcome.jpg", Welcome to our motel!\n' >> dctv.m3u8
-          printf 'https://motel.deecee.ca/welcome.mp4\n\n' >> dctv.m3u8
-          # append pluto channels starting at Ch 2
+          # Build valid HLS VOD for Sparkle - MUST be on motel.deecee.ca domain
+          echo "#EXTM3U" > welcome.m3u8
+          echo "#EXT-X-VERSION:3" >> welcome.m3u8
+          echo "#EXT-X-TARGETDURATION:10" >> welcome.m3u8
+          echo "#EXT-X-MEDIA-SEQUENCE:0" >> welcome.m3u8
+          for f in $(ls welcome*.ts 2>/dev/null | sort -V); do
+            echo "#EXTINF:8.0," >> welcome.m3u8
+            echo "https://motel.deecee.ca/$f" >> welcome.m3u8
+          done
+          echo "#EXT-X-ENDLIST" >> welcome.m3u8
+          # Build dctv.m3u8 with Welcome Ch1 as m3u8
+          echo "#EXTM3U" > dctv.m3u8
+          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/welcome.jpg", Welcome to our motel!' >> dctv.m3u8
+          echo 'https://motel.deecee.ca/welcome.m3u8' >> dctv.m3u8
+          echo '' >> dctv.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> dctv.m3u8
           rm -f ./plutotv_ca.tmp
-          # also fix welcome.m3u8
-          printf "#EXTM3U\n#EXTINF:-1,Welcome\nhttps://motel.deecee.ca/welcome.mp4\n" > welcome.m3u8
-          ls -lh dctv.m3u8 welcome.m3u8 .nojekyll
+          cat welcome.m3u8
+          head -5 dctv.m3u8
       - name: Commit
         run: |
           git config user.name "pluto-bot"
@@ -42,5 +50,4 @@ jobs:
           git add -A
           git add .nojekyll -f
           git rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml 2>/dev/null || true
-          git commit -m "Force Welcome Ch1 with mp4" || echo "no changes"
-          git push
+          git diff --staged --quiet || (git commit -m "Welcome HLS on motel.deecee.ca domain for Sparkle" && git push)
