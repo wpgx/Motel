@@ -1,0 +1,31 @@
+name: Update Pluto CA
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # every 6 hours
+  workflow_dispatch:      # manual run button
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Pluto Scraper
+        run: |
+          npx -y github:4v3ngR/pluto_tv_scraper --config <(echo '{"outdir":"./pluto","mapping":{"ca":"207.161.77.221"}}') --exclude-groups "^Local News$" --region ca
+          ls -lh ./pluto
+
+      - name: Commit and push
+        run: |
+          git config user.name "pluto-bot"
+          git config user.email "bot@github.com"
+          git add ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml || git add ./pluto/
+          git diff --staged --quiet || git commit -m "Update Pluto CA $(date -u)"
+          git push
