@@ -17,21 +17,23 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Create config
+      - name: Clone scraper and install
+        run: |
+          git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
+          cd /tmp/scraper
+          npm install
+
+      - name: Run scraper
         run: |
           mkdir -p ./pluto
           echo '{"outdir":"./pluto","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          cat ./config.json
+          node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
+          ls -lh ./pluto/
+          wc -l ./pluto/plutotv_ca.m3u8
 
-      - name: Run Pluto Scraper
-        run: |
-          npx -y github:4v3ngR/pluto_tv_scraper --config ./config.json --exclude-groups "^Local News$" --region ca
-          ls -lh ./pluto
-
-      - name: Commit and push
+      - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
-          git add ./pluto/
-          git diff --staged --quiet || git commit -m "Update Pluto CA $(date -u)"
-          git push
+          git add ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml
+          git diff --staged --quiet || (git commit -m "Update Pluto CA $(date -u)" && git push)
