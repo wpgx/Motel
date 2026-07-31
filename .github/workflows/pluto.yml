@@ -32,12 +32,9 @@ jobs:
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
           
           echo "#EXTM3U" > ./dctv.m3u8
-          if [ -f ./welcome.m3u8 ]; then
-            echo "Adding welcome.m3u8 on top"
-            grep -v "^#EXTM3U" ./welcome.m3u8 >> ./dctv.m3u8 || true
-          elif [ -f ./welcome.m3u ]; then
-            grep -v "^#EXTM3U" ./welcome.m3u >> ./dctv.m3u8 || true
-          fi
+          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel" tvg-logo="https://motel.deecee.ca/logo.png", ★ Welcome to Dee'\''s Motel' >> ./dctv.m3u8
+          echo 'https://motel.deecee.ca/welcome.m3u8' >> ./dctv.m3u8
+          echo '' >> ./dctv.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./dctv.m3u8
           rm -f ./plutotv_ca.tmp
           echo "--- First 15 lines of final dctv.m3u8 ---"
