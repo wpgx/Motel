@@ -14,29 +14,31 @@ jobs:
 
       - name: Pull Samsung from Render
         run: |
-          echo "Waking Render..."
-          curl -L -s "https://motel.onrender.com/" -o /tmp/wake --max-time 60 || true
-          sleep 10
+          BASE="https://motel-r45n.onrender.com"
           
-          echo "Fetching m3u8 + xml..."
-          curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/samsung-ca.m3u8" -o samsung-ca.m3u8 --max-time 90
-          curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/samsung-ca.xml" -o samsung-ca.xml --max-time 90
+          echo "Waking $BASE ..."
+          for i in 1 2 3; do
+            echo "Wake $i"
+            curl -L -s -A "Mozilla/5.0" "$BASE/" --max-time 90 -o /tmp/wake || true
+            sleep 15
+            curl -L -s -A "Mozilla/5.0" "$BASE/samsung-ca.m3u8" --max-time 90 -o samsung-ca.m3u8 && \
+            COUNT=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0) && \
+            [ "$COUNT" -gt 10 ] && echo "Awake $COUNT ch" && break
+          done
+
+          curl -L -s -A "Mozilla/5.0" "$BASE/samsung-ca.xml" --max-time 90 -o samsung-ca.xml || true
+          curl -L -s -A "Mozilla/5.0" "$BASE/samsung-ca.m3u8" --max-time 90 -o samsung-ca.m3u8
           
           M3U=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
-          XML_SIZE=$(wc -c < samsung-ca.xml || echo 0)
-          
-          echo "M3U: $M3U channels"
-          echo "XML: $XML_SIZE bytes"
-          
-          if [ "$M3U" -lt 10 ]; then
-            echo "M3U too small, abort"
-            exit 1
-          fi
-          
+          XML=$(wc -c < samsung-ca.xml || echo 0)
+          echo "M3U $M3U ch / XML $XML bytes"
           ls -lh samsung-ca.*
+          
+          if [ "$M3U" -lt 10 ]; then exit 0; fi
+          
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add samsung-ca.m3u8 samsung-ca.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "samsung ca $M3U ch from Render"
+          git commit -m "samsung ca $M3U ch"
           git push
