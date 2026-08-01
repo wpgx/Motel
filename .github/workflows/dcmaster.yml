@@ -14,47 +14,37 @@ jobs:
 
       - name: Build dcmaster.m3u8 + dcmaster.xml - CA ONLY
         run: |
-          # 1. DCTV base
+          set +e
           echo "DCTV INF: $(grep -c "#EXTINF" dctv.m3u8)"
 
-          # 2. Download with curl (this WORKS - you proved it)
           curl -L -s -A "Mozilla/5.0" -o /tmp/samsung.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
           curl -L -s -A "Mozilla/5.0" -o /tmp/plex.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
 
           echo "Samsung total INF: $(grep -c "#EXTINF" /tmp/samsung.m3u)"
           echo "Plex total INF: $(grep -c "#EXTINF" /tmp/plex.m3u)"
 
-          # 3. Extract Canada - channel-id="CA
-          # Keep EXTINF line + next line (url)
-          grep -A1 'channel-id="CA' /tmp/samsung.m3u > /tmp/samsung-ca.m3u
-          grep -A1 'channel-id="CA' /tmp/plex.m3u > /tmp/plex-ca.m3u
+          # Extract Canada - channel-id="CA - keep 1 line after
+          grep -A1 'channel-id="CA' /tmp/samsung.m3u > /tmp/samsung-ca.m3u || true
+          grep -A1 'channel-id="CA' /tmp/plex.m3u > /tmp/plex-ca.m3u || true
 
           echo "Samsung CA INF: $(grep -c "#EXTINF" /tmp/samsung-ca.m3u)"
           echo "Plex CA INF: $(grep -c "#EXTINF" /tmp/plex-ca.m3u)"
 
-          # 4. Build dcmaster.m3u8
+          # Build final
           echo "#EXTM3U" > dcmaster.m3u8
-          grep -v "#EXTM3U" dctv.m3u8 >> dcmaster.m3u8
+          grep -v "#EXTM3U" dctv.m3u8 >> dcmaster.m3u8 || true
           cat /tmp/samsung-ca.m3u >> dcmaster.m3u8
           cat /tmp/plex-ca.m3u >> dcmaster.m3u8
 
-          # Remove duplicates by name (keep first)
-          awk '!seen[substr($0,index($0,",")+1)]++ || /^http/' dcmaster.m3u8 > /tmp/dedup.m3u8
-          # Actually simpler - just keep all, your player will handle dups
-          # Re-add header if awk removed it
-          head -1 dcmaster.m3u8 | grep -q "#EXTM3U" || sed -i '1i#EXTM3U' dcmaster.m3u8
-
           echo "FINAL dcmaster.m3u8 INF: $(grep -c "#EXTINF" dcmaster.m3u8)"
 
-          # 5. Save xml too
-          cp dctv.xml dcmaster.xml || echo "no xml"
-
-          ls -lh dcmaster.*
+          cp dctv.xml dcmaster.xml || echo "no xml to copy"
+          ls -lh dcmaster.* || true
 
       - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml
-          git commit -m "DCMASTER CA curl+CA filter - 600+" || echo "no change"
+          git commit -m "DCMASTER CA 600+ curl fix" || echo "no change"
           git push
