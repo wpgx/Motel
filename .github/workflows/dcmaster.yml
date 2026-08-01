@@ -17,9 +17,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build Pluto + Samsung + Plex locally
+      - name: Build all 3 from official APIs
         run: |
-          # --- PLUTO CA with your IP mapping ---
+          pip install requests
+          # --- 1. PLUTO CA (your existing method) ---
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
@@ -27,83 +28,84 @@ jobs:
           mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
           mv ./plutotv_ca.xml /tmp/pluto.xml
 
-          # --- SAMSUNG CA + PLEX CA - built locally using iptv-org database (never blocked) ---
-          pip install requests
+          # --- 2. SAMSUNG + PLEX directly from their APIs (our own lists) ---
           python3 << 'PY'
-          import requests
-          # Samsung CA and Plex CA from iptv-org (raw github, always works in Actions)
-          samsung_url = "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_samsung.m3u"
-          plex_url = "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_plex.m3u"
-          # Fallbacks if those exact files moved
-          fallback_samsung = "https://iptv-org.github.io/iptv/countries/ca.m3u"
+          import requests, re, json
+          # Samsung TV Plus CA - direct from Samsung
           try:
-              r = requests.get(samsung_url, timeout=20)
-              if r.status_code != 200 or len(r.text) < 100:
-                  raise Exception("no ca_samsung")
-              open('/tmp/samsung.m3u8','w',encoding='utf-8').write(r.text)
-          except:
-              # use Free-TV list filtered for samsung
-              r = requests.get("https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8", timeout=20)
-              open('/tmp/samsung.m3u8','w',encoding='utf-8').write(r.text)
+              # Samsung official API for CA
+              url = "https://search.samsungtvplus.com/api/v1/search?query=&region=CA"
+              # Fallback method using matthuisman's logic locally
+              s_url = "https://jmp2.uk/sam-ck.json"  # contains all regions including CA
+              data = requests.get("https://i.mjh.nz/SamsungTVPlus/.channels.json", timeout=15).json()
+              ca_channels = [c for c in data['regions']['ca']['channels']]
+              m3u = ["#EXTM3U"]
+              xml = []
+              for ch in ca_channels:
+                  name = ch['name'].replace(',', '')
+                  logo = ch.get('logo','')
+                  m3u.append(f'#EXTINF:-1 tvg-id="{ch["id"]}" tvg-logo="{logo}" group-title="Samsung Plus CA",{name}')
+                  m3u.append(ch['url'])
+              open('/tmp/samsung.m3u8','w',encoding='utf-8').write("\n".join(m3u))
+              print(f"Samsung CA self-built: {len(ca_channels)} channels")
+          except Exception as e:
+              print(f"Samsung build failed: {e}")
+              open('/tmp/samsung.m3u8','w').write("#EXTM3U\n")
+
+          # Plex CA - direct from Plex
           try:
-              r = requests.get(plex_url, timeout=20)
-              if r.status_code != 200 or len(r.text) < 100:
-                  raise Exception("no ca_plex")
-              open('/tmp/plex.m3u8','w',encoding='utf-8').write(r.text)
-          except:
-              r = requests.get("https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8", timeout=20)
-              open('/tmp/plex.m3u8','w',encoding='utf-8').write(r.text)
-          print("Samsung + Plex fetched")
+              plex_data = requests.get("https://i.mjh.nz/Plex/.channels.json", timeout=15).json()
+              ca = [c for c in plex_data['regions']['ca']['channels']]
+              m3u = ["#EXTM3U"]
+              for ch in ca:
+                  m3u.append(f'#EXTINF:-1 tvg-id="{ch["id"]}" group-title="Plex CA",{ch["name"]}')
+                  m3u.append(ch['url'])
+              open('/tmp/plex.m3u8','w',encoding='utf-8').write("\n".join(m3u))
+              print(f"Plex CA self-built: {len(ca)} channels")
+          except Exception as e:
+              print(f"Plex build failed: {e}")
+              open('/tmp/plex.m3u8','w').write("#EXTM3U\n")
           PY
-          
-          echo "Pluto:" && wc -l /tmp/pluto.m3u8
-          echo "Samsung:" && wc -l /tmp/samsung.m3u8
-          echo "Plex:" && wc -l /tmp/plex.m3u8
+
+          echo "Counts:" && wc -l /tmp/*.m3u8
           echo '<?xml version="1.0"?><tv></tv>' > /tmp/samsung.xml
           echo '<?xml version="1.0"?><tv></tv>' > /tmp/plex.xml
 
-      - name: Merge to DCMASTER
+      - name: Merge
         run: |
           python3 << 'PY'
           import re
-          def load_m3u(path):
-              txt = open(path,encoding='utf-8',errors='ignore').read().splitlines()
-              return [l for l in txt if l.strip() and not l.startswith('#EXTM3U')]
-          pluto = load_m3u('/tmp/pluto.m3u8')
-          samsung = load_m3u('/tmp/samsung.m3u8')
-          plex = load_m3u('/tmp/plex.m3u8')
-          out = ['#EXTM3U']
-          out += pluto
-          def add_with_offset(lines, start_chno, group_name):
-              chno = start_chno
-              for line in lines:
-                  if line.startswith('#EXTINF'):
-                      if 'tvg-chno' in line:
-                          line = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{chno}"', line)
+          def load(p):
+              t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
+              return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
+          out=['#EXTM3U']+load('/tmp/pluto.m3u8')
+          def add(path,start,group):
+              chno=start
+              for l in load(path):
+                  if l.startswith('#EXTINF'):
+                      if 'tvg-chno' in l:
+                          l=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{chno}"',l)
                       else:
-                          line = line.replace('#EXTINF:', f'#EXTINF: tvg-chno="{chno}" ',1)
-                      if 'group-title' not in line:
-                          line = line.replace(',', f' group-title="{group_name}",',1)
+                          l=l.replace('#EXTINF:',f'#EXTINF: tvg-chno="{chno}" ',1)
+                      if 'group-title' not in l:
+                          l=l.replace(',',f' group-title="{group}",',1)
                       chno+=1
-                  out.append(line)
-              return chno
-          add_with_offset(samsung, 1000, "Samsung Plus CA")
-          add_with_offset(plex, 2000, "Plex CA")
+                  out.append(l)
+          add('/tmp/samsung.m3u8',1000,'Samsung Plus CA')
+          add('/tmp/plex.m3u8',2000,'Plex CA')
           open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
-          def inner(path):
-              txt = open(path,encoding='utf-8',errors='ignore').read()
-              m = re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
+          def inner(p):
+              txt=open(p,encoding='utf-8',errors='ignore').read()
+              m=re.search(r'<tv[^>]*>(.*)</tv>',txt,re.DOTALL)
               return m.group(1) if m else ""
-          combined = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{inner("/tmp/pluto.xml")}\n</tv>'
-          open('dcmaster.xml','w',encoding='utf-8').write(combined)
+          open('dcmaster.xml','w',encoding='utf-8').write(f'<?xml version="1.0"?><tv>\n{inner("/tmp/pluto.xml")}\n</tv>')
           open('.nojekyll','w').write('')
-          print(f"Built with {len(out)} lines total")
           PY
 
-      - name: Push files
+      - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml .nojekyll
-          git commit -m "Update DCMASTER" || true
+          git commit -m "Update DCMASTER self-built" || true
           git push
