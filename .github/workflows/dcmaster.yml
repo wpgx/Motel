@@ -15,80 +15,65 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build DCMASTER CA ONLY
+      - name: Build DCMASTER from DCTV + Samsung CA + Plex CA
         run: |
           pip install requests -q
           python3 << 'PY'
           import requests, re, os
           headers={'User-Agent':'Mozilla/5.0'}
 
-          # 1. YOUR motel pluto - this is already CA only
-          pluto_file="pluto.m3u8"
+          # 1. YOUR motel file is dctv.m3u8 - CANADA ONLY
+          pluto_file="dctv.m3u8"
           if not os.path.exists(pluto_file):
-              for alt in ["plutotv_ca.m3u8","pluto_ca.m3u8","pluto_tv.m3u8"]:
-                  if os.path.exists(alt):
-                      pluto_file=alt
-                      break
-          print(f"Pluto source: {pluto_file} exists={os.path.exists(pluto_file)}")
-          base = open(pluto_file, encoding="utf-8", errors="ignore").read().splitlines() if os.path.exists(pluto_file) else ["#EXTM3U"]
+              print(f"ERROR {pluto_file} not found!")
+              exit(1)
+          base = open(pluto_file, encoding="utf-8", errors="ignore").read().splitlines()
+          print(f"Base {pluto_file}: {len([x for x in base if '#EXTINF' in x])} channels")
 
-          # 2. Fetch Samsung CA and Plex CA - both are already filtered to CA by the scraper
+          # 2. Samsung CA + Plex CA - both are CA ONLY already
           urls = {
             "Samsung-CA": "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-CA.m3u",
             "Plex-CA": "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-CA.m3u"
           }
           extra_text=""
           for name, url in urls.items():
-              try:
-                  r=requests.get(url, headers=headers, timeout=30)
-                  if r.status_code==200 and "#EXTINF" in r.text:
-                      print(f"OK {name}: {len(r.text)} bytes, {r.text.count('#EXTINF')} channels")
-                      extra_text+=r.text+"\n"
-                  else:
-                      print(f"FAIL {name}: {r.status_code}")
-              except Exception as e:
-                  print(f"Error {name}: {e}")
+              r=requests.get(url, headers=headers, timeout=30)
+              print(f"{name}: {r.status_code} - {r.text.count('#EXTINF')} channels")
+              extra_text+=r.text+"\n"
 
-          # 3. Merge with dedup (Canada only already, but double check)
+          # 3. Merge dedup
           seen=set()
-          out=["#EXTM3U"]
-          # add your pluto first
+          out=[]
           for line in base:
               if line.startswith("#EXTINF"):
                   key=line.lower().split(",")[-1].strip()
                   seen.add(key)
                   out.append(line)
-              elif line.strip() and not line.startswith("#EXTM3U"):
+              elif "http" in line:
                   out.append(line.strip())
 
-          pluto_count=len([x for x in out if "#EXTINF" in x])
-          add_count=0
+          pluto_count=len([x for x in out if "http" in x])
           cur=""
+          add=0
           for line in extra_text.splitlines():
               if line.startswith("#EXTINF"):
-                  # ensure CA - skip if marked US/UK etc but these files are CA only already
-                  low=line.lower()
-                  # extra safety: if tvg-country exists and not ca, skip
-                  if 'tvg-country=' in low and 'ca' not in low:
-                      continue
-                  key=low.split(",")[-1].strip()
+                  key=line.lower().split(",")[-1].strip()
                   if not key or key in seen:
+                      cur=""
                       continue
                   seen.add(key)
                   cur=line
-                  add=True
               else:
-                  if not cur: continue
-                  if "http" not in line: 
+                  if not cur or "http" not in line:
                       cur=""
                       continue
                   out.append(cur)
                   out.append(line.strip())
                   cur=""
-                  add_count+=1
+                  add+=1
 
           # renumber
-          final=[]
+          final=["#EXTM3U"]
           c=1
           for x in out:
               if x.startswith("#EXTINF"):
@@ -97,18 +82,17 @@ jobs:
               final.append(x)
 
           open("dcmaster.m3u8","w",encoding="utf-8").write("\n".join(final))
-          # copy your pluto xml for guide
-          if os.path.exists("pluto.xml"):
+          # use dctv.xml as guide
+          if os.path.exists("dctv.xml"):
               import shutil
-              shutil.copy("pluto.xml","dcmaster.xml")
-          open(".nojekyll","w").write("")
-          print(f"DONE: {len([x for x in final if '#EXTINF' in x])} total = {pluto_count} Pluto + {add_count} Samsung/Plex CA ONLY")
+              shutil.copy("dctv.xml","dcmaster.xml")
+          print(f"DONE: {len([x for x in final if '#EXTINF' in x])} total = {pluto_count} DCTV + {add} Samsung+Plex CA ONLY")
           PY
 
       - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
-          git add dcmaster.m3u8 dcmaster.xml .nojekyll
-          git commit -m "DCMASTER CA ONLY" || echo "no change"
+          git add dcmaster.m3u8 dcmaster.xml
+          git commit -m "DCMASTER CA" || echo "no change"
           git push
