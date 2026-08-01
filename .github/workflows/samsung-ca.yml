@@ -1,9 +1,8 @@
-name: Update Samsung CA
+name: Update Samsung CA - My Scrape
 on:
   schedule:
     - cron: '0 */3 * * *'
   workflow_dispatch:
-
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -11,32 +10,18 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Get Samsung scraper
-        run: |
-          git clone https://github.com/matthuisman/samsung-tvplus-for-channels.git /tmp/samsung
-          pip install -r /tmp/samsung/requirements.txt
-          ls /tmp/samsung
-
-      - name: Build Samsung CA
-        run: |
-          cd /tmp/samsung
-          REGIONS=ca python3 app.py
-          echo "=== BUILT ==="
-          ls -lh *.m3u8 *.xml 2>&1
-          echo "Channels: $(grep -c "#EXTINF" playlist.m3u8)"
-          # copy to YOUR repo as new files - doesn't touch dctv files
-          cp playlist.m3u8 $GITHUB_WORKSPACE/samsung-ca.m3u8
-          cp epg.xml $GITHUB_WORKSPACE/samsung-ca.xml
-
-      - name: Commit Samsung CA
+      - run: pip install requests
+      - run: python samsung-scrape.py
+      - run: |
+          echo "Channels: $(grep -c "#EXTINF" samsung-ca.m3u8)"
+          ls -lh samsung-ca.*
+      - name: Commit
         run: |
           git config user.name "samsung-bot"
-          git config user.email "samsung-bot@deecee.ca"
+          git config user.email "bot@deecee.ca"
           git add samsung-ca.m3u8 samsung-ca.xml
-          git commit -m "Samsung CA refresh $(date -u +%Y-%m-%d-%H%M)" || echo "no change"
+          git commit -m "Samsung CA my scrape $(date -u)" || true
           git push
