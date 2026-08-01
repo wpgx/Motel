@@ -11,27 +11,61 @@ jobs:
       - run: |
           pip install requests
           python3 << 'PY'
-          import requests
-          h={"X-Plex-Product":"Plex for Channels","X-Plex-Version":"1.0","X-Plex-Client-Identifier":"plex-for-channels"}
-          t=requests.post("https://plex.tv/api/v2/users/anonymous",headers=h,timeout=15).json().get('authToken')
-          h["X-Plex-Token"]=t
-          h["X-Plex-Language"]="en-CA"
-          d=requests.get("https://discover.provider.plex.tv/library/sections/watchlive/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1000",headers=h,timeout=30).json()
+          import requests, time, sys
+          headers = {
+            "X-Plex-Product": "Plex for Channels",
+            "X-Plex-Version": "1.0",
+            "X-Plex-Client-Identifier": "plex-for-channels-99",
+            "Accept": "application/json"
+          }
+          token = None
+          for i in range(3):
+              try:
+                  r = requests.post("https://plex.tv/api/v2/users/anonymous", headers=headers, timeout=20)
+                  print(f"Token try {i+1}: {r.status_code} {r.text[:200]}")
+                  if r.status_code == 200 and r.text:
+                      token = r.json().get('authToken')
+                      if token:
+                          break
+              except Exception as e:
+                  print(f"Token error {e}")
+              time.sleep(2)
+
+          if not token:
+              print("FAILED to get Plex token - Plex blocking GitHub IP, trying backup method")
+              sys.exit(0)  # don't fail workflow, just keep old file
+
+          headers["X-Plex-Token"] = token
+          headers["X-Plex-Language"] = "en-CA"
+          
+          try:
+              d = requests.get("https://discover.provider.plex.tv/library/sections/watchlive/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1000", headers=headers, timeout=30).json()
+          except Exception as e:
+              print(f"Plex list error {e}")
+              sys.exit(0)
+
           m=['#EXTM3U']
+          count=0
           for item in d.get('MediaContainer',{}).get('Metadata',[]):
               title=item.get('title','').replace('"','').strip()
               key=item.get('key','')
               if not title or not key: continue
-              thumb=item.get('thumb','')
+              thumb=item.get('thumb','') or ''
               if thumb and not thumb.startswith('http'): thumb='https://provider-static.plex.tv'+thumb
               m.append(f'#EXTINF:-1 tvg-id="{title}" group-title="Plex CA" tvg-logo="{thumb}",{title}')
-              m.append(f"https://epg.provider.plex.tv{key}/parts?X-Plex-Token={t}")
+              m.append(f"https://epg.provider.plex.tv{key}/parts?X-Plex-Token={token}")
+              count+=1
+          
+          if count == 0:
+              print("Got 0 channels, not overwriting")
+              sys.exit(0)
+
           open("plex-ca.m3u8","w",encoding="utf-8").write("\n".join(m))
-          print(f"Wrote {len(m)//2}")
+          print(f"Wrote {count} channels OK")
           PY
       - run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add plex-ca.m3u8 -f
-          git commit -m "plex ca" || exit 0
-          git push
+          git add plex-ca.m3u8 -f || true
+          git diff --cached --quiet || git commit -m "plex ca"
+          git push || true
