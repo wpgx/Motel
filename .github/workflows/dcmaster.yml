@@ -1,107 +1,32 @@
-name: Build DCMASTER
+name: FIX NESTED FOLDERS
 on:
-  schedule:
-    - cron: '0 */6 * * *'
   workflow_dispatch:
 jobs:
-  build:
+  fix:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Build Pluto CA 207
+      - name: Fix nested bomb
         run: |
-          pip install requests
-          git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
-          cd /tmp/scraper
-          npm install
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node ./index.js --config ./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
-          mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
-          mv ./plutotv_ca.xml /tmp/pluto.xml
-          cp /tmp/pluto.m3u8 $GITHUB_WORKSPACE/motel.m3u8
-          cp /tmp/pluto.xml $GITHUB_WORKSPACE/motel.xml
-          echo "Motel Pluto CA: $(grep -c EXTINF /tmp/pluto.m3u8)"
-
-      - name: Fetch Samsung CA + Plex CA ONLY
-        run: |
-          cat > /tmp/fetch.py << 'PYEOF'
-          import requests
-          headers={"User-Agent":"Mozilla/5.0"}
-          urls=[
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-CA.m3u",
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-CA.m3u",
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-CA.m3u8",
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-CA.m3u8"
-          ]
-          all_lines=[]
-          for u in urls:
-            try:
-              r=requests.get(u,headers=headers,timeout=30)
-              print(f"{u} -> {r.status_code} {len(r.text)}")
-              if r.status_code==200 and 'EXTINF' in r.text:
-                all_lines+=r.text.splitlines()
-                break
-            except Exception as e:
-              print(f"FAIL {u} {e}")
-
-          # fallback to All filtered to CA if CA file missing
-          if not all_lines:
-            print("CA files not found, using All filtered to CA")
-            r=requests.get("https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",headers=headers,timeout=30)
-            all_lines=r.text.splitlines()
-
-          clean=[]
-          seen_names=set()
-          seen_urls=set()
-          keep=False
-          import re
-          for line in all_lines:
-            if not line.strip(): continue
-            if line.startswith('#EXTINF'):
-              low=line.lower()
-              # keep only if CA
-              if 'tvg-country=' in low:
-                if 'ca' not in low:
-                  keep=False
-                  continue
-              # dedup by name
-              m=re.search(r',([^,]+)$',line)
-              name=m.group(1).strip().lower() if m else low
-              if name in seen_names:
-                keep=False
-                continue
-              seen_names.add(name)
-              clean.append(line)
-              keep=True
-            else:
-              if not keep: continue
-              if line.startswith('#'): continue
-              url=line.strip()
-              if 'http' not in url.lower(): 
-                keep=False
-                continue
-              if url in seen_urls:
-                keep=False
-                continue
-              if 'example.com' in url or '127.0.0.1' in url:
-                keep=False
-                continue
-              seen_urls.add(url)
-              clean.append(url)
-              keep=False
-
-          open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
-          print(f"CA ONLY DEDUPED: {sum(1 for l in clean if 'EXTINF' in l)} channels")
-          PYEOF
-          python3 /tmp/fetch.py
-
-      - name: Merge
+          mkdir -p /tmp/save
+          # save the 4 real yml files if they exist
+          cp .github/workflows/*.yml /tmp/save/ 2>/dev/null || true
+          # find and save from nested if top level was empty
+          find .github -name "*.yml" -exec cp {} /tmp/save/ \; 2>/dev/null || true
+          # NUKE everything nested
+          rm -rf .github/workflows
+          rm -rf .github
+          mkdir -p .github/workflows
+          # restore only the 4 clean files
+          cp /tmp/save/dcmaster.yml .github/workflows/ 2>/dev/null || true
+          cp /tmp/save/motel-check.yml .github/workflows/ 2>/dev/null || true
+          cp /tmp/save/pluto.yml .github/workflows/ 2>/dev/null || true
+          cp /tmp/save/restore.yml .github/workflows/ 2>/dev/null || true
+          ls -R .github
+          git config user.name "fix-bot"
+          git config user.email "bot@github.com"
+          git add -A
+          git commit -m "FIX nested workflows" || true
+          git push
