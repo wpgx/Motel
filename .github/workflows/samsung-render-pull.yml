@@ -12,36 +12,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Pull from Render
+      - name: Pull Samsung from Render
         run: |
-          RENDER_URL="https://motel.onrender.com/samsung-ca.m3u8"
-          
           echo "Waking Render..."
-          curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/" -o /tmp/wake --max-time 60 || true
-          sleep 15
+          curl -L -s "https://motel.onrender.com/" -o /tmp/wake --max-time 60 || true
+          sleep 10
           
-          echo "Fetching $RENDER_URL"
-          curl -L -v -A "Mozilla/5.0" "$RENDER_URL" -o samsung-ca.m3u8 --max-time 90
+          echo "Fetching m3u8 + xml..."
+          curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/samsung-ca.m3u8" -o samsung-ca.m3u8 --max-time 90
+          curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/samsung-ca.xml" -o samsung-ca.xml --max-time 90
           
-          COUNT=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
-          echo "Got $COUNT channels"
+          M3U=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
+          XML_SIZE=$(wc -c < samsung-ca.xml || echo 0)
           
-          if [ "$COUNT" -lt 10 ]; then
-            echo "File too small, trying /samsung.m3u8"
-            curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/samsung.m3u8" -o samsung-ca.m3u8 --max-time 90
-            COUNT=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
-            echo "Retry got $COUNT"
-          fi
+          echo "M3U: $M3U channels"
+          echo "XML: $XML_SIZE bytes"
           
-          if [ "$COUNT" -lt 10 ]; then
-            echo "Failed - check Render path"
+          if [ "$M3U" -lt 10 ]; then
+            echo "M3U too small, abort"
             exit 1
           fi
           
-          ls -lh samsung-ca.m3u8
+          ls -lh samsung-ca.*
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add samsung-ca.m3u8 -f
+          git add samsung-ca.m3u8 samsung-ca.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "samsung ca $COUNT ch"
+          git commit -m "samsung ca $M3U ch from Render"
           git push
