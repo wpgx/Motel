@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build dcmaster.m3u8 + dcmaster.xml - CA ONLY
+      - name: Build CANADA ONLY - 600 channels
         run: |
           set +e
           echo "DCTV INF: $(grep -c "#EXTINF" dctv.m3u8)"
@@ -20,31 +20,54 @@ jobs:
           curl -L -s -A "Mozilla/5.0" -o /tmp/samsung.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
           curl -L -s -A "Mozilla/5.0" -o /tmp/plex.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
 
-          echo "Samsung total INF: $(grep -c "#EXTINF" /tmp/samsung.m3u)"
-          echo "Plex total INF: $(grep -c "#EXTINF" /tmp/plex.m3u)"
+          python3 << 'PY'
+          import re
 
-          # Extract Canada - channel-id="CA - keep 1 line after
-          grep -A1 'channel-id="CA' /tmp/samsung.m3u > /tmp/samsung-ca.m3u || true
-          grep -A1 'channel-id="CA' /tmp/plex.m3u > /tmp/plex-ca.m3u || true
+          def extract_ca(input_path, output_path):
+              with open(input_path, encoding="utf-8", errors="ignore") as f:
+                  lines=f.read().splitlines()
+              out=[]
+              for i in range(len(lines)):
+                  line=lines[i]
+                  if not line.startswith("#EXTINF"):
+                      continue
+                  low=line.lower()
+                  # Canada detection for both Samsung and Plex
+                  is_ca = (
+                      'channel-id="ca' in low or
+                      'tvg-id="ca' in low or
+                      'group-title="canada"' in low or
+                      'group-title="ca"' in low or
+                      'tvg-country="ca' in low
+                  )
+                  if is_ca:
+                      out.append(line)
+                      if i+1 < len(lines) and lines[i+1].strip().startswith("http"):
+                          out.append(lines[i+1].strip())
+              open(output_path,"w",encoding="utf-8").write("\n".join(out))
+              print(f"{input_path} -> CA: {len([x for x in out if '#EXTINF' in x])}")
 
-          echo "Samsung CA INF: $(grep -c "#EXTINF" /tmp/samsung-ca.m3u)"
-          echo "Plex CA INF: $(grep -c "#EXTINF" /tmp/plex-ca.m3u)"
+          extract_ca("/tmp/samsung.m3u", "/tmp/samsung-ca.m3u")
+          extract_ca("/tmp/plex.m3u", "/tmp/plex-ca.m3u")
+          PY
 
-          # Build final
+          echo "Samsung CA INF: $(grep -c "#EXTINF" /tmp/samsung-ca.m3u || echo 0)"
+          echo "Plex CA INF: $(grep -c "#EXTINF" /tmp/plex-ca.m3u || echo 0)"
+
+          # Build dcmaster
           echo "#EXTM3U" > dcmaster.m3u8
           grep -v "#EXTM3U" dctv.m3u8 >> dcmaster.m3u8 || true
-          cat /tmp/samsung-ca.m3u >> dcmaster.m3u8
-          cat /tmp/plex-ca.m3u >> dcmaster.m3u8
+          cat /tmp/samsung-ca.m3u >> dcmaster.m3u8 || true
+          cat /tmp/plex-ca.m3u >> dcmaster.m3u8 || true
 
           echo "FINAL dcmaster.m3u8 INF: $(grep -c "#EXTINF" dcmaster.m3u8)"
-
-          cp dctv.xml dcmaster.xml || echo "no xml to copy"
-          ls -lh dcmaster.* || true
+          cp dctv.xml dcmaster.xml || true
+          ls -lh dcmaster.*
 
       - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml
-          git commit -m "DCMASTER CA 600+ curl fix" || echo "no change"
+          git commit -m "DCMASTER Canada only - Samsung+Plex" || echo "no change"
           git push
