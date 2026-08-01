@@ -1,0 +1,24 @@
+name: Plex CA
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Plex for Channels
+        run: |
+          docker run -d --name pfc -p 7777:7777 -e PLEX_CODE=ca ghcr.io/jgomez177/plex-for-channels:latest
+          sleep 40
+          curl -s http://127.0.0.1:7777/plex/playlist.m3u8 -o playlist.m3u8 || curl -s http://127.0.0.1:7777/playlist.m3u8 -o playlist.m3u8
+          curl -s http://127.0.0.1:7777/plex/epg.xml -o epg.xml || curl -s http://127.0.0.1:7777/epg.xml -o epg.xml
+          wc -l playlist.m3u8 epg.xml
+      - name: Commit
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add playlist.m3u8 epg.xml
+          git commit -m "update" || exit 0
+          git push
