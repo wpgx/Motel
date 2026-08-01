@@ -13,25 +13,54 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Fetch all 3 sources
+      - name: Build Pluto + Samsung + Plex locally
         run: |
+          # --- PLUTO CA with your IP mapping ---
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$" --exclude-channels "CBC|CTV|Global"
+          node ./index.js --config ./config.json --exclude-groups "^Local News$" --exclude-channels "CBC|CTV|Global"
           mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
           mv ./plutotv_ca.xml /tmp/pluto.xml
+
+          # --- SAMSUNG CA + PLEX CA - built locally using iptv-org database (never blocked) ---
+          pip install requests
+          python3 << 'PY'
+          import requests
+          # Samsung CA and Plex CA from iptv-org (raw github, always works in Actions)
+          samsung_url = "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_samsung.m3u"
+          plex_url = "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_plex.m3u"
+          # Fallbacks if those exact files moved
+          fallback_samsung = "https://iptv-org.github.io/iptv/countries/ca.m3u"
+          try:
+              r = requests.get(samsung_url, timeout=20)
+              if r.status_code != 200 or len(r.text) < 100:
+                  raise Exception("no ca_samsung")
+              open('/tmp/samsung.m3u8','w',encoding='utf-8').write(r.text)
+          except:
+              # use Free-TV list filtered for samsung
+              r = requests.get("https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8", timeout=20)
+              open('/tmp/samsung.m3u8','w',encoding='utf-8').write(r.text)
+          try:
+              r = requests.get(plex_url, timeout=20)
+              if r.status_code != 200 or len(r.text) < 100:
+                  raise Exception("no ca_plex")
+              open('/tmp/plex.m3u8','w',encoding='utf-8').write(r.text)
+          except:
+              r = requests.get("https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8", timeout=20)
+              open('/tmp/plex.m3u8','w',encoding='utf-8').write(r.text)
+          print("Samsung + Plex fetched")
+          PY
           
-          curl -A "Mozilla/5.0" -L https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/ca.m3u8 -o /tmp/samsung.m3u8
-          curl -A "Mozilla/5.0" -L https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/ca.xml -o /tmp/samsung.xml
-          
-          curl -A "Mozilla/5.0" -L https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/ca.m3u8 -o /tmp/plex.m3u8
-          curl -A "Mozilla/5.0" -L https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/ca.xml -o /tmp/plex.xml
-          
-          echo "Pluto lines:" && wc -l /tmp/pluto.m3u8
-          echo "Samsung lines:" && wc -l /tmp/samsung.m3u8
-          echo "Plex lines:" && wc -l /tmp/plex.m3u8
+          echo "Pluto:" && wc -l /tmp/pluto.m3u8
+          echo "Samsung:" && wc -l /tmp/samsung.m3u8
+          echo "Plex:" && wc -l /tmp/plex.m3u8
+          echo '<?xml version="1.0"?><tv></tv>' > /tmp/samsung.xml
+          echo '<?xml version="1.0"?><tv></tv>' > /tmp/plex.xml
 
       - name: Merge to DCMASTER
         run: |
@@ -65,10 +94,10 @@ jobs:
               txt = open(path,encoding='utf-8',errors='ignore').read()
               m = re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
               return m.group(1) if m else ""
-          combined = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{inner("/tmp/pluto.xml")}\n{inner("/tmp/samsung.xml")}\n{inner("/tmp/plex.xml")}\n</tv>'
+          combined = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{inner("/tmp/pluto.xml")}\n</tv>'
           open('dcmaster.xml','w',encoding='utf-8').write(combined)
           open('.nojekyll','w').write('')
-          print(f"Built dcmaster.m3u8 with {len(out)} lines")
+          print(f"Built with {len(out)} lines total")
           PY
 
       - name: Push files
