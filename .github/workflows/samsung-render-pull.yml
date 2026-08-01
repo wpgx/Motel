@@ -1,0 +1,47 @@
+name: Update Samsung CA - from Render
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '8 2,8,14,20 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull from Render
+        run: |
+          RENDER_URL="https://motel.onrender.com/samsung-ca.m3u8"
+          
+          echo "Waking Render..."
+          curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/" -o /tmp/wake --max-time 60 || true
+          sleep 15
+          
+          echo "Fetching $RENDER_URL"
+          curl -L -v -A "Mozilla/5.0" "$RENDER_URL" -o samsung-ca.m3u8 --max-time 90
+          
+          COUNT=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
+          echo "Got $COUNT channels"
+          
+          if [ "$COUNT" -lt 10 ]; then
+            echo "File too small, trying /samsung.m3u8"
+            curl -L -s -A "Mozilla/5.0" "https://motel.onrender.com/samsung.m3u8" -o samsung-ca.m3u8 --max-time 90
+            COUNT=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
+            echo "Retry got $COUNT"
+          fi
+          
+          if [ "$COUNT" -lt 10 ]; then
+            echo "Failed - check Render path"
+            exit 1
+          fi
+          
+          ls -lh samsung-ca.m3u8
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add samsung-ca.m3u8 -f
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "samsung ca $COUNT ch"
+          git push
