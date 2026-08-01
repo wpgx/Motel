@@ -22,8 +22,7 @@ jobs:
           curl -L -s -A "Mozilla/5.0" -o /tmp/p.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.xml"
           if [ ! -s /tmp/s.xml ]; then curl -L -s -o /tmp/s.xml "https://i.mjh.nz/SamsungTVPlus/all.xml"; fi
           if [ ! -s /tmp/p.xml ]; then curl -L -s -o /tmp/p.xml "https://i.mjh.nz/Plex/all.xml"; fi
-
-          python3 << 'PY'
+          cat > /tmp/b.py << 'ENDPY'
           import re
           def get_ca(inp, out):
               try:
@@ -32,7 +31,8 @@ jobs:
                   return 0
               res=[]
               for i,l in enumerate(txt):
-                  if not l.startswith("#EXTINF"): continue
+                  if not l.startswith("#EXTINF"):
+                      continue
                   low=l.lower()
                   if 'channel-id="ca' in low or 'group-title="canada"' in low:
                       res.append(l)
@@ -42,17 +42,29 @@ jobs:
               c=len([x for x in res if "#EXTINF" in x])
               print(f"{inp} CA={c}")
               return c
-
           s=get_ca("/tmp/s.m3u","/tmp/s-ca.m3u")
           p=get_ca("/tmp/p.m3u","/tmp/p-ca.m3u")
           print(f"Extra CA total {s+p}")
-
           final=["#EXTM3U"]
           with open("dctv.m3u8",encoding="utf-8",errors="ignore") as f:
               for line in f:
                   if line.strip() and "#EXTM3U" not in line:
                       final.append(line.strip())
-
           for fp in ["/tmp/s-ca.m3u","/tmp/p-ca.m3u"]:
               try:
-                 
+                  with open(fp,encoding="utf-8",errors="ignore") as ff:
+                      for line in ff:
+                          if line.strip():
+                              final.append(line.strip())
+              except:
+                  pass
+          out=[]
+          ch=1
+          for x in final:
+              if x.startswith("#EXTINF"):
+                  x=re.sub(r'tvg-chno="[^"]*"','',x)
+                  x=x.replace("#EXTINF:",f'#EXTINF: tvg-chno="{ch}" ',1)
+                  ch+=1
+              out.append(x)
+          open("dcmaster.m3u8","w",encoding="utf-8").write("\n".join(out))
+          print(f"FINAL m3u8 {len([x for
