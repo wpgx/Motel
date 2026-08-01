@@ -10,33 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate Plex CA with plex-for-channels
+      - name: Generate Plex CA
         run: |
           docker run -d --name pfc -p 7777:7777 -e PLEX_CODE=ca ghcr.io/jgomez177/plex-for-channels:latest
-          echo "Waiting 50s for Plex container to build guide..."
           sleep 50
-          docker logs pfc --tail 100
-
-          # Try both possible endpoints (version changed)
-          curl -s http://127.0.0.1:7777/plex/playlist.m3u8 -o /tmp/plex_raw.m3u8 || curl -s http://127.0.0.1:7777/playlist.m3u8 -o /tmp/plex_raw.m3u8
-          curl -s http://127.0.0.1:7777/plex/epg.xml -o /tmp/plex_raw.xml || curl -s http://127.0.0.1:7777/epg.xml -o /tmp/plex_raw.xml
-
-          ls -lh /tmp/
-          head -5 /tmp/plex_raw.m3u8
-          wc -l /tmp/plex_raw.m3u8 /tmp/plex_raw.xml
-
-          # Rename to clear names
+          docker logs pfc --tail 50
+          curl -s http://127.0.0.1:7777/plex/playlist.m3u8 -o /tmp/plex.m3u8 || curl -s http://127.0.0.1:7777/playlist.m3u8 -o /tmp/plex.m3u8
+          curl -s http://127.0.0.1:7777/plex/epg.xml -o /tmp/plex.xml || curl -s http://127.0.0.1:7777/epg.xml -o /tmp/plex.xml
           mkdir -p plex
-          mv /tmp/plex_raw.m3u8 plex/plex.m3u8
-          mv /tmp/plex_raw.xml plex/plex.xml
+          mv /tmp/plex.m3u8 plex/plex.m3u8
+          mv /tmp/plex.xml plex/plex.xml
+          wc -l plex/*
 
-          # Fix header to include EPG link pointing to your final guide
-          sed -i '1s/.*/#EXTM3U url-tvg="https:\/\/raw.githubusercontent.com\/wpgx\/Motel\/main\/plex\/plex.xml"/' plex/plex.m3u8
-
-      - name: Commit Plex files
+      - name: Commit
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add plex/plex.m3u8 plex/plex.xml
-          git commit -m "update plex ca" || echo "no changes"
+          git commit -m "update plex ca" || exit 0
           git push
