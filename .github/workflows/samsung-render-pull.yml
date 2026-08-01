@@ -16,29 +16,37 @@ jobs:
         run: |
           BASE="https://motel-r45n.onrender.com"
           
-          echo "Waking $BASE ..."
-          for i in 1 2 3; do
-            echo "Wake $i"
-            curl -L -s -A "Mozilla/5.0" "$BASE/" --max-time 90 -o /tmp/wake || true
-            sleep 15
-            curl -L -s -A "Mozilla/5.0" "$BASE/samsung-ca.m3u8" --max-time 90 -o samsung-ca.m3u8 && \
-            COUNT=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0) && \
-            [ "$COUNT" -gt 10 ] && echo "Awake $COUNT ch" && break
-          done
+          echo "Waking..."
+          curl -L -s "$BASE/" --max-time 90 -o /dev/null || true
+          sleep 30
 
-          curl -L -s -A "Mozilla/5.0" "$BASE/samsung-ca.xml" --max-time 90 -o samsung-ca.xml || true
-          curl -L -s -A "Mozilla/5.0" "$BASE/samsung-ca.m3u8" --max-time 90 -o samsung-ca.m3u8
-          
-          M3U=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
-          XML=$(wc -c < samsung-ca.xml || echo 0)
-          echo "M3U $M3U ch / XML $XML bytes"
+          echo "Downloading M3U8..."
+          curl -L -A "Mozilla/5.0" "$BASE/samsung-ca.m3u8" --max-time 120 -o /tmp/samsung.m3u8 -w "%{http_code}\n"
+          cat /tmp/samsung.m3u8 | head -c 200
+          echo ""
+
+          if grep -q '"detail"' /tmp/samsung.m3u8; then
+            echo "Got JSON Not Found - Render still waking, retrying..."
+            sleep 30
+            curl -L -A "Mozilla/5.0" "$BASE/samsung-ca.m3u8" --max-time 120 -o /tmp/samsung.m3u8
+          fi
+
+          if grep -q "#EXTM3U" /tmp/samsung.m3u8; then
+            mv /tmp/samsung.m3u8 samsung-ca.m3u8
+            echo "M3U OK: $(grep -c "#EXTINF" samsung-ca.m3u8) ch"
+          else
+            echo "M3U failed"
+            cat /tmp/samsung.m3u8
+            exit 1
+          fi
+
+          echo "Downloading XML..."
+          curl -L -A "Mozilla/5.0" "$BASE/samsung-ca.xml" --max-time 120 -o samsung-ca.xml
           ls -lh samsung-ca.*
-          
-          if [ "$M3U" -lt 10 ]; then exit 0; fi
-          
+
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add samsung-ca.m3u8 samsung-ca.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "samsung ca $M3U ch"
+          git commit -m "samsung ca $(grep -c "#EXTINF" samsung-ca.m3u8) ch"
           git push
