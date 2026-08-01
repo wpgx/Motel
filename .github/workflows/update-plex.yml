@@ -1,71 +1,40 @@
-name: Update Plex CA
+name: Update Plex CA to motel/main
+
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 6 * * *'  # daily 6am UTC
+  workflow_dispatch:
+
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - run: |
-          pip install requests
-          python3 << 'PY'
-          import requests, time, sys
-          headers = {
-            "X-Plex-Product": "Plex for Channels",
-            "X-Plex-Version": "1.0",
-            "X-Plex-Client-Identifier": "plex-for-channels-99",
-            "Accept": "application/json"
-          }
-          token = None
-          for i in range(3):
-              try:
-                  r = requests.post("https://plex.tv/api/v2/users/anonymous", headers=headers, timeout=20)
-                  print(f"Token try {i+1}: {r.status_code} {r.text[:200]}")
-                  if r.status_code == 200 and r.text:
-                      token = r.json().get('authToken')
-                      if token:
-                          break
-              except Exception as e:
-                  print(f"Token error {e}")
-              time.sleep(2)
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-          if not token:
-              print("FAILED to get Plex token - Plex blocking GitHub IP, trying backup method")
-              sys.exit(0)  # don't fail workflow, just keep old file
-
-          headers["X-Plex-Token"] = token
-          headers["X-Plex-Language"] = "en-CA"
+      - name: Fetch from Cloudflare Worker (bypass GitHub block)
+        run: |
+          curl -L -A "Mozilla/5.0" -o plex-ca.m3u8 https://plex-ca.donxman.workers.dev/plex-ca.m3u8
+          curl -L -A "Mozilla/5.0" -o plex-ca.xml https://plex-ca.donxman.workers.dev/plex-ca.xml
           
-          try:
-              d = requests.get("https://discover.provider.plex.tv/library/sections/watchlive/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1000", headers=headers, timeout=30).json()
-          except Exception as e:
-              print(f"Plex list error {e}")
-              sys.exit(0)
+          # Also create .m3u copy for players that want .m3u
+          cp plex-ca.m3u8 plex-ca.m3u
 
-          m=['#EXTM3U']
-          count=0
-          for item in d.get('MediaContainer',{}).get('Metadata',[]):
-              title=item.get('title','').replace('"','').strip()
-              key=item.get('key','')
-              if not title or not key: continue
-              thumb=item.get('thumb','') or ''
-              if thumb and not thumb.startswith('http'): thumb='https://provider-static.plex.tv'+thumb
-              m.append(f'#EXTINF:-1 tvg-id="{title}" group-title="Plex CA" tvg-logo="{thumb}",{title}')
-              m.append(f"https://epg.provider.plex.tv{key}/parts?X-Plex-Token={token}")
-              count+=1
-          
-          if count == 0:
-              print("Got 0 channels, not overwriting")
-              sys.exit(0)
+          echo "--- plex-ca.m3u8 ---"
+          wc -l plex-ca.m3u8
+          head -3 plex-ca.m3u8
+          echo "--- plex-ca.xml ---"
+          ls -lh plex-ca.xml
 
-          open("plex-ca.m3u8","w",encoding="utf-8").write("\n".join(m))
-          print(f"Wrote {count} channels OK")
-          PY
-      - run: |
-          git config user.name "bot"
-          git config user.email "bot@bot.com"
-          git add plex-ca.m3u8 -f || true
-          git diff --cached --quiet || git commit -m "plex ca"
-          git push || true
+      - name: Commit to motel/main
+        run: |
+          git config user.name "plex-bot"
+          git config user.email "bot@donxman.workers.dev"
+          git add plex-ca.m3u8 plex-ca.m3u plex-ca.xml
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update plex-ca $(date -u +%Y-%m-%d)"
+          git push origin main
