@@ -1,32 +1,77 @@
-name: FIX NESTED FOLDERS
+name: Build DCMASTER
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
 jobs:
-  fix:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - name: Fix nested bomb
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build CA ~400
         run: |
-          mkdir -p /tmp/save
-          # save the 4 real yml files if they exist
-          cp .github/workflows/*.yml /tmp/save/ 2>/dev/null || true
-          # find and save from nested if top level was empty
-          find .github -name "*.yml" -exec cp {} /tmp/save/ \; 2>/dev/null || true
-          # NUKE everything nested
-          rm -rf .github/workflows
-          rm -rf .github
-          mkdir -p .github/workflows
-          # restore only the 4 clean files
-          cp /tmp/save/dcmaster.yml .github/workflows/ 2>/dev/null || true
-          cp /tmp/save/motel-check.yml .github/workflows/ 2>/dev/null || true
-          cp /tmp/save/pluto.yml .github/workflows/ 2>/dev/null || true
-          cp /tmp/save/restore.yml .github/workflows/ 2>/dev/null || true
-          ls -R .github
-          git config user.name "fix-bot"
+          pip install requests -q
+          git clone -q https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/s
+          cd /tmp/s && npm install --silent
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > config.json
+          node ./index.js --config ./config.json --exclude-groups "News|Local|Weather"
+          mv plutotv_ca.m3u8 /tmp/p.m3u8
+          mv plutotv_ca.xml /tmp/p.xml
+          python3 << 'PY'
+          import requests,re
+          headers={'User-Agent':'Mozilla/5.0'}
+          urls=[
+           "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-CA.m3u",
+           "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-CA.m3u"
+          ]
+          lines=[]
+          for u in urls:
+            try:
+              t=requests.get(u,headers=headers,timeout=30).text
+              if "#EXTINF" in t: lines+=t.splitlines()
+            except: pass
+          clean=[]; seen=set(); keep=False; cur=""
+          for l in lines:
+            if l.startswith("#EXTINF"):
+              low=l.lower()
+              if "tvg-country=" in low and "ca" not in low: keep=False; continue
+              m=re.search(r',([^,]+)$',l)
+              name=(m.group(1).lower() if m else low)
+              if name in seen: keep=False; continue
+              seen.add(name); cur=l; keep=True
+            else:
+              if not keep: continue
+              if "http" not in l: keep=False; continue
+              clean.append(cur); clean.append(l.strip()); keep=False
+          base=[x for x in open("/tmp/p.m3u8",encoding="utf-8",errors="ignore").read().splitlines() if x.strip() and not x.startswith("#EXTM3U")]
+          out=["#EXTM3U"]+base
+          c=1000
+          for x in clean:
+            if x.startswith("#EXTINF"):
+              if 'tvg-chno=' in x: x=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{c}"',x)
+              else: x=x.replace("#EXTINF:",f'#EXTINF: tvg-chno="{c}" ',1)
+              c+=1
+            out.append(x)
+          open("dcmaster.m3u8","w",encoding="utf-8").write("\n".join(out))
+          open("dcmaster.xml","w",encoding="utf-8").write(open("/tmp/p.xml",encoding="utf-8",errors="ignore").read())
+          open(".nojekyll","w").write("")
+          print(f"CA count: {len([x for x in out if 'EXTINF' in x])}")
+          PY
+
+      - name: Push
+        run: |
+          git config user.name "dc-bot"
           git config user.email "bot@github.com"
-          git add -A
-          git commit -m "FIX nested workflows" || true
+          git add dcmaster.m3u8 dcmaster.xml .nojekyll
+          git commit -m "DCMASTER CA ~400" || true
           git push
