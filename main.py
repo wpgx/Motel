@@ -1,44 +1,53 @@
+from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse, Response
+import requests, gzip, json
+from io import BytesIO
+
+app = FastAPI()
+
+APP_URL = 'https://i.mjh.nz/SamsungTVPlus/.channels.json.gz'
+EPG_URL = 'https://i.mjh.nz/SamsungTVPlus/{region}.xml.gz'
+PLAYBACK_URL = 'https://jmp2.uk/{slug}'
+
+def get_data():
+    r = requests.get(APP_URL, timeout=20)
+    r.raise_for_status()
+    return json.loads(gzip.GzipFile(fileobj=BytesIO(r.content)).read())
+
+@app.get("/")
+def root():
+    return {"status":"direct samsung scraper", "ca_playlist":"/samsung-ca.m3u", "ca_guide":"/samsung-ca.xml"}
+
 @app.get("/samsung-ca.m3u")
-def samsung_ca_m3u():
-    try:
-        r = requests.get(APP_URL, timeout=30, headers={"User-Agent":"Mozilla/5.0"})
-        j = json.loads(gzip.decompress(r.content).decode('utf-8'))
-        
-        # j can be dict or list
-        items = j.values() if isinstance(j, dict) else j
-        
-        m3u = '#EXTM3U url-tvg="https://motel-r45n.onrender.com/samsung-ca.xml"\n'
-        count = 0
-        for ch in items:
-            if not isinstance(ch, dict):
-                continue
-            # Only Canada
-            regions = ch.get('regions') or ch.get('availableRegions') or []
-            if isinstance(regions, list):
-                if 'CA' not in regions and 'ca' not in [str(x).lower() for x in regions]:
-                    continue
-            elif isinstance(regions, str):
-                if 'CA' not in regions.upper():
-                    continue
-            # Some entries use countryCode
-            if ch.get('country') and ch.get('country') != 'CA':
-                if 'CA' not in str(ch.get('regions','')):
-                    continue
+def samsung_ca():
+    data = get_data()
+    slug_template = data.get('slug', '{id}')
+    regions_data = data.get('regions', {})
+    ca = regions_data.get('CA') or regions_data.get('ca') or {}
+    channels = ca.get('channels', {})
 
-            cid = ch.get('id') or ch.get('slug') or ch.get('name') or "ca"
-            title = (ch.get('name') or ch.get('title') or cid).replace('"',"'").replace(',',"")
-            logo = ch.get('logo') or ch.get('thumbnail') or ""
-            group = ch.get('group') or ch.get('genre') or "Samsung CA"
-            # Direct stream via jmp2 proxy
-            stream = f"https://jmp2.uk/SamsungTVPlus/{cid}.m3u8"
+    m3u = '#EXTM3U url-tvg="https://motel-r45n.onrender.com/samsung-ca.xml"\n'
+    # Sort by channel number like matt does
+    for key in sorted(channels.keys(), key=lambda x: channels[x].get('chno', 9999)):
+        ch = channels[key]
+        if ch.get('license_url'):
+            continue
+        name = ch.get('name','Samsung')
+        logo = ch.get('logo','')
+        group = ch.get('group','Samsung CA')
+        chno = ch.get('chno')
+        cid = f"samsung-{key}"
+        url = PLAYBACK_URL.format(slug=slug_template.format(id=key))
+        m3u += f'#EXTINF:-1 channel-id="{cid}" tvg-id="{key}" tvg-logo="{logo}" group-title="{group}" tvg-chno="{chno}",{name}\n{url}\n'
+    return PlainTextResponse(m3u, media_type="application/vnd.apple.mpegurl")
 
-            m3u += f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{title}" tvg-logo="{logo}" group-title="{group}",{title}\n{stream}\n'
-            count += 1
-
-        if count == 0:
-            return PlainTextResponse(f"#EXTM3U\n# No CA found, total items={len(list(items))}\n# Sample: {str(list(items)[:1])[:500]}\n", media_type="text/plain")
-
-        return PlainTextResponse(m3u, media_type="application/vnd.apple.mpegurl")
-    except Exception as e:
-        import traceback
-        return PlainTextResponse(f"#EXTM3U\n# Error {e}\n{traceback.format_exc()[:1000]}\n", media_type="text/plain")
+@app.get("/samsung-ca.xml")
+def samsung_ca_xml():
+    r = requests.get(EPG_URL.format(region='ca'), timeout=30)
+    # It may be.ca or CA - try both
+    if r.status_code!= 200:
+        r = requests.get(EPG_URL.format(region='CA'), timeout=30)
+    if r.status_code!= 200:
+        r = requests.get(EPG_URL.format(region='all'), timeout=30)
+    xml = gzip.decompress(r.content) if r.content[:2] == b'\x1f\x8b' else r.content
+    return Response(content=xml, media_type="application/xml")
