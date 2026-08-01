@@ -1,0 +1,34 @@
+name: Update Plex CA from Cloudflare
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily 6am UTC
+  workflow_dispatch:  # allow manual run
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout motel/main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch Plex CA from Cloudflare Worker
+        run: |
+          curl -L -A "Mozilla/5.0" -o plex-ca.m3u https://plex-ca.donxman.workers.dev/plex-ca.m3u
+          curl -L -A "Mozilla/5.0" -o plex-ca.xml https://plex-ca.donxman.workers.dev/plex-ca.xml
+          echo "M3U lines: $(wc -l < plex-ca.m3u)"
+          echo "XML size: $(wc -c < plex-ca.xml)"
+          head -5 plex-ca.m3u
+
+      - name: Commit and Push to main
+        run: |
+          git config user.name "plex-bot"
+          git config user.email "bot@donxman.workers.dev"
+          git add plex-ca.m3u plex-ca.xml
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update Plex CA - $(date -u +'%Y-%m-%d')"
+          git push origin main
