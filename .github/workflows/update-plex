@@ -1,34 +1,42 @@
-name: Update Plex CA from Cloudflare
+export default {
+  async fetch(req) {
+    const PLEX_TOKEN = "yrUN1zymWiCCh6_CZJUz";
+    const LINEUP_ID = "5fc771debdb26c002ee25093";
+    let url = new URL(req.url);
+    let path = url.pathname;
 
-on:
-  schedule:
-    - cron: '0 6 * * *'  # daily 6am UTC
-  workflow_dispatch:  # allow manual run
+    let r = await fetch("https://epg.provider.plex.tv/lineups/" + LINEUP_ID + "/channels?X-Plex-Token=" + PLEX_TOKEN, {
+      headers: { "X-Plex-Token": PLEX_TOKEN }
+    });
+    let xml = await r.text();
+    let matches = xml.match(/<Channel[^>]+\/>/g) || [];
 
-jobs:
-  update:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout motel/main
-        uses: actions/checkout@v4
-        with:
-          ref: main
+    // Serve XMLTV for /plex-ca.xml
+    if (path.endsWith(".xml")) {
+      let xmltv = '<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n';
+      for (let tag of matches) {
+        let get = (n) => { let m = tag.match(new RegExp(n + '="([^"]*)"')); return m? m[1] : ""; };
+        let title = get("title");
+        let id = get("id");
+        xmltv += ` <channel id="${id}"><display-name>${title}</display-name></channel>\n`;
+      }
+      xmltv += '</tv>';
+      return new Response(xmltv, { headers: { "Content-Type": "application/xml", "Access-Control-Allow-Origin": "*" } });
+    }
 
-      - name: Fetch Plex CA from Cloudflare Worker
-        run: |
-          curl -L -A "Mozilla/5.0" -o plex-ca.m3u https://plex-ca.donxman.workers.dev/plex-ca.m3u
-          curl -L -A "Mozilla/5.0" -o plex-ca.xml https://plex-ca.donxman.workers.dev/plex-ca.xml
-          echo "M3U lines: $(wc -l < plex-ca.m3u)"
-          echo "XML size: $(wc -c < plex-ca.xml)"
-          head -5 plex-ca.m3u
-
-      - name: Commit and Push to main
-        run: |
-          git config user.name "plex-bot"
-          git config user.email "bot@donxman.workers.dev"
-          git add plex-ca.m3u plex-ca.xml
-          git diff --cached --quiet && echo "No changes" && exit 0
-          git commit -m "Update Plex CA - $(date -u +'%Y-%m-%d')"
-          git push origin main
+    // Serve M3U for /, /plex-ca.m3u, /m3u
+    let m3u = "#EXTM3U\n";
+    for (let tag of matches) {
+      let get = (n) => { let m = tag.match(new RegExp(n + '="([^"]*)"')); return m? m[1] : ""; };
+      let title = get("title").replace(/,/g, " ");
+      let vcn = get("vcn");
+      let thumb = get("thumb");
+      let id = get("id");
+      m3u += '#EXTINF:-1 tvg-id="' + id + '" tvg-logo="' + thumb + '" tvg-chno="' + vcn + '" group-title="Canada Bell", ' + title + '\n';
+      m3u += 'https://example.com/' + id + '\n';
+    }
+    return new Response("# Total " + matches.length + " channels\n" + m3u, {
+      headers: { "Content-Type": "text/plain", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
