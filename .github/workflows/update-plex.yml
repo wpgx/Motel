@@ -4,7 +4,57 @@ on:
   schedule:
     - cron: '0 3 * * *'
 
-jobs:name: update-plexname: update-plex
+jobs:name: update-plexname: update-plexname: Update Plex CA
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scrape Plex CA
+        run: |
+          pip install requests
+          python3 << 'PY'
+          import requests
+          headers = {"X-Plex-Product": "Plex for Channels","X-Plex-Version": "1.0","X-Plex-Client-Identifier": "plex-for-channels"}
+          token = requests.post("https://plex.tv/api/v2/users/anonymous", headers=headers, timeout=15).json().get('authToken')
+          print(f"token {token[:8]}...")
+          headers["X-Plex-Token"]=token
+          headers["X-Plex-Language"]="en-CA"
+          data = requests.get("https://discover.provider.plex.tv/library/sections/watchlive/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1000", headers=headers, timeout=30).json()
+          m3u=['#EXTM3U url-tvg="plex.xml"']
+          chans=[]
+          for item in data.get('MediaContainer',{}).get('Metadata',[]):
+              title=item.get('title','').replace('"','').strip()
+              if not title: continue
+              thumb=item.get('thumb','')
+              if thumb and not thumb.startswith('http'): thumb='https://provider-static.plex.tv'+thumb
+              key=item.get('key','')
+              if not key: continue
+              hls=f"https://epg.provider.plex.tv{key}/parts?X-Plex-Token={token}"
+              m3u.append(f'#EXTINF:-1 tvg-id="{title}" tvg-name="{title}" tvg-logo="{thumb}" group-title="Plex CA",{title}')
+              m3u.append(hls)
+              chans.append(title)
+          open("plex.m3u8","w",encoding="utf-8").write("\n".join(m3u))
+          open("plex.xml","w",encoding="utf-8").write('<?xml version="1.0"?><tv>'+''.join([f'<channel id="{c}"><display-name>{c}</display-name></channel>' for c in chans])+'</tv>')
+          print(f"Wrote {len(chans)} channels")
+          PY
+          ls -lh plex.*
+
+      - name: Save to main
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          rm -rf plex/ || true
+          git add plex.m3u8 plex.xml -f
+          git commit -m "plex ca" || exit 0
+          git push
 on:
   workflow_dispatch:
   schedule:
