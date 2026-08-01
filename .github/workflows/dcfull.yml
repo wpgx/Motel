@@ -2,7 +2,7 @@ name: Build DCFULL
 on:
   workflow_dispatch:
   schedule:
-    - cron: '15 2,8,14,20 * * *'  # 2:15, 8:15, 14:15, 20:15 - 7 mins after Samsung pull
+    - cron: '15 2,8,14,20 * * *'  # 7 mins after Samsung pull
 
 jobs:
   build:
@@ -12,33 +12,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build DCFULL m3u8 + xml
+      - name: Build DCFULL from DCTV + Samsung-CA
         run: |
           pip install -q requests
           python3 << 'PY'
-          import glob, os, re
+          import os, re
 
-          # --- M3U8 ---
-          out_m3u = ['#EXTM3U']
-          for f in ['samsung-ca.m3u8', 'pluto-ca.m3u8', 'pluto.m3u8', 'samsung.m3u8']:
+          # --- M3U8 MERGE ---
+          out = ['#EXTM3U']
+          for f in ['dctv.m3u8', 'samsung-ca.m3u8']:
               if os.path.exists(f):
-                  txt = open(f, encoding='utf-8', errors='ignore').read().splitlines()
-                  for line in txt[1:]:  # skip #EXTM3U
-                      if line.strip():
-                          out_m3u.append(line)
-                  print(f"Added {f}: {len(txt)} lines")
+                  lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
+                  # drop first #EXTM3U line
+                  add = [l for l in lines if l.strip() and not l.startswith('#EXTM3U')]
+                  out.extend(add)
+                  print(f"{f}: {len(add)} lines")
+              else:
+                  print(f"MISSING {f}")
 
-          open('dcfull.m3u8','w',encoding='utf-8').write("\n".join(out_m3u))
-          print(f"DCFULL: {len(out_m3u)} lines")
+          open('dcfull.m3u8','w',encoding='utf-8').write("\n".join(out) + "\n")
+          print(f"DCFULL M3U: {len([l for l in out if '#EXTINF' in l])} channels")
 
-          # --- XML GUIDE - merge ---
-          xml_files = []
-          for f in ['samsung-ca.xml','pluto-ca.xml','pluto.xml','samsung.xml']:
-              if os.path.exists(f) and os.path.getsize(f) > 1000:
-                  xml_files.append(f)
-
+          # --- XMLTV MERGE ---
+          xml_files = [f for f in ['dctv.xml', 'samsung-ca.xml'] if os.path.exists(f) and os.path.getsize(f) > 1000]
           if xml_files:
-              # simple merge - keep all channels and programmes
               channels = {}
               progs = []
               for xf in xml_files:
@@ -47,32 +44,29 @@ jobs:
                       channels[m.group(1)] = m.group(0)
                   for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
                       progs.append(m.group(0))
-                  print(f"Parsed {xf}: {len(channels)} ch so far, {len(progs)} progs")
+                  print(f"{xf} -> {len(channels)} ch, {len(progs)} progs")
 
-              with open('dcfull.xml','w',encoding='utf-8') as out:
-                  out.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
+              with open('dcfull.xml','w',encoding='utf-8') as o:
+                  o.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
                   for c in channels.values():
-                      out.write(c + "\n")
+                      o.write(c + "\n")
                   for p in progs:
-                      out.write(p + "\n")
-                  out.write('</tv>\n')
-              print(f"DCFULL XML: {len(channels)} channels, {len(progs)} programmes")
+                      o.write(p + "\n")
+                  o.write('</tv>\n')
+              print(f"DCFULL XML done: {len(channels)} channels")
           else:
-              print("No XML files found to merge")
+              print("No XML to merge")
           PY
 
-      - name: Push
+      - name: Push DCFULL
         run: |
-          ls -lh dcfull.* samsung-ca.* pluto* || true
+          ls -lh dcfull.* dctv.* samsung-ca.* || true
           COUNT=$(grep -c "#EXTINF" dcfull.m3u8 || echo 0)
-          echo "DCFULL $COUNT channels"
-          if [ "$COUNT" -lt 20 ]; then
-            echo "DCFULL too small, not pushing"
-            exit 1
-          fi
+          echo "DCFULL = $COUNT channels"
+          if [ "$COUNT" -lt 10 ]; then echo "Too small"; exit 1; fi
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dcfull.m3u8 dcfull.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcfull $COUNT ch"
+          git commit -m "dcfull $COUNT ch (dctv+samsung)"
           git push
