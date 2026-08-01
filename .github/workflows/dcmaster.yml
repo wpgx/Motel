@@ -29,97 +29,79 @@ jobs:
           mv ./plutotv_ca.xml /tmp/pluto.xml
           cp /tmp/pluto.m3u8 $GITHUB_WORKSPACE/motel.m3u8
           cp /tmp/pluto.xml $GITHUB_WORKSPACE/motel.xml
-          echo "Motel: $(grep -c EXTINF /tmp/pluto.m3u8)"
+          echo "Motel Pluto CA: $(grep -c EXTINF /tmp/pluto.m3u8)"
 
-      - name: Fetch Samsung Plex STRICT USA+CA
+      - name: Fetch Samsung CA + Plex CA ONLY
         run: |
           cat > /tmp/fetch.py << 'PYEOF'
-          import requests, re
+          import requests
           headers={"User-Agent":"Mozilla/5.0"}
           urls=[
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
+            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-CA.m3u",
+            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-CA.m3u",
+            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-CA.m3u8",
+            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-CA.m3u8"
           ]
           all_lines=[]
           for u in urls:
             try:
               r=requests.get(u,headers=headers,timeout=30)
-              print(f"{u} -> {r.status_code}")
-              if r.status_code==200:
+              print(f"{u} -> {r.status_code} {len(r.text)}")
+              if r.status_code==200 and 'EXTINF' in r.text:
                 all_lines+=r.text.splitlines()
+                break
             except Exception as e:
               print(f"FAIL {u} {e}")
 
+          # fallback to All filtered to CA if CA file missing
+          if not all_lines:
+            print("CA files not found, using All filtered to CA")
+            r=requests.get("https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",headers=headers,timeout=30)
+            all_lines=r.text.splitlines()
+
           clean=[]
+          seen_names=set()
+          seen_urls=set()
           keep=False
-          seen=set()
+          import re
           for line in all_lines:
-            if not line.strip():
-              continue
+            if not line.strip(): continue
             if line.startswith('#EXTINF'):
               low=line.lower()
-              is_ok=False
-              m=re.search(r'tvg-country="([^"]+)"', low)
-              if m:
-                countries=[c.strip() for c in m.group(1).lower().replace(',', ';').split(';')]
-                if 'us' in countries or 'ca' in countries:
-                  is_ok=True
-              else:
-                if any(x in low for x in ['(us)', '(ca)', '[us]', '[ca]', ' usa ', ' canada ']):
-                  is_ok=True
-              if any(k in low for k in ['fishing tv','hunt tv']):
-                is_ok=False
-              if is_ok:
-                # dedup by name
-                nm=re.search(r',([^,]+)$', line)
-                name=nm.group(1).strip().lower() if nm else low
-                if name in seen:
+              # keep only if CA
+              if 'tvg-country=' in low:
+                if 'ca' not in low:
                   keep=False
                   continue
-                seen.add(name)
-                clean.append(line)
-                keep=True
-              else:
+              # dedup by name
+              m=re.search(r',([^,]+)$',line)
+              name=m.group(1).strip().lower() if m else low
+              if name in seen_names:
                 keep=False
+                continue
+              seen_names.add(name)
+              clean.append(line)
+              keep=True
             else:
               if not keep: continue
               if line.startswith('#'): continue
-              if 'http' not in line.lower():
+              url=line.strip()
+              if 'http' not in url.lower(): 
                 keep=False
                 continue
-              if line.strip() in seen:
+              if url in seen_urls:
                 keep=False
                 continue
-              seen.add(line.strip())
-              clean.append(line)
+              if 'example.com' in url or '127.0.0.1' in url:
+                keep=False
+                continue
+              seen_urls.add(url)
+              clean.append(url)
               keep=False
 
           open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
-          print(f"STRICT USA+CA DEDUPED: {sum(1 for l in clean if 'EXTINF' in l)}")
+          print(f"CA ONLY DEDUPED: {sum(1 for l in clean if 'EXTINF' in l)} channels")
           PYEOF
           python3 /tmp/fetch.py
 
       - name: Merge
-        run: |
-          cat > /tmp/merge.py << 'PYEOF'
-          import re
-          def load(p):
-            try:
-              t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
-              return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
-            except:
-              return []
-          out=['#EXTM3U']+load('/tmp/pluto.m3u8')
-          chno=1000
-          for line in load('/tmp/samsungplex.m3u8'):
-            if line.startswith('#EXTINF'):
-              if 'tvg-chno=' in line:
-                line=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{chno}"',line)
-              else:
-                line=line.replace('#EXTINF:',f'#EXTINF: tvg-chno="{chno}" ',1)
-              chno+=1
-            out.append(line)
-          open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
-          open('dcmaster.xml','w',encoding='utf-8').write(open('/tmp/pluto.xml',encoding='utf-8',errors='ignore').read())
-          open('.nojekyll','w').write('')
-          print(f"MASTER
