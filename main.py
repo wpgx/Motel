@@ -4,155 +4,106 @@ import requests, gzip, json, re
 
 app = FastAPI()
 
-SAMSUNG_APP = 'https://i.mjh.nz/SamsungTVPlus/.channels.json.gz'
-PLUTO_APP = 'https://i.mjh.nz/PlutoTV/.channels.json.gz'
-PLEX_APP = 'https://i.mjh.nz/Plex/.channels.json.gz'
-
-def fetch_gz_json(url):
-    r = requests.get(url, timeout=30, headers={"User-Agent":"Mozilla/5.0"})
-    r.raise_for_status()
-    data = r.content
-    if data[:2]==b'\x1f\x8b':
-        data = gzip.decompress(data)
-    return json.loads(data.decode('utf-8'))
-
-def fetch_gz_text(url):
-    try:
-        r = requests.get(url, timeout=30, headers={"User-Agent":"Mozilla/5.0"})
-        if r.status_code!=200:
-            return None
-        data = r.content
-        if data[:2]==b'\x1f\x8b':
-            data = gzip.decompress(data)
-        return data
-    except:
-        return None
-
 def get_samsung_ca():
-    data = fetch_gz_json(SAMSUNG_APP)
-    slug_t = data.get('slug','{id}')
-    ca = data['regions'].get('CA',{}).get('channels',{})
+    # HARD WORKING 276 METHOD
+    url = 'https://i.mjh.nz/SamsungTVPlus/.channels.json.gz'
+    r = requests.get(url, timeout=30, headers={"User-Agent":"Mozilla/5.0"})
+    raw = r.content
+    if raw[:2]==b'\x1f\x8b':
+        raw = gzip.decompress(raw)
+    data = json.loads(raw.decode('utf-8'))
+    slug_t = data.get('slug','SamsungTVPlus/{id}.m3u8')
+    ca = data['regions']['CA']['channels']
     out=[]
     for k in sorted(ca.keys(), key=lambda x: ca[x].get('chno',9999)):
         ch=ca[k]
-        if ch.get('license_url'):
-            continue
-        out.append({
-            "id": f"samsung-{k}",
-            "name": ch.get('name','Samsung').replace('"',"'").replace(',',""),
-            "logo": ch.get('logo',''),
-            "group": ch.get('group','Samsung CA').replace('"',"'"),
-            "chno": str(ch.get('chno','')).strip(),
-            "url": f"https://jmp2.uk/{slug_t.format(id=k)}"
-        })
+        if ch.get('license_url'): continue
+        name = ch.get('name','').replace('"',"'").replace(',',"").strip()
+        logo = ch.get('logo','')
+        group = ch.get('group','Samsung CA').replace('"',"'")
+        chno = str(ch.get('chno','')).strip()
+        play = f"https://jmp2.uk/{slug_t.format(id=k)}"
+        if chno:
+            ext = f'#EXTINF:-1 tvg-id="samsung-{k}" tvg-logo="{logo}" group-title="{group}" tvg-chno="{chno}",{name}'
+        else:
+            ext = f'#EXTINF:-1 tvg-id="samsung-{k}" tvg-logo="{logo}" group-title="{group}",{name}'
+        out.append((ext, play))
     return out
 
-def get_pluto_ca():
+def fetch_m3u_list(url):
     try:
-        data = fetch_gz_json(PLUTO_APP)
-        ca = data['regions'].get('CA',{}).get('channels',{}) or data['regions'].get('ca',{}).get('channels',{})
+        r = requests.get(url, timeout=15, headers={"User-Agent":"Mozilla/5.0"})
+        if r.status_code!=200: return []
+        lines = r.text.splitlines()
         out=[]
-        for k,ch in ca.items():
-            out.append({
-                "id": f"pluto-{k}",
-                "name": ch.get('name','Pluto').replace('"',"'").replace(',',""),
-                "logo": ch.get('logo',''),
-                "group": ch.get('group','Pluto CA').replace('"',"'"),
-                "chno": str(ch.get('chno','')).strip(),
-                "url": f"https://jmp2.uk/PlutoTV/{k}.m3u8"
-            })
+        for i,l in enumerate(lines):
+            if l.startswith('#EXTINF'):
+                if i+1 < len(lines) and lines[i+1].startswith('http'):
+                    out.append((l, lines[i+1].strip()))
         return out
     except:
         return []
+
+def get_pluto_ca():
+    return fetch_m3u_list('https://i.mjh.nz/PlutoTV/ca.m3u8') or fetch_m3u_list('https://i.mjh.nz/PlutoTV/all.m3u8')
 
 def get_plex_ca():
-    try:
-        data = fetch_gz_json(PLEX_APP)
-        ca = data['regions'].get('CA',{}).get('channels',{}) or data['regions'].get('ca',{}).get('channels',{})
-        out=[]
-        for k,ch in ca.items():
-            out.append({
-                "id": f"plex-{k}",
-                "name": ch.get('name','Plex').replace('"',"'").replace(',',""),
-                "logo": ch.get('logo',''),
-                "group": ch.get('group','Plex CA').replace('"',"'"),
-                "chno": str(ch.get('chno','')).strip(),
-                "url": f"https://jmp2.uk/Plex/{k}.m3u8"
-            })
-        return out
-    except:
-        return []
+    return fetch_m3u_list('https://i.mjh.nz/Plex/ca.m3u8') or fetch_m3u_list('https://i.mjh.nz/Plex/all.m3u8')
 
-def build_m3u(channels):
+def build_from_tuples(tuples_list):
     m3u = '#EXTM3U url-tvg="https://motel-r45n.onrender.com/all-ca.xml"\n'
-    for ch in channels:
-        name = ch['name']
-        # Sparkle fix: don't include empty chno
-        if ch['chno']:
-            m3u += f'#EXTINF:-1 tvg-id="{ch["id"]}" tvg-logo="{ch["logo"]}" group-title="{ch["group"]}" tvg-chno="{ch["chno"]}",{name}\n{ch["url"]}\n'
-        else:
-            m3u += f'#EXTINF:-1 tvg-id="{ch["id"]}" tvg-logo="{ch["logo"]}" group-title="{ch["group"]}",{name}\n{ch["url"]}\n'
+    for ext, url in tuples_list:
+        m3u += f"{ext}\n{url}\n"
     return m3u
-
-@app.get("/")
-def root():
-    return {"master":"/all-ca.m3u", "guide":"/all-ca.xml", "counts":"/debug"}
 
 @app.get("/debug")
 def debug():
-    return {"samsung": len(get_samsung_ca()), "pluto": len(get_pluto_ca()), "plex": len(get_plex_ca())}
+    try: s=len(get_samsung_ca())
+    except Exception as e: s=f"ERR {e}"
+    try: pl=len(get_pluto_ca())
+    except Exception as e: pl=f"ERR {e}"
+    try: px=len(get_plex_ca())
+    except Exception as e: px=f"ERR {e}"
+    return {"samsung":s, "pluto":pl, "plex":px}
 
 @app.get("/samsung-ca.m3u")
-def samsung_m3u():
-    return PlainTextResponse(build_m3u(get_samsung_ca()), media_type="text/plain")
+def s_m3u():
+    return PlainTextResponse(build_from_tuples(get_samsung_ca()), media_type="text/plain")
 
 @app.get("/pluto-ca.m3u")
-def pluto_m3u():
-    return PlainTextResponse(build_m3u(get_pluto_ca()), media_type="text/plain")
+def pl_m3u():
+    return PlainTextResponse(build_from_tuples(get_pluto_ca()), media_type="text/plain")
 
 @app.get("/plex-ca.m3u")
-def plex_m3u():
-    return PlainTextResponse(build_m3u(get_plex_ca()), media_type="text/plain")
+def px_m3u():
+    return PlainTextResponse(build_from_tuples(get_plex_ca()), media_type="text/plain")
 
 @app.get("/all-ca.m3u")
-def all_ca_m3u():
+def all_m3u():
     all_ch = get_samsung_ca() + get_pluto_ca() + get_plex_ca()
-    return PlainTextResponse(build_m3u(all_ch), media_type="text/plain")
+    return PlainTextResponse(build_from_tuples(all_ch), media_type="text/plain")
 
 @app.get("/all-ca.xml")
-def all_ca_xml():
+def all_xml():
     parts=[]
-    for url in [
-        'https://i.mjh.nz/SamsungTVPlus/ca.xml.gz',
-        'https://i.mjh.nz/PlutoTV/ca.xml.gz',
-        'https://i.mjh.nz/Plex/ca.xml.gz'
-    ]:
-        data = fetch_gz_text(url)
-        if data:
+    for url in ['https://i.mjh.nz/SamsungTVPlus/ca.xml.gz','https://i.mjh.nz/PlutoTV/ca.xml.gz','https://i.mjh.nz/Plex/ca.xml.gz']:
+        try:
+            r=requests.get(url, timeout=15)
+            data=gzip.decompress(r.content) if r.content[:2]==b'\x1f\x8b' else r.content
             parts.append(data)
-    merged = b'<?xml version="1.0" encoding="UTF-8"?><tv>'
+        except: pass
+    merged=b'<?xml version="1.0"?><tv>'
     for p in parts:
         try:
-            txt = p.decode('utf-8', errors='ignore')
-            m = re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
-            if m:
-                merged += m.group(1).encode('utf-8')
-        except:
-            continue
-    merged += b'</tv>'
+            txt=p.decode('utf-8', errors='ignore')
+            m=re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
+            if m: merged+=m.group(1).encode()
+        except: pass
+    merged+=b'</tv>'
     return Response(content=merged, media_type="application/xml")
 
 @app.get("/samsung-ca.xml")
-def samsung_xml():
-    d = fetch_gz_text('https://i.mjh.nz/SamsungTVPlus/ca.xml.gz')
-    return Response(content=d or b"<tv></tv>", media_type="application/xml")
-
-@app.get("/pluto-ca.xml")
-def pluto_xml():
-    d = fetch_gz_text('https://i.mjh.nz/PlutoTV/ca.xml.gz')
-    return Response(content=d or b"<tv></tv>", media_type="application/xml")
-
-@app.get("/plex-ca.xml")
-def plex_xml():
-    d = fetch_gz_text('https://i.mjh.nz/Plex/ca.xml.gz')
-    return Response(content=d or b"<tv></tv>", media_type="application/xml")
+def s_xml():
+    r=requests.get('https://i.mjh.nz/SamsungTVPlus/ca.xml.gz', timeout=15)
+    data=gzip.decompress(r.content) if r.content[:2]==b'\x1f\x8b' else r.content
+    return Response(content=data, media_type="application/xml")
