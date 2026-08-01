@@ -1,0 +1,37 @@
+name: Update Plex CA
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pip install requests
+          python3 << 'PY'
+          import requests
+          h={"X-Plex-Product":"Plex for Channels","X-Plex-Version":"1.0","X-Plex-Client-Identifier":"plex-for-channels"}
+          t=requests.post("https://plex.tv/api/v2/users/anonymous",headers=h,timeout=15).json().get('authToken')
+          h["X-Plex-Token"]=t
+          h["X-Plex-Language"]="en-CA"
+          d=requests.get("https://discover.provider.plex.tv/library/sections/watchlive/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1000",headers=h,timeout=30).json()
+          m=['#EXTM3U']
+          for item in d.get('MediaContainer',{}).get('Metadata',[]):
+              title=item.get('title','').replace('"','').strip()
+              key=item.get('key','')
+              if not title or not key: continue
+              thumb=item.get('thumb','')
+              if thumb and not thumb.startswith('http'): thumb='https://provider-static.plex.tv'+thumb
+              m.append(f'#EXTINF:-1 tvg-id="{title}" group-title="Plex CA" tvg-logo="{thumb}",{title}')
+              m.append(f"https://epg.provider.plex.tv{key}/parts?X-Plex-Token={t}")
+          open("plex-ca.m3u8","w",encoding="utf-8").write("\n".join(m))
+          print(f"Wrote {len(m)//2}")
+          PY
+      - run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add plex-ca.m3u8 -f
+          git commit -m "plex ca" || exit 0
+          git push
