@@ -17,76 +17,87 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build
+      - name: Build Pluto + Samsung/Plex USA CA
         run: |
           pip install requests
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
-          cd /tmp/scraper && npm install
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' >./config.json
-          node./index.js --config./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
-          mv./plutotv_ca.m3u8 /tmp/pluto.m3u8
-          mv./plutotv_ca.xml /tmp/pluto.xml
+          cd /tmp/scraper
+          npm install
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
+          node ./index.js --config ./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
+          mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
+          mv ./plutotv_ca.xml /tmp/pluto.xml
           cp /tmp/pluto.m3u8 $GITHUB_WORKSPACE/motel.m3u8
           cp /tmp/pluto.xml $GITHUB_WORKSPACE/motel.xml
-          echo "Motel: $(grep -c EXTINF /tmp/pluto.m3u8) channels"
+          echo "Motel Pluto CA: $(grep -c EXTINF /tmp/pluto.m3u8)"
 
           python3 << 'PY'
           import requests
           headers={"User-Agent":"Mozilla/5.0"}
-          urls = [
-              "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
-              "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
+          urls=[
+            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
+            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
           ]
-          combined=[]
+          all_lines=[]
           for u in urls:
-              r=requests.get(u,headers=headers,timeout=30)
-              if r.status_code==200:
-                  combined+=r.text.splitlines()
-                  print(f"OK {u} {len(r.text.splitlines())} lines")
-              else:
-                  print(f"FAIL {u} {r.status_code}")
+            r=requests.get(u,headers=headers,timeout=30)
+            print(f"{u} -> {r.status_code} {len(r.text)} bytes")
+            if r.status_code==200:
+              all_lines+=r.text.splitlines()
 
           clean=[]
           keep=False
-          for line in combined:
-              if not line.strip(): continue
-              if line.startswith('#EXTINF'):
-                  low=line.lower()
-                  is_us_ca = False
-                  if 'tvg-country=' in low:
-                      if '"us"' in low or "'us'" in low or '"ca"' in low or "'ca'" in low or 'us;ca' in low or 'ca;us' in low or 'us,ca' in low or 'ca,us' in low:
-                          is_us_ca=True
-                  if not is_us_ca:
-                      if any(x in low for x in ['(us)', '(ca)', '[us]', '[ca]', ' usa ', ' canada ', 'united states']):
-                          is_us_ca=True
-                  # If no country tag at all, keep it (most Samsung All entries have no tag but are US)
-                  if not is_us_ca and 'tvg-country=' not in low:
-                      is_us_ca=True
-
-                  if is_us_ca:
-                      clean.append(line)
-                      keep=True
-                  else:
-                      keep=False
+          for line in all_lines:
+            if not line.strip():
+              continue
+            if line.startswith('#EXTINF'):
+              low=line.lower()
+              # USA+CA filter - if tvg-country exists, check it, else keep (most are US)
+              if 'tvg-country=' in low:
+                if '"us"' in low or '"ca"' in low or "'us'" in low or "'ca'" in low or 'us;ca' in low or 'ca;us' in low:
+                  clean.append(line)
+                  keep=True
+                else:
+                  keep=False
               else:
-                  if not keep: continue
-                  if line.startswith('#'):
-                      clean.append(line)
-                  else:
-                      if 'http' not in line.lower():
-                          keep=False
-                          continue
-                      clean.append(line)
-                      keep=False
+                # No country tag = keep (Samsung All is mostly US)
+                clean.append(line)
+                keep=True
+            else:
+              if not keep:
+                continue
+              if line.startswith('#'):
+                clean.append(line)
+              else:
+                if 'http' in line.lower():
+                  clean.append(line)
+                keep=False
 
           open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
-          print(f"Filtered USA+CA: {sum(1 for l in clean if 'EXTINF' in l)} channels")
+          print(f"USA+CA filtered: {sum(1 for l in clean if 'EXTINF' in l)} channels")
           PY
 
-      - name: Merge
+      - name: Merge to dcmaster
         run: |
           python3 << 'PY'
           import re
           def load(p):
-              try:
-                  t=open(p,
+            try:
+              t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
+              return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
+            except:
+              return []
+          out=['#EXTM3U']+load('/tmp/pluto.m3u8')
+          chno=1000
+          for line in load('/tmp/samsungplex.m3u8'):
+            if line.startswith('#EXTINF'):
+              if 'tvg-chno=' in line:
+                line=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{chno}"',line)
+              else:
+                line=line.replace('#EXTINF:',f'#EXTINF: tvg-chno="{chno}" ',1)
+              chno+=1
+            out.append(line)
+          open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
+          open('dcmaster.xml','w',encoding='utf-8').write(open('/tmp/pluto.xml',encoding='utf-8',errors='ignore').read())
+          open('.nojekyll','w').write('')
+          print(f"MASTER final
