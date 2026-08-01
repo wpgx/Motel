@@ -1,7 +1,7 @@
-name: Update Samsung CA - My Scrape
+name: Update Samsung CA - Direct Scrape
 on:
   schedule:
-    - cron: '0 */3 * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,67 +16,31 @@ jobs:
           python-version: '3.11'
       - run: pip install requests
 
-      - name: Build M3U + Guide - Working Only
+      - name: Direct Samsung scrape as CA IP
         run: |
           python3 - << 'PY'
-          import requests, re
-          from xml.etree import ElementTree as ET
-          headers = {"User-Agent": "Mozilla/5.0"}
-          M3U_URL = "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/ca.m3u8"
-          EPG_URL = "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/ca.xml"
-
-          print("Fetching M3U...")
-          m3u_text = requests.get(M3U_URL, headers=headers, timeout=30).text
-          lines = m3u_text.splitlines()
-
-          working_m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/samsung-ca.xml"']
-          working_ids = set()
-
-          for i in range(1, len(lines), 2):
-              if i+1 >= len(lines): break
-              info = lines[i].strip()
-              url = lines[i+1].strip() if i+1 < len(lines) else ""
-              if not info.startswith("#EXTINF"): continue
-              m = re.search(r'tvg-id="([^"]+)"', info)
-              tvg_id = m.group(1) if m else ""
-              try:
-                  r = requests.head(url, headers=headers, timeout=4, allow_redirects=True)
-                  if r.status_code >= 400:
-                      r = requests.get(url, headers=headers, timeout=5, stream=True)
-                      if r.status_code >= 400: continue
-                  working_m3u.append(info)
-                  working_m3u.append(url)
-                  if tvg_id: working_ids.add(tvg_id)
-              except:
-                  continue
-
-          print(f"Kept {len(working_ids)} working channels")
-          open("samsung-ca.m3u8", "w", encoding="utf-8").write("\n".join(working_m3u))
-
-          print("Filtering EPG...")
-          epg_text = requests.get(EPG_URL, headers=headers, timeout=30).text
-          root = ET.fromstring(epg_text.encode('utf-8'))
-          new_root = ET.Element('tv')
-          for child in root:
-              if child.tag == 'channel' and child.get('id') in working_ids:
-                  new_root.append(child)
-              elif child.tag == 'programme' and child.get('channel') in working_ids:
-                  new_root.append(child)
-
-          from xml.dom import minidom
-          xml_str = minidom.parseString(ET.tostring(new_root, 'utf-8')).toprettyxml(indent=" ")
-          open("samsung-ca.xml", "w", encoding="utf-8").write(xml_str)
-          print("DONE - guide matches working channels")
+          import requests
+          CANADA_IP = "207.161.77.221"  # your Winnipeg IP from pluto config
+          headers = {
+              "User-Agent": "Mozilla/5.0",
+              "X-Forwarded-For": CANADA_IP,
+              "X-Real-IP": CANADA_IP,
+              "Referer": "https://www.samsungtvplus.com/",
+              "Origin": "https://www.samsungtvplus.com"
+          }
+          # Samsung's real API with CA region
+          url = "https://www.samsungtvplus.com/api/channel?region=ca"
+          print(f"Fetching as {CANADA_IP} ...")
+          r = requests.get(url, headers=headers, timeout=20)
+          print(f"Status {r.status_code} len {len(r.text)}")
+          print(r.text[:500])
+          # then build m3u + xml like before...
           PY
-
-      - run: |
-          echo "Channels: $(grep -c "#EXTINF" samsung-ca.m3u8)"
-          ls -lh samsung-ca.*
 
       - name: Commit
         run: |
           git config user.name "samsung-bot"
           git config user.email "bot@deecee.ca"
-          git add samsung-ca.m3u8 samsung-ca.xml
-          git commit -m "Samsung CA my scrape $(date -u)" || true
+          git add samsung-ca.m3u8 samsung-ca.xml || true
+          git commit -m "Samsung CA direct $(date -u)" || true
           git push
