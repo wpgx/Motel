@@ -13,13 +13,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
-      - name: Build from official APIs (no public lists)
+      - name: Build all 3 from official APIs (Docker method - no public lists)
         run: |
-          pip install requests
           # --- PLUTO CA ---
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
@@ -27,88 +23,33 @@ jobs:
           node ./index.js --config ./config.json --exclude-groups "^Local News$" --exclude-channels "CBC|CTV|Global"
           mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
           mv ./plutotv_ca.xml /tmp/pluto.xml
-          echo "Pluto: $(wc -l < /tmp/pluto.m3u8) lines"
+          echo "Pluto done: $(wc -l < /tmp/pluto.m3u8)"
 
-          # --- SAMSUNG CA direct from Samsung ---
-          python3 << 'PY'
-          import requests
-          try:
-              # Samsung TV Plus official API - Canada
-              headers = {"User-Agent":"Mozilla/5.0"}
-              # This is Samsung's own endpoint
-              r = requests.get("https://search.samsungtvplus.com/api/channel/list?region=CA", headers=headers, timeout=20)
-              if r.status_code != 200:
-                  # fallback 2
-                  r = requests.get("https://api.samsungtvplus.com/api/v1/channel/list?region=CA", headers=headers, timeout=20)
-              data = r.json()
-              m3u = ["#EXTM3U"]
-              count=0
-              # handle different json formats
-              channels = data.get('data', {}).get('channels', []) or data.get('channels', []) or data.get('result', [])
-              if not channels:
-                  # try another official endpoint
-                  r = requests.get("https://www.samsungtvplus.com/api/channels?region=CA", headers=headers, timeout=20)
-                  channels = r.json()
-              for ch in channels:
-                  try:
-                      title = ch.get('title') or ch.get('name') or ch.get('chName') or 'Samsung'
-                      url = ch.get('streamUrl') or ch.get('url') or ch.get('playbackUrl') or ch.get('m3u8') or ''
-                      if not url: continue
-                      logo = ch.get('logo') or ch.get('thumbnail') or ''
-                      cid = ch.get('id') or ch.get('channelId') or count
-                      m3u.append(f'#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" group-title="Samsung Plus CA",{title}')
-                      m3u.append(url)
-                      count+=1
-                  except: continue
-              open('/tmp/samsung.m3u8','w',encoding='utf-8').write("\n".join(m3u))
-              print(f"Samsung CA self-built: {count} channels")
-          except Exception as e:
-              print(f"Samsung error: {e}")
-              open('/tmp/samsung.m3u8','w').write("#EXTM3U\n")
-          PY
+          # --- SAMSUNG CA via official docker scraper ---
+          docker run -d --name samsung -p 8182:8080 matthuisman/samsung-tvplus-for-channels:latest
+          sleep 15
+          curl -s "http://localhost:8182/playlist.m3u8?regions=ca" -o /tmp/samsung.m3u8 || echo "#EXTM3U" > /tmp/samsung.m3u8
+          curl -s "http://localhost:8182/epg.xml?regions=ca" -o /tmp/samsung.xml || echo "<tv></tv>" > /tmp/samsung.xml
+          echo "Samsung done: $(wc -l < /tmp/samsung.m3u8)"
+          docker rm -f samsung
 
-          # --- PLEX CA direct from Plex ---
-          python3 << 'PY'
-          import requests
-          try:
-              headers={"User-Agent":"Mozilla/5.0"}
-              # Plex official EPG - all CA live channels
-              r = requests.get("https://discover.provider.plex.tv/library/sections/watchonplex/lineup?X-Plex-Token=&region=CA", headers=headers, timeout=20)
-              # Alternative endpoint
-              if r.status_code != 200:
-                  r = requests.get("https://epg.provider.plex.tv/api/v2/lineups/plex/channels?region=CA", headers=headers, timeout=20)
-              # If both fail, use plex.tv API list
-              data = r.json() if r.text.startswith('{') else {}
-              m3u = ["#EXTM3U"]
-              count=0
-              # Try parse
-              for ch in data.get('MediaContainer',{}).get('Metadata',[])[:300]:
-                  title = ch.get('title','Plex')
-                  # Plex needs special handling - use provider endpoint
-                  key = ch.get('key','')
-                  if key:
-                      m3u.append(f'#EXTINF:-1 group-title="Plex CA",{title}')
-                      m3u.append(f"https://epg.provider.plex.tv{key}?X-Plex-Token=")
-                      count+=1
-              open('/tmp/plex.m3u8','w',encoding='utf-8').write("\n".join(m3u))
-              print(f"Plex CA self-built: {count} channels")
-          except Exception as e:
-              print(f"Plex error: {e}")
-              open('/tmp/plex.m3u8','w').write("#EXTM3U\n")
-          PY
+          # --- PLEX CA via official docker scraper ---
+          docker run -d --name plex -p 8183:8080 matthuisman/plex-tv-for-channels:latest
+          sleep 15
+          curl -s "http://localhost:8183/playlist.m3u8?regions=ca" -o /tmp/plex.m3u8 || echo "#EXTM3U" > /tmp/plex.m3u8
+          curl -s "http://localhost:8183/epg.xml?regions=ca" -o /tmp/plex.xml || echo "<tv></tv>" > /tmp/plex.xml
+          echo "Plex done: $(wc -l < /tmp/plex.m3u8)"
+          docker rm -f plex
 
-          echo "Samsung: $(wc -l < /tmp/samsung.m3u8) lines"
-          echo "Plex: $(wc -l < /tmp/plex.m3u8) lines"
-          echo '<?xml version="1.0"?><tv></tv>' > /tmp/samsung.xml
-          echo '<?xml version="1.0"?><tv></tv>' > /tmp/plex.xml
-
-      - name: Merge
+      - name: Merge to DCMASTER
         run: |
           python3 << 'PY'
           import re
           def load(p):
-              t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
-              return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
+              try:
+                  t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
+                  return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
+              except: return []
           out=['#EXTM3U']+load('/tmp/pluto.m3u8')
           def add(path,start,group):
               chno=start
@@ -125,10 +66,16 @@ jobs:
           add('/tmp/samsung.m3u8',1000,'Samsung Plus CA')
           add('/tmp/plex.m3u8',2000,'Plex CA')
           open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
-          import pathlib
-          open('dcmaster.xml','w').write(open('/tmp/pluto.xml',encoding='utf-8',errors='ignore').read())
+          def inner(p):
+              try:
+                  txt=open(p,encoding='utf-8',errors='ignore').read()
+                  m=re.search(r'<tv[^>]*>(.*)</tv>',txt,re.DOTALL)
+                  return m.group(1) if m else ""
+              except: return ""
+          combined=f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{inner("/tmp/pluto.xml")}\n{inner("/tmp/samsung.xml")}\n{inner("/tmp/plex.xml")}\n</tv>'
+          open('dcmaster.xml','w',encoding='utf-8').write(combined)
           open('.nojekyll','w').write('')
-          print(f"FINAL: {len(out)} lines = {len(out)//2} channels")
+          print(f"FINAL: {len(out)} lines")
           PY
 
       - name: Push
@@ -136,5 +83,5 @@ jobs:
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml .nojekyll
-          git commit -m "Update DCMASTER self-built direct" || true
+          git commit -m "Update DCMASTER direct from APIs" || true
           git push
