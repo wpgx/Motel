@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build from YOUR links
+      - name: Build DCMASTER - DCTV + Samsung ALL + Plex ALL (CA only)
         run: |
           pip install requests -q
           python3 << 'PY'
@@ -23,41 +23,36 @@ jobs:
 
           h={'User-Agent':'Mozilla/5.0'}
 
-          # YOUR LINKS - EXACTLY what you sent
-          urls=[
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
-          ]
+          # BOTH from him - exactly as you asked
+          urls={
+            "Samsung-ALL": "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
+            "Plex-ALL": "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
+          }
 
-          # 1. Load your DCTV (192 Pluto CA)
           base=open("dctv.m3u8", encoding="utf-8", errors="ignore").read().splitlines()
-          print(f"DCTV: {len([x for x in base if '#EXTINF' in x])}")
+          print(f"DCTV base (your Pluto CA): {len([x for x in base if '#EXTINF' in x])}")
 
-          ca_extracted=""
-          for url in urls:
+          merged_extra=[]
+          for name, url in urls.items():
               r=requests.get(url, headers=h, timeout=60)
-              print(f"{url} -> {r.status_code} total channels: {r.text.count('#EXTINF')}")
-              # Save first 3 lines to see format
-              print("Sample:", r.text.splitlines()[1][:200] if len(r.text.splitlines())>1 else "no sample")
-
-              # EXTRACT CANADA ONLY
-              # His format is group-title="Canada" - let's catch it
+              print(f"\n{name} {url} -> {r.status_code} total in file: {r.text.count('#EXTINF')}")
               lines=r.text.splitlines()
-              for i in range(len(lines)):
-                  line=lines[i]
+              ca=0
+              for i, line in enumerate(lines):
                   if not line.startswith("#EXTINF"):
                       continue
                   low=line.lower()
-                  # This is how he tags Canada in ALL files
-                  if 'canada' in low or 'tvg-country="ca"' in low or 'tvg-country="us;ca"' in low or 'group-title="ca"' in low:
-                      # keep this + next line (url)
-                      ca_extracted+=line+"\n"
+                  # HIS tag for Canada is group-title="Canada"
+                  if 'canada' in low:
+                      merged_extra.append(line)
                       if i+1 < len(lines) and "http" in lines[i+1]:
-                          ca_extracted+=lines[i+1].strip()+"\n"
+                          merged_extra.append(lines[i+1].strip())
+                      ca+=1
+              print(f"{name} Canada only extracted: {ca}")
 
-          print(f"Canada extracted from ALL files: {ca_extracted.count('#EXTINF')}")
+          print(f"\nTotal Canada from both ALL files: {len([x for x in merged_extra if '#EXTINF' in x])}")
 
-          # Merge
+          # Merge with DCTV
           out=[]
           seen=set()
           for l in base:
@@ -67,20 +62,17 @@ jobs:
                   out.append(l)
 
           added=0
-          cur=""
-          for l in ca_extracted.splitlines():
-              if l.startswith("#EXTINF"):
-                  name=l.split(",")[-1].lower().strip()
-                  if name in seen or not name:
-                      cur=""
-                      continue
-                  seen.add(name)
-                  cur=l
-              elif cur and "http" in l:
-                  out.append(cur)
-                  out.append(l.strip())
-                  added+=1
-                  cur=""
+          for i in range(0, len(merged_extra), 2):
+              if i+1 >= len(merged_extra): break
+              inf=merged_extra[i]
+              url=merged_extra[i+1]
+              key=inf.split(",")[-1].lower().strip()
+              if key in seen or not key:
+                  continue
+              seen.add(key)
+              out.append(inf)
+              out.append(url)
+              added+=1
 
           final=["#EXTM3U"]
           c=1
@@ -96,7 +88,8 @@ jobs:
           if os.path.exists("dctv.xml"):
               shutil.copy("dctv.xml","dcmaster.xml")
 
-          print(f"FINAL DCMASTER: {len([x for x in final if '#EXTINF' in x])} = {len([x for x in base if '#EXTINF' in x])} DCTV + {added} from your Samsung/Plex ALL->CA")
+          total=len([x for x in final if '#EXTINF' in x])
+          print(f"\nFINAL DCMASTER.M3U8: {total} channels = {len([x for x in base if '#EXTINF' in x])} DCTV + {added} Samsung+Plex CA (from ALL files)")
           PY
 
       - name: Push
@@ -104,5 +97,5 @@ jobs:
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml
-          git commit -m "DCMASTER from ALL->CA" || echo "no change"
+          git commit -m "DCMASTER Samsung+Plex ALL->CA" || echo "no change"
           git push
