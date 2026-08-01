@@ -4,7 +4,78 @@ on:
   schedule:
     - cron: '0 3 * * *'
 
+jobs:name: update-plex
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scrape Plex CA yourself
+        run: |
+          pip install requests
+          cat > scrape_plex_ca.py << 'PY'
+          import requests
+          print("Getting anon token...")
+          headers = {
+            "X-Plex-Product": "Plex for Channels",
+            "X-Plex-Version": "1.0",
+            "X-Plex-Client-Identifier": "plex-for-channels"
+          }
+          anon = requests.post("https://plex.tv/api/v2/users/anonymous", headers=headers, timeout=15).json()
+          token = anon.get('authToken')
+          print(f"Token OK: {token[:10]}...")
+
+          headers["X-Plex-Token"] = token
+          headers["X-Plex-Language"] = "en-CA"
+
+          url = "https://discover.provider.plex.tv/library/sections/watchlive/all?X-Plex-Container-Start=0&X-Plex-Container-Size=1000"
+          r = requests.get(url, headers=headers, timeout=30)
+          r.raise_for_status()
+          data = r.json()
+
+          m3u = ['#EXTM3U url-tvg="plex.xml"']
+          xml_channels = []
+          for item in data.get('MediaContainer', {}).get('Metadata', []):
+              title = item.get('title','').replace('"','').strip()
+              if not title: continue
+              thumb = item.get('thumb','')
+              if thumb and not thumb.startswith('http'):
+                  thumb = 'https://provider-static.plex.tv' + thumb
+              key = item.get('key','')
+              if not key: continue
+              hls = f"https://epg.provider.plex.tv{key}/parts?X-Plex-Token={token}"
+              m3u.append(f'#EXTINF:-1 tvg-id="{title}" tvg-name="{title}" tvg-logo="{thumb}" group-title="Plex CA",{title}')
+              m3u.append(hls)
+              xml_channels.append(title)
+
+          open("plex.m3u8","w",encoding="utf-8").write("\n".join(m3u))
+          with open("plex.xml","w",encoding="utf-8") as f:
+              f.write('<?xml version="1.0" encoding="utf-8"?><tv>')
+              for c in xml_channels:
+                  safe = c.replace('&','&amp;').replace('<','&lt;')
+                  f.write(f'<channel id="{safe}"><display-name>{safe}</display-name></channel>')
+              f.write('</tv>')
+          print(f"Wrote {len(xml_channels)} channels to plex.m3u8 in main folder")
+          PY
+          python scrape_plex_ca.py
+          ls -lh plex.m3u8 plex.xml
+          head -5 plex.m3u8
+
+      - name: Save to main
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          rm -rf plex/ || true
+          git add plex.m3u8 plex.xml
+          git add -A
+          git commit -m "plex ca self-scraped" || exit 0
+          git push
   build:
     runs-on: ubuntu-latest
     steps:
