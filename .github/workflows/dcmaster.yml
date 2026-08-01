@@ -12,62 +12,47 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build dcmaster.m3u8 + dcmaster.xml - CANADA ONLY
+      - name: Build CANADA ONLY
         run: |
           set +e
-          echo "=== DCTV ==="
           echo "DCTV INF: $(grep -c "#EXTINF" dctv.m3u8)"
-
-          # 1. Download ALL m3u with curl (works)
-          curl -L -s -A "Mozilla/5.0" -o /tmp/samsung.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
-          curl -L -s -A "Mozilla/5.0" -o /tmp/plex.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
-
-          # 2. Download EPGs with curl
-          curl -L -s -A "Mozilla/5.0" -o /tmp/samsung.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.xml"
-          curl -L -s -A "Mozilla/5.0" -o /tmp/plex.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.xml"
-          # Fallback EPGs if his xml doesn't exist
-          if [! -s /tmp/samsung.xml ]; then curl -L -s -A "Mozilla/5.0" -o /tmp/samsung.xml "https://i.mjh.nz/SamsungTVPlus/all.xml"; fi
-          if [! -s /tmp/plex.xml ]; then curl -L -s -A "Mozilla/5.0" -o /tmp/plex.xml "https://i.mjh.nz/Plex/all.xml"; fi
+          curl -L -s -A "Mozilla/5.0" -o /tmp/s.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
+          curl -L -s -A "Mozilla/5.0" -o /tmp/p.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
+          curl -L -s -A "Mozilla/5.0" -o /tmp/s.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.xml"
+          curl -L -s -A "Mozilla/5.0" -o /tmp/p.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.xml"
+          if [ ! -s /tmp/s.xml ]; then curl -L -s -o /tmp/s.xml "https://i.mjh.nz/SamsungTVPlus/all.xml"; fi
+          if [ ! -s /tmp/p.xml ]; then curl -L -s -o /tmp/p.xml "https://i.mjh.nz/Plex/all.xml"; fi
 
           python3 << 'PY'
           import re
-
-          def extract_ca(input_path, output_path):
+          def get_ca(inp, out):
               try:
-                  with open(input_path, encoding="utf-8", errors="ignore") as f:
-                      lines=f.read().splitlines()
+                  txt=open(inp,encoding="utf-8",errors="ignore").read().splitlines()
               except:
                   return 0
-              out=[]
-              for i in range(len(lines)):
-                  line=lines[i]
-                  if not line.startswith("#EXTINF"):
-                      continue
-                  low=line.lower()
-                  is_ca = (
-                      'channel-id="ca' in low or
-                      'tvg-id="ca' in low or
-                      'group-title="canada"' in low or
-                      'tvg-country="ca' in low
-                  )
-                  if is_ca:
-                      out.append(line)
-                      if i+1 < len(lines) and lines[i+1].strip().startswith("http"):
-                          out.append(lines[i+1].strip())
-              open(output_path,"w",encoding="utf-8").write("\n".join(out))
-              c=len([x for x in out if '#EXTINF' in x])
-              print(f"{input_path} -> CA: {c}")
+              res=[]
+              for i,l in enumerate(txt):
+                  if not l.startswith("#EXTINF"): continue
+                  low=l.lower()
+                  if 'channel-id="ca' in low or 'group-title="canada"' in low:
+                      res.append(l)
+                      if i+1 < len(txt) and txt[i+1].strip().startswith("http"):
+                          res.append(txt[i+1].strip())
+              open(out,"w",encoding="utf-8").write("\n".join(res))
+              c=len([x for x in res if "#EXTINF" in x])
+              print(f"{inp} CA={c}")
               return c
 
-          s=extract_ca("/tmp/samsung.m3u", "/tmp/samsung-ca.m3u")
-          p=extract_ca("/tmp/plex.m3u", "/tmp/plex-ca.m3u")
-          print(f"Total CA extra: {s+p}")
+          s=get_ca("/tmp/s.m3u","/tmp/s-ca.m3u")
+          p=get_ca("/tmp/p.m3u","/tmp/p-ca.m3u")
+          print(f"Extra CA total {s+p}")
 
-          # Build m3u8
           final=["#EXTM3U"]
-          with open("dctv.m3u8", encoding="utf-8", errors="ignore") as f:
-              for l in f:
-                  if l.strip() and not l.startswith("#EXTM3U"):
-                      final.append(l.strip())
+          with open("dctv.m3u8",encoding="utf-8",errors="ignore") as f:
+              for line in f:
+                  if line.strip() and "#EXTM3U" not in line:
+                      final.append(line.strip())
 
-          for fp in ["/tmp/samsung-ca.m3u", "/tmp/plex-ca.m
+          for fp in ["/tmp/s-ca.m3u","/tmp/p-ca.m3u"]:
+              try:
+                 
