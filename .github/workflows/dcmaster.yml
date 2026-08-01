@@ -17,71 +17,60 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build direct
+      - name: Build
         run: |
           pip install requests
+          # --- PLUTO CA - PURE SELF BUILT ---
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node ./index.js --config ./config.json --exclude-groups "^Local News$" --exclude-channels "CBC|CTV|Global"
+          node ./index.js --config ./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
           mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
           mv ./plutotv_ca.xml /tmp/pluto.xml
+          cp /tmp/pluto.m3u8 motel.m3u8
+          cp /tmp/pluto.xml motel.xml
+          echo "Motel (Pluto only): $(wc -l < /tmp/pluto.m3u8) lines"
 
+          # --- SAMSUNG + PLEX from raw github (with dead host filter) ---
           python3 << 'PY'
           import requests
-          headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-          # SAMSUNG CA direct - using Samsung's own JSON
-          try:
-              # Get Samsung CA channels via their web API
-              r = requests.get("https://www.samsungtvplus.com/api/channel/list?country=CA", headers=headers, timeout=20)
-              if r.status_code != 200:
-                  r = requests.get("https://api.samsungtvplus.com/api/channels?country=CA", headers=headers, timeout=20)
-              data = r.json()
-              # Try to find channel list in response
-              chans = data.get('data') or data.get('channels') or data.get('result') or data
-              if isinstance(chans, dict):
-                  chans = chans.get('channels') or chans.get('data') or []
-              m3u=["#EXTM3U"]
-              for c in chans[:400]:
-                  if not isinstance(c, dict): continue
-                  title=c.get('title') or c.get('name') or c.get('chName') or ''
-                  url=c.get('streamUrl') or c.get('playbackUrl') or c.get('url') or ''
-                  if not title or not url: continue
-                  logo=c.get('logo') or c.get('thumbnail') or ''
-                  cid=c.get('id') or c.get('channelId') or title
-                  m3u.append(f'#EXTINF:-1 tvg-id="{cid}" tvg-logo="{logo}" group-title="Samsung CA",{title}')
-                  m3u.append(url)
-              open('/tmp/samsung.m3u8','w',encoding='utf-8').write("\n".join(m3u))
-              print(f"Samsung built: {len(m3u)//2}")
-          except Exception as e:
-              print(f"Samsung fail: {e}")
-              open('/tmp/samsung.m3u8','w').write("#EXTM3U\n")
+          headers={"User-Agent":"Mozilla/5.0"}
+          # These 2 raw github files ALWAYS work inside Actions
+          urls = [
+              "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
+              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_samsung.m3u",
+              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_plex.m3u"
+          ]
+          combined=[]
+          for u in urls:
+              try:
+                  r=requests.get(u,headers=headers,timeout=20)
+                  if r.status_code==200:
+                      combined+=r.text.splitlines()
+                      print(f"Fetched {u}: {len(r.text.splitlines())} lines")
+              except Exception as e:
+                  print(f"Failed {u}: {e}")
 
-          # PLEX CA - direct
-          try:
-              r = requests.get("https://epg.provider.plex.tv/api/v2/lineups?region=CA", headers=headers, timeout=20)
-              # Plex lineup ID for CA is usually 'plex'
-              r2 = requests.get("https://epg.provider.plex.tv/api/v2/lineups/plex/channels?region=CA", headers=headers, timeout=20)
-              data=r2.json()
-              m3u=["#EXTM3U"]
-              for ch in data[:400]:
-                  title=ch.get('title') or ch.get('name') or ''
-                  # Plex HLS url construction
-                  slug=ch.get('slug') or ''
-                  # Use plex's discover url pattern
-                  url=f"https://epg.provider.plex.tv/api/v2/lineups/plex/channels/{ch.get('id')}/media?region=CA"
-                  # Actual media url needs token - try direct
-                  m3u.append(f'#EXTINF:-1 group-title="Plex CA",{title}')
-                  m3u.append(url)
-              open('/tmp/plex.m3u8','w',encoding='utf-8').write("\n".join(m3u))
-              print(f"Plex built: {len(m3u)//2}")
-          except Exception as e:
-              print(f"Plex fail: {e}")
-              open('/tmp/plex.m3u8','w').write("#EXTM3U\n")
+          # Filter out obvious dead domains (fishing etc)
+          clean=[]
+          dead_keywords=["fishing","hunt","unknown","example.com","localhost"]
+          for line in combined:
+              if line.startswith('#'):
+                  clean.append(line)
+              else:
+                  # keep only if not containing dead keywords
+                  if any(k in line.lower() for k in dead_keywords):
+                      continue
+                  # skip if line has no http
+                  if 'http' not in line.lower():
+                      continue
+                  clean.append(line)
+
+          open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
+          print(f"Samsung+Plex cleaned: {len(clean)} lines")
           PY
-          echo "Counts:" && wc -l /tmp/*.m3u8
 
-      - name: Merge
+      - name: Merge to DCMASTER
         run: |
           python3 << 'PY'
           import re
@@ -91,26 +80,27 @@ jobs:
                   return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
               except: return []
           out=['#EXTM3U']+load('/tmp/pluto.m3u8')
-          def add(path,start,group):
-              chno=start
-              for l in load(path):
-                  if l.startswith('#EXTINF'):
-                      if 'tvg-chno' in l: l=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{chno}"',l)
-                      else: l=l.replace('#EXTINF:',f'#EXTINF: tvg-chno="{chno}" ',1)
-                      if 'group-title' not in l: l=l.replace(',',f' group-title="{group}",',1)
-                      chno+=1
-                  out.append(l)
-          add('/tmp/samsung.m3u8',1000,'Samsung CA')
-          add('/tmp/plex.m3u8',2000,'Plex CA')
+          chno=1000
+          for line in load('/tmp/samsungplex.m3u8'):
+              if line.startswith('#EXTINF'):
+                  if 'tvg-chno' in line:
+                      line=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{chno}"',line)
+                  else:
+                      line=line.replace('#EXTINF:',f'#EXTINF: tvg-chno="{chno}" ',1)
+                  chno+=1
+              out.append(line)
           open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
           open('dcmaster.xml','w',encoding='utf-8').write(open('/tmp/pluto.xml',encoding='utf-8',errors='ignore').read())
+          open('motel.m3u8','w',encoding='utf-8').write(open('motel.m3u8',encoding='utf-8',errors='ignore').read())
+          open('motel.xml','w',encoding='utf-8').write(open('motel.xml',encoding='utf-8',errors='ignore').read())
           open('.nojekyll','w').write('')
+          print(f"MASTER FINAL: {len(out)} lines = {len(out)//2} channels")
           PY
 
       - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
-          git add dcmaster.m3u8 dcmaster.xml .nojekyll
-          git commit -m "Update" || true
+          git add dcmaster.m3u8 dcmaster.xml motel.m3u8 motel.xml .nojekyll
+          git commit -m "Update motel + master" || true
           git push
