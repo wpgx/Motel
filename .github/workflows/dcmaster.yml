@@ -1,0 +1,79 @@
+name: Build DCMASTER
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Fetch all 3 sources
+        run: |
+          git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
+          cd /tmp/scraper && npm install
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
+          node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$" --exclude-channels "CBC|CTV|Global"
+          mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
+          mv ./plutotv_ca.xml /tmp/pluto.xml
+          
+          curl -L https://i.mjh.nz/SamsungTVPlus/ca.m3u8 -o /tmp/samsung.m3u8
+          curl -L https://i.mjh.nz/SamsungTVPlus/ca.xml -o /tmp/samsung.xml
+          
+          curl -L https://i.mjh.nz/Plex/ca.m3u8 -o /tmp/plex.m3u8
+          curl -L https://i.mjh.nz/Plex/ca.xml -o /tmp/plex.xml
+          
+          wc -l /tmp/*.m3u8
+
+      - name: Merge to DCMASTER
+        run: |
+          python3 << 'PY'
+          import re
+          def load_m3u(path):
+              txt = open(path,encoding='utf-8',errors='ignore').read().splitlines()
+              return [l for l in txt if l.strip() and not l.startswith('#EXTM3U')]
+          pluto = load_m3u('/tmp/pluto.m3u8')
+          samsung = load_m3u('/tmp/samsung.m3u8')
+          plex = load_m3u('/tmp/plex.m3u8')
+          out = ['#EXTM3U']
+          out += pluto
+          def add_with_offset(lines, start_chno, group_name):
+              chno = start_chno
+              for line in lines:
+                  if line.startswith('#EXTINF'):
+                      if 'tvg-chno' in line:
+                          line = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{chno}"', line)
+                      else:
+                          line = line.replace('#EXTINF:', f'#EXTINF: tvg-chno="{chno}" ',1)
+                      if 'group-title' not in line:
+                          line = line.replace(',', f' group-title="{group_name}",',1)
+                      chno+=1
+                  out.append(line)
+              return chno
+          add_with_offset(samsung, 1000, "Samsung Plus CA")
+          add_with_offset(plex, 2000, "Plex CA")
+          open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
+          def inner(path):
+              txt = open(path,encoding='utf-8',errors='ignore').read()
+              m = re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
+              return m.group(1) if m else ""
+          combined = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{inner("/tmp/pluto.xml")}\n{inner("/tmp/samsung.xml")}\n{inner("/tmp/plex.xml")}\n</tv>'
+          open('dcmaster.xml','w',encoding='utf-8').write(combined)
+          open('.nojekyll','w').write('')
+          print(f"Built dcmaster.m3u8")
+          PY
+
+      - name: Push files
+        run: |
+          git config user.name "dc-bot"
+          git config user.email "bot@github.com"
+          git add dcmaster.m3u8 dcmaster.xml .nojekyll
+          git commit -m "Update DCMASTER" || true
+          git push
+          
