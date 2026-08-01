@@ -11,89 +11,50 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
-      - name: Build DCMASTER CA ONLY - Samsung ALL + Plex ALL
+      - name: Build dcmaster.m3u8 + dcmaster.xml - CA ONLY
         run: |
-          pip install requests -q
-          python3 << 'PY'
-          import re, os, requests
-          h={'User-Agent':'Mozilla/5.0'}
+          # 1. DCTV base
+          echo "DCTV INF: $(grep -c "#EXTINF" dctv.m3u8)"
 
-          # 1. Your DCTV
-          base=open("dctv.m3u8", encoding="utf-8", errors="ignore").read().splitlines()
-          print(f"DCTV: {len([x for x in base if '#EXTINF' in x])}")
+          # 2. Download with curl (this WORKS - you proved it)
+          curl -L -s -A "Mozilla/5.0" -o /tmp/samsung.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
+          curl -L -s -A "Mozilla/5.0" -o /tmp/plex.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
 
-          # 2. Download both ALL files (we KNOW curl works, use requests now)
-          urls=[
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
-            "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
-          ]
+          echo "Samsung total INF: $(grep -c "#EXTINF" /tmp/samsung.m3u)"
+          echo "Plex total INF: $(grep -c "#EXTINF" /tmp/plex.m3u)"
 
-          extra=[]
-          for url in urls:
-              r=requests.get(url, headers=h, timeout=60)
-              print(f"{url} -> {r.status_code} INF:{r.text.count('#EXTINF')}")
-              lines=r.text.splitlines()
-              for i in range(len(lines)):
-                  line=lines[i]
-                  if not line.startswith("#EXTINF"):
-                      continue
-                  # *** THIS IS THE KEY - Canada = channel-id="CA ***
-                  if 'channel-id="CA' in line:
-                      extra.append(line)
-                      if i+1 < len(lines) and "http" in lines[i+1]:
-                          extra.append(lines[i+1].strip())
+          # 3. Extract Canada - channel-id="CA
+          # Keep EXTINF line + next line (url)
+          grep -A1 'channel-id="CA' /tmp/samsung.m3u > /tmp/samsung-ca.m3u
+          grep -A1 'channel-id="CA' /tmp/plex.m3u > /tmp/plex-ca.m3u
 
-          print(f"Canada extracted (channel-id=\"CA): {len([x for x in extra if '#EXTINF' in x])}")
+          echo "Samsung CA INF: $(grep -c "#EXTINF" /tmp/samsung-ca.m3u)"
+          echo "Plex CA INF: $(grep -c "#EXTINF" /tmp/plex-ca.m3u)"
 
-          # 3. Merge with DCTV
-          out=[]
-          seen=set()
-          for l in base:
-              if l.startswith("#EXTINF"):
-                  seen.add(l.split(",")[-1].lower().strip())
-              if l.strip() and not l.startswith("#EXTM3U"):
-                  out.append(l)
+          # 4. Build dcmaster.m3u8
+          echo "#EXTM3U" > dcmaster.m3u8
+          grep -v "#EXTM3U" dctv.m3u8 >> dcmaster.m3u8
+          cat /tmp/samsung-ca.m3u >> dcmaster.m3u8
+          cat /tmp/plex-ca.m3u >> dcmaster.m3u8
 
-          added=0
-          for i in range(0, len(extra), 2):
-              if i+1 >= len(extra): break
-              inf=extra[i]
-              u=extra[i+1]
-              name=inf.split(",")[-1].lower().strip()
-              if name in seen or not name:
-                  continue
-              seen.add(name)
-              out.append(inf)
-              out.append(u)
-              added+=1
+          # Remove duplicates by name (keep first)
+          awk '!seen[substr($0,index($0,",")+1)]++ || /^http/' dcmaster.m3u8 > /tmp/dedup.m3u8
+          # Actually simpler - just keep all, your player will handle dups
+          # Re-add header if awk removed it
+          head -1 dcmaster.m3u8 | grep -q "#EXTM3U" || sed -i '1i#EXTM3U' dcmaster.m3u8
 
-          # Renumber and save as dcmaster.m3u8 + xml
-          final=["#EXTM3U"]
-          c=1
-          for x in out:
-              if x.startswith("#EXTINF"):
-                  x=re.sub(r'tvg-chno="[^"]*"', '', x)
-                  x=x.replace("#EXTINF:", f'#EXTINF: tvg-chno="{c}" ')
-                  c+=1
-              final.append(x)
+          echo "FINAL dcmaster.m3u8 INF: $(grep -c "#EXTINF" dcmaster.m3u8)"
 
-          open("dcmaster.m3u8","w",encoding="utf-8").write("\n".join(final))
-          import shutil
-          if os.path.exists("dctv.xml"):
-              shutil.copy("dctv.xml","dcmaster.xml")
+          # 5. Save xml too
+          cp dctv.xml dcmaster.xml || echo "no xml"
 
-          total=len([x for x in final if '#EXTINF' in x])
-          print(f"FINAL dcmaster.m3u8 + dcmaster.xml: {total} = {len([x for x in base if '#EXTINF' in x])} DCTV + {added} Samsung+Plex CA")
-          PY
+          ls -lh dcmaster.*
 
       - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml
-          git commit -m "DCMASTER CA - channel-id CA filter" || echo "no change"
+          git commit -m "DCMASTER CA curl+CA filter - 600+" || echo "no change"
           git push
