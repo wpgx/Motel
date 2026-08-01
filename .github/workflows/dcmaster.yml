@@ -29,23 +29,20 @@ jobs:
           curl -A "Mozilla/5.0" -L https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/ca.m3u8 -o /tmp/plex.m3u8
           curl -A "Mozilla/5.0" -L https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/ca.xml -o /tmp/plex.xml
           
-          wc -l /tmp/*.m3u8
-          ls -lh /tmp/*.m3u8 /tmp/*.xml
+          echo "Pluto lines:" && wc -l /tmp/pluto.m3u8
+          echo "Samsung lines:" && wc -l /tmp/samsung.m3u8
+          echo "Plex lines:" && wc -l /tmp/plex.m3u8
 
       - name: Merge to DCMASTER
         run: |
           python3 << 'PY'
           import re
           def load_m3u(path):
-              try:
-                  txt = open(path,encoding='utf-8',errors='ignore').read().splitlines()
-                  return [l for l in txt if l.strip() and not l.startswith('#EXTM3U')]
-              except:
-                  return []
+              txt = open(path,encoding='utf-8',errors='ignore').read().splitlines()
+              return [l for l in txt if l.strip() and not l.startswith('#EXTM3U')]
           pluto = load_m3u('/tmp/pluto.m3u8')
           samsung = load_m3u('/tmp/samsung.m3u8')
           plex = load_m3u('/tmp/plex.m3u8')
-          print(f"Pluto: {len(pluto)} lines, Samsung: {len(samsung)} lines, Plex: {len(plex)} lines")
           out = ['#EXTM3U']
           out += pluto
           def add_with_offset(lines, start_chno, group_name):
@@ -65,17 +62,19 @@ jobs:
           add_with_offset(plex, 2000, "Plex CA")
           open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
           def inner(path):
-              try:
-                  txt = open(path,encoding='utf-8',errors='ignore').read()
-                  m = re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
-                  return m.group(1) if m else ""
-              except:
-                  return ""
+              txt = open(path,encoding='utf-8',errors='ignore').read()
+              m = re.search(r'<tv[^>]*>(.*)</tv>', txt, re.DOTALL)
+              return m.group(1) if m else ""
           combined = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{inner("/tmp/pluto.xml")}\n{inner("/tmp/samsung.xml")}\n{inner("/tmp/plex.xml")}\n</tv>'
           open('dcmaster.xml','w',encoding='utf-8').write(combined)
-          open('dcmaster.m3u','w',encoding='utf-8').write('\n'.join(out))
           open('.nojekyll','w').write('')
+          print(f"Built dcmaster.m3u8 with {len(out)} lines")
           PY
 
       - name: Push files
         run: |
+          git config user.name "dc-bot"
+          git config user.email "bot@github.com"
+          git add dcmaster.m3u8 dcmaster.xml .nojekyll
+          git commit -m "Update DCMASTER" || true
+          git push
