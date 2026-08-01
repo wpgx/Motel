@@ -19,28 +19,64 @@ jobs:
       - name: Direct Samsung scrape as CA IP
         run: |
           python3 - << 'PY'
-          import requests
-          CANADA_IP = "207.161.77.221"  # your Winnipeg IP from pluto config
+          import requests, json
+
+          CANADA_IP = "207.161.77.221"
           headers = {
-              "User-Agent": "Mozilla/5.0",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
               "X-Forwarded-For": CANADA_IP,
               "X-Real-IP": CANADA_IP,
               "Referer": "https://www.samsungtvplus.com/",
-              "Origin": "https://www.samsungtvplus.com"
+              "Origin": "https://www.samsungtvplus.com",
+              "Accept": "application/json"
           }
-          # Samsung's real API with CA region
-          url = "https://www.samsungtvplus.com/api/channel?region=ca"
-          print(f"Fetching as {CANADA_IP} ...")
-          r = requests.get(url, headers=headers, timeout=20)
-          print(f"Status {r.status_code} len {len(r.text)}")
-          print(r.text[:500])
-          # then build m3u + xml like before...
+
+          print(f"Fetching Samsung as CA IP {CANADA_IP}...")
+          r = requests.get("https://www.samsungtvplus.com/api/channels?region=ca", headers=headers, timeout=30)
+          print(f"Status {r.status_code}")
+
+          if r.status_code != 200 or not r.text.strip().startswith("{"):
+              print("Trying backup endpoint...")
+              r = requests.get("https://www.samsungtvplus.com/api/channel?region=ca", headers=headers, timeout=30)
+              print(f"Backup status {r.status_code}")
+
+          data = r.json()
+          channels = data.get('data', []) if isinstance(data, dict) else data
+          print(f"Found {len(channels)} channels")
+
+          m3u_lines = ['#EXTM3U url-tvg="https://motel.deecee.ca/samsung-ca.xml"']
+          xml_lines = ['<?xml version="1.0" encoding="UTF-8"?><tv>']
+
+          for ch in channels:
+              try:
+                  name = ch.get('name') or ch.get('title') or 'Unknown'
+                  ch_id = ch.get('id') or ch.get('slug') or name.replace(' ','')
+                  logo = ch.get('logo') or ch.get('thumbnail') or ''
+                  stream = ch.get('streamUrl') or ch.get('url') or ch.get('hls') or ''
+                  if not stream: continue
+
+                  m3u_lines.append(f'#EXTINF:-1 tvg-id="{ch_id}" tvg-logo="{logo}" group-title="Samsung CA",{name}')
+                  m3u_lines.append(stream)
+                  xml_lines.append(f'<channel id="{ch_id}"><display-name>{name}</display-name><icon src="{logo}"/></channel>')
+              except Exception as e:
+                  print(f"skip {e}")
+                  continue
+
+          xml_lines.append('</tv>')
+
+          open('samsung-ca.m3u8','w',encoding='utf-8').write("\n".join(m3u_lines))
+          open('samsung-ca.xml','w',encoding='utf-8').write("\n".join(xml_lines))
+          print(f"WROTE samsung-ca.m3u8 = {len(m3u_lines)//2} channels")
           PY
+
+      - run: |
+          echo "Channels: $(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)"
+          ls -lh samsung-ca.*
 
       - name: Commit
         run: |
           git config user.name "samsung-bot"
           git config user.email "bot@deecee.ca"
-          git add samsung-ca.m3u8 samsung-ca.xml || true
+          git add samsung-ca.m3u8 samsung-ca.xml
           git commit -m "Samsung CA direct $(date -u)" || true
           git push
