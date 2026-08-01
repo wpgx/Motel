@@ -20,20 +20,18 @@ jobs:
       - name: Build
         run: |
           pip install requests
-          # --- PLUTO CA - PURE SELF BUILT (207 clean) ---
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' >./config.json
           node./index.js --config./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
           mv./plutotv_ca.m3u8 /tmp/pluto.m3u8
           mv./plutotv_ca.xml /tmp/pluto.xml
-          cp /tmp/pluto.m3u8 motel.m3u8
-          cp /tmp/pluto.xml motel.xml
-          echo "Motel (Pluto CA only): $(grep -c EXTINF /tmp/pluto.m3u8) channels"
+          cp /tmp/pluto.m3u8 $GITHUB_WORKSPACE/motel.m3u8
+          cp /tmp/pluto.xml $GITHUB_WORKSPACE/motel.xml
+          echo "Motel: $(grep -c EXTINF /tmp/pluto.m3u8) channels"
 
-          # --- SAMSUNG + PLEX FRESH USA+CA ONLY ---
           python3 << 'PY'
-          import requests, re
+          import requests
           headers={"User-Agent":"Mozilla/5.0"}
           urls = [
               "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
@@ -41,74 +39,54 @@ jobs:
           ]
           combined=[]
           for u in urls:
-              try:
-                  r=requests.get(u,headers=headers,timeout=30)
-                  if r.status_code==200:
-                      combined+=r.text.splitlines()
-                      print(f"Fetched {u}: {len(r.text.splitlines())} lines")
-                  else:
-                      print(f"FAIL {u}: {r.status_code}")
-              except Exception as e:
-                  print(f"FAIL {u}: {e}")
+              r=requests.get(u,headers=headers,timeout=30)
+              if r.status_code==200:
+                  combined+=r.text.splitlines()
+                  print(f"OK {u} {len(r.text.splitlines())} lines")
+              else:
+                  print(f"FAIL {u} {r.status_code}")
 
           clean=[]
-          keep_url=False
-          dead=["fishing","hunt channel","example.com","localhost"]
+          keep=False
           for line in combined:
               if not line.strip(): continue
               if line.startswith('#EXTINF'):
                   low=line.lower()
-                  # USA+CANADA filter: check tvg-country, or title has us/ca
                   is_us_ca = False
-                  # tvg-country="US" or "CA" or "US;CA"
                   if 'tvg-country=' in low:
-                      if '"us"' in low or "'us'" in low or '"ca"' in low or "'ca'" in low or 'us;ca' in low or 'ca;us' in low or 'us,ca' in low or 'ca,us' in low or 'us-ca' in low:
-                          is_us_ca = True
-                  # fallback: title contains obvious us/ca markers
+                      if '"us"' in low or "'us'" in low or '"ca"' in low or "'ca'" in low or 'us;ca' in low or 'ca;us' in low or 'us,ca' in low or 'ca,us' in low:
+                          is_us_ca=True
                   if not is_us_ca:
-                      if any(x in low for x in ['(us)', '(ca)', '[us]', '[ca]', ' usa ', ' canada ', ' united states ', 'tvg-id="us', 'tvg-id="ca', ' group-title="us', ' group-title="ca', ' group-title="canada', ' group-title="usa']):
-                          is_us_ca = True
-                  # Scraper-Zilla All files often have NO country tag - so also accept if line has us/ca in it at all and is from samsung/plex
-                  if not is_us_ca and ('samsung' in low or 'plex' in low):
-                      # if it has NO country at all, we keep it for now, then filter by checking if url is valid (jmp2.uk is US/CA)
-                      # To be STRICT US+CA, we require us/ca in title
-                      if ' us ' in low or ' ca ' in low or 'canada' in low or 'america' in low:
-                          is_us_ca = True
+                      if any(x in low for x in ['(us)', '(ca)', '[us]', '[ca]', ' usa ', ' canada ', 'united states']):
+                          is_us_ca=True
+                  # If no country tag at all, keep it (most Samsung All entries have no tag but are US)
+                  if not is_us_ca and 'tvg-country=' not in low:
+                      is_us_ca=True
 
                   if is_us_ca:
-                      if any(k in low for k in dead):
-                          keep_url=False
-                          continue
                       clean.append(line)
-                      keep_url=True
+                      keep=True
                   else:
-                      keep_url=False
+                      keep=False
               else:
-                  if not keep_url: continue
+                  if not keep: continue
                   if line.startswith('#'):
                       clean.append(line)
                   else:
-                      low=line.lower()
-                      if any(k in low for k in dead):
-                          keep_url=False
-                          continue
-                      if 'http' not in low:
-                          keep_url=False
+                      if 'http' not in line.lower():
+                          keep=False
                           continue
                       clean.append(line)
-                      keep_url=False
+                      keep=False
 
           open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
-          print(f"Samsung+Plex USA+CA filtered: {len(clean)} lines / {sum(1 for l in clean if 'EXTINF' in l)} channels")
+          print(f"Filtered USA+CA: {sum(1 for l in clean if 'EXTINF' in l)} channels")
           PY
 
-      - name: Merge to DCMASTER
+      - name: Merge
         run: |
           python3 << 'PY'
           import re
           def load(p):
               try:
-                  t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
-                  return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
-              except: return []
-          out=['#EXTM3U
+                  t=open(p,
