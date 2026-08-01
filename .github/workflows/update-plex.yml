@@ -12,20 +12,30 @@ jobs:
 
       - name: Generate Plex CA
         run: |
-          docker run -d --name pfc -p 7777:7777 -e PLEX_CODE=ca ghcr.io/jgomez177/plex-for-channels:latest
-          sleep 50
-          docker logs pfc --tail 50
-          curl -s http://127.0.0.1:7777/plex/playlist.m3u8 -o /tmp/plex.m3u8 || curl -s http://127.0.0.1:7777/playlist.m3u8 -o /tmp/plex.m3u8
-          curl -s http://127.0.0.1:7777/plex/epg.xml -o /tmp/plex.xml || curl -s http://127.0.0.1:7777/epg.xml -o /tmp/plex.xml
-          mkdir -p plex
-          mv /tmp/plex.m3u8 plex/plex.m3u8
-          mv /tmp/plex.xml plex/plex.xml
-          wc -l plex/*
+          mkdir -p /tmp/plexdata
+          docker run -d --name pfc -p 7777:7777 -v /tmp/plexdata:/app/data -e PLEX_CODE=ca ghcr.io/jgomez177/plex-for-channels:latest
+          echo "Waiting 60s..."
+          sleep 60
+          docker logs pfc --tail 100
+          ls -R /tmp/plexdata
+          # New version writes to /app/data/plex/
+          find /tmp/plexdata -type f
+          # Copy to root with clear names
+          cp /tmp/plexdata/plex/playlist.m3u8 ./plex.m3u8 2>/dev/null || cp /tmp/plexdata/playlist.m3u8 ./plex.m3u8 2>/dev/null || cp /tmp/plexdata/plex.m3u8 ./plex.m3u8
+          cp /tmp/plexdata/plex/epg.xml ./plex.xml 2>/dev/null || cp /tmp/plexdata/epg.xml ./plex.xml 2>/dev/null || cp /tmp/plexdata/plex.xml ./plex.xml
+          echo "=== RESULT ==="
+          ls -lh plex.m3u8 plex.xml
+          wc -l plex.m3u8
+          head -3 plex.m3u8
 
-      - name: Commit
+      - name: Commit to main folder
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add plex/plex.m3u8 plex/plex.xml
-          git commit -m "update plex ca" || exit 0
+          git add plex.m3u8 plex.xml
+          # remove old broken plex folder if exists
+          git rm -r --cached plex/ 2>/dev/null || true
+          rm -rf plex/
+          git add -A
+          git commit -m "update plex.m3u8 to main" || exit 0
           git push
