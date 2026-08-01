@@ -23,17 +23,17 @@ jobs:
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper
           npm install
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node ./index.js --config ./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
-          mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
-          mv ./plutotv_ca.xml /tmp/pluto.xml
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' >./config.json
+          node./index.js --config./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
+          mv./plutotv_ca.m3u8 /tmp/pluto.m3u8
+          mv./plutotv_ca.xml /tmp/pluto.xml
           cp /tmp/pluto.m3u8 $GITHUB_WORKSPACE/motel.m3u8
           cp /tmp/pluto.xml $GITHUB_WORKSPACE/motel.xml
 
-      - name: Fetch Samsung Plex USA CA Fresh
+      - name: Fetch Samsung Plex USA CA Strict + Dedup
         run: |
           cat > /tmp/fetch.py << 'PYEOF'
-          import requests
+          import requests, re
           headers={"User-Agent":"Mozilla/5.0"}
           urls=[
             "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
@@ -41,46 +41,75 @@ jobs:
           ]
           all_lines=[]
           for u in urls:
-            try:
-              r=requests.get(u,headers=headers,timeout=30)
-              print(f"{u} -> {r.status_code}")
-              if r.status_code==200:
-                all_lines+=r.text.splitlines()
-            except Exception as e:
-              print(f"FAIL {u} {e}")
+            r=requests.get(u,headers=headers,timeout=30)
+            print(f"{u} {r.status_code}")
+            if r.status_code==200:
+              all_lines+=r.text.splitlines()
 
           clean=[]
+          seen_urls=set()
+          seen_names=set()
           keep=False
+          cur_extinf=""
           for line in all_lines:
-            if not line.strip():
-              continue
+            if not line.strip(): continue
             if line.startswith('#EXTINF'):
               low=line.lower()
-              if 'tvg-country=' in low:
-                if '"us"' in low or '"ca"' in low or "'us'" in low or "'ca'" in low or 'us;ca' in low or 'ca;us' in low:
-                  clean.append(line)
-                  keep=True
-                else:
-                  keep=False
+              # STRICT USA+CA
+              is_ok=False
+              m=re.search(r'tvg-country="([^"]+)"',low)
+              if m:
+                countries=[c.strip() for c in m.group(1).lower().replace(',',';').split(';')]
+                if 'us' in countries or 'ca' in countries:
+                  is_ok=True
               else:
-                clean.append(line)
-                keep=True
-            else:
-              if not keep:
-                continue
-              if line.startswith('#'):
-                clean.append(line)
-              else:
-                if 'http' in line.lower():
-                  clean.append(line)
+                # no country tag - only allow if explicit US/CA in title
+                if any(x in low for x in ['(us)', '(ca)', '[us]', '[ca]', ' usa ', ' canada ']):
+                  is_ok=True
+
+              if not is_ok:
                 keep=False
+                continue
+              # dead filter
+              if any(k in low for k in ['fishing','hunt channel','example.com']):
+                keep=False
+                continue
+              cur_extinf=line
+              # extract channel name for dedup
+              name_match=re.search(r',([^,]+)$',line)
+              ch_name=name_match.group(1).strip().lower() if name_match else low
+              # skip if name already seen
+              if ch_name in seen_names:
+                keep=False
+                continue
+              keep=True
+            else:
+              if not keep: continue
+              if line.startswith('#'):
+                continue
+              url=line.strip()
+              if 'http' not in url.lower():
+                keep=False
+                continue
+              if url in seen_urls:
+                keep=False
+                continue
+              # dedup pass
+              name_match=re.search(r',([^,]+)$',cur_extinf)
+              ch_name=name_match.group(1).strip().lower() if name_match else ""
+              seen_urls.add(url)
+              if ch_name:
+                seen_names.add(ch_name)
+              clean.append(cur_extinf)
+              clean.append(url)
+              keep=False
 
           open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
-          print(f"USA+CA: {sum(1 for l in clean if 'EXTINF' in l)} channels")
+          print(f"STRICT DEDUPED USA+CA: {len(clean)//2} channels")
           PYEOF
           python3 /tmp/fetch.py
 
-      - name: Merge to dcmaster
+      - name: Merge + EPG
         run: |
           cat > /tmp/merge.py << 'PYEOF'
           import re
@@ -101,10 +130,10 @@ jobs:
               chno+=1
             out.append(line)
           open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
+          # EPG - for now just Pluto, Samsung/Plex EPG often missing, keep Pluto guide
           open('dcmaster.xml','w',encoding='utf-8').write(open('/tmp/pluto.xml',encoding='utf-8',errors='ignore').read())
           open('.nojekyll','w').write('')
-          cnt=sum(1 for l in out if 'EXTINF' in l)
-          print(f"MASTER FINAL USA+CA: {cnt} channels")
+          print(f"MASTER FINAL: {sum(1 for l in out if 'EXTINF' in l)} channels = Pluto 207 + SamsungPlex {sum(1 for l in out if 'EXTINF' in l)-207}")
           PYEOF
           python3 /tmp/merge.py
 
@@ -112,6 +141,6 @@ jobs:
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
-          git add dcmaster.m3u8 dcmaster.xml motel.m3u8 motel.xml .nojekyll
-          git commit -m "Update motel 207 + master USA+CA fresh" || true
+          git add dcmaster.m3u8 dcmaster.xml motel.m3u8 motel.xml.nojekyll
+          git commit -m "Update motel 207 + master USA+CA deduped fresh" || true
           git push
