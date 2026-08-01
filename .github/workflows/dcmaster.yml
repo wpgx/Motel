@@ -20,54 +20,86 @@ jobs:
       - name: Build
         run: |
           pip install requests
-          # --- PLUTO CA - PURE SELF BUILT ---
+          # --- PLUTO CA - PURE SELF BUILT (207 clean) ---
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper && npm install
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node ./index.js --config ./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
-          mv ./plutotv_ca.m3u8 /tmp/pluto.m3u8
-          mv ./plutotv_ca.xml /tmp/pluto.xml
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' >./config.json
+          node./index.js --config./config.json --exclude-groups "News|Local|Weather" --exclude-channels "CBC|CTV|Global|CBS News|NBC News|ABC News|Newsmax|Court TV"
+          mv./plutotv_ca.m3u8 /tmp/pluto.m3u8
+          mv./plutotv_ca.xml /tmp/pluto.xml
           cp /tmp/pluto.m3u8 motel.m3u8
           cp /tmp/pluto.xml motel.xml
-          echo "Motel (Pluto only): $(wc -l < /tmp/pluto.m3u8) lines"
+          echo "Motel (Pluto CA only): $(grep -c EXTINF /tmp/pluto.m3u8) channels"
 
-          # --- SAMSUNG + PLEX from raw github (with dead host filter) ---
+          # --- SAMSUNG + PLEX FRESH USA+CA ONLY ---
           python3 << 'PY'
-          import requests
+          import requests, re
           headers={"User-Agent":"Mozilla/5.0"}
-          # These 2 raw github files ALWAYS work inside Actions
           urls = [
-              "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
-              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_samsung.m3u",
-              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ca_plex.m3u"
+              "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
+              "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
           ]
           combined=[]
           for u in urls:
               try:
-                  r=requests.get(u,headers=headers,timeout=20)
+                  r=requests.get(u,headers=headers,timeout=30)
                   if r.status_code==200:
                       combined+=r.text.splitlines()
                       print(f"Fetched {u}: {len(r.text.splitlines())} lines")
+                  else:
+                      print(f"FAIL {u}: {r.status_code}")
               except Exception as e:
-                  print(f"Failed {u}: {e}")
+                  print(f"FAIL {u}: {e}")
 
-          # Filter out obvious dead domains (fishing etc)
           clean=[]
-          dead_keywords=["fishing","hunt","unknown","example.com","localhost"]
+          keep_url=False
+          dead=["fishing","hunt channel","example.com","localhost"]
           for line in combined:
-              if line.startswith('#'):
-                  clean.append(line)
+              if not line.strip(): continue
+              if line.startswith('#EXTINF'):
+                  low=line.lower()
+                  # USA+CANADA filter: check tvg-country, or title has us/ca
+                  is_us_ca = False
+                  # tvg-country="US" or "CA" or "US;CA"
+                  if 'tvg-country=' in low:
+                      if '"us"' in low or "'us'" in low or '"ca"' in low or "'ca'" in low or 'us;ca' in low or 'ca;us' in low or 'us,ca' in low or 'ca,us' in low or 'us-ca' in low:
+                          is_us_ca = True
+                  # fallback: title contains obvious us/ca markers
+                  if not is_us_ca:
+                      if any(x in low for x in ['(us)', '(ca)', '[us]', '[ca]', ' usa ', ' canada ', ' united states ', 'tvg-id="us', 'tvg-id="ca', ' group-title="us', ' group-title="ca', ' group-title="canada', ' group-title="usa']):
+                          is_us_ca = True
+                  # Scraper-Zilla All files often have NO country tag - so also accept if line has us/ca in it at all and is from samsung/plex
+                  if not is_us_ca and ('samsung' in low or 'plex' in low):
+                      # if it has NO country at all, we keep it for now, then filter by checking if url is valid (jmp2.uk is US/CA)
+                      # To be STRICT US+CA, we require us/ca in title
+                      if ' us ' in low or ' ca ' in low or 'canada' in low or 'america' in low:
+                          is_us_ca = True
+
+                  if is_us_ca:
+                      if any(k in low for k in dead):
+                          keep_url=False
+                          continue
+                      clean.append(line)
+                      keep_url=True
+                  else:
+                      keep_url=False
               else:
-                  # keep only if not containing dead keywords
-                  if any(k in line.lower() for k in dead_keywords):
-                      continue
-                  # skip if line has no http
-                  if 'http' not in line.lower():
-                      continue
-                  clean.append(line)
+                  if not keep_url: continue
+                  if line.startswith('#'):
+                      clean.append(line)
+                  else:
+                      low=line.lower()
+                      if any(k in low for k in dead):
+                          keep_url=False
+                          continue
+                      if 'http' not in low:
+                          keep_url=False
+                          continue
+                      clean.append(line)
+                      keep_url=False
 
           open('/tmp/samsungplex.m3u8','w',encoding='utf-8').write("\n".join(clean))
-          print(f"Samsung+Plex cleaned: {len(clean)} lines")
+          print(f"Samsung+Plex USA+CA filtered: {len(clean)} lines / {sum(1 for l in clean if 'EXTINF' in l)} channels")
           PY
 
       - name: Merge to DCMASTER
@@ -79,28 +111,4 @@ jobs:
                   t=open(p,encoding='utf-8',errors='ignore').read().splitlines()
                   return [l for l in t if l.strip() and not l.startswith('#EXTM3U')]
               except: return []
-          out=['#EXTM3U']+load('/tmp/pluto.m3u8')
-          chno=1000
-          for line in load('/tmp/samsungplex.m3u8'):
-              if line.startswith('#EXTINF'):
-                  if 'tvg-chno' in line:
-                      line=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{chno}"',line)
-                  else:
-                      line=line.replace('#EXTINF:',f'#EXTINF: tvg-chno="{chno}" ',1)
-                  chno+=1
-              out.append(line)
-          open('dcmaster.m3u8','w',encoding='utf-8').write('\n'.join(out))
-          open('dcmaster.xml','w',encoding='utf-8').write(open('/tmp/pluto.xml',encoding='utf-8',errors='ignore').read())
-          open('motel.m3u8','w',encoding='utf-8').write(open('motel.m3u8',encoding='utf-8',errors='ignore').read())
-          open('motel.xml','w',encoding='utf-8').write(open('motel.xml',encoding='utf-8',errors='ignore').read())
-          open('.nojekyll','w').write('')
-          print(f"MASTER FINAL: {len(out)} lines = {len(out)//2} channels")
-          PY
-
-      - name: Push
-        run: |
-          git config user.name "dc-bot"
-          git config user.email "bot@github.com"
-          git add dcmaster.m3u8 dcmaster.xml motel.m3u8 motel.xml .nojekyll
-          git commit -m "Update motel + master" || true
-          git push
+          out=['#EXTM3U
