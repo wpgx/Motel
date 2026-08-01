@@ -1,24 +1,42 @@
-name: Plex CA
+name: update-plex
 on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
+
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run Plex for Channels
+
+      - name: Generate Plex CA with plex-for-channels
         run: |
           docker run -d --name pfc -p 7777:7777 -e PLEX_CODE=ca ghcr.io/jgomez177/plex-for-channels:latest
-          sleep 40
-          curl -s http://127.0.0.1:7777/plex/playlist.m3u8 -o playlist.m3u8 || curl -s http://127.0.0.1:7777/playlist.m3u8 -o playlist.m3u8
-          curl -s http://127.0.0.1:7777/plex/epg.xml -o epg.xml || curl -s http://127.0.0.1:7777/epg.xml -o epg.xml
-          wc -l playlist.m3u8 epg.xml
-      - name: Commit
+          echo "Waiting 50s for Plex container to build guide..."
+          sleep 50
+          docker logs pfc --tail 100
+
+          # Try both possible endpoints (version changed)
+          curl -s http://127.0.0.1:7777/plex/playlist.m3u8 -o /tmp/plex_raw.m3u8 || curl -s http://127.0.0.1:7777/playlist.m3u8 -o /tmp/plex_raw.m3u8
+          curl -s http://127.0.0.1:7777/plex/epg.xml -o /tmp/plex_raw.xml || curl -s http://127.0.0.1:7777/epg.xml -o /tmp/plex_raw.xml
+
+          ls -lh /tmp/
+          head -5 /tmp/plex_raw.m3u8
+          wc -l /tmp/plex_raw.m3u8 /tmp/plex_raw.xml
+
+          # Rename to clear names
+          mkdir -p plex
+          mv /tmp/plex_raw.m3u8 plex/plex.m3u8
+          mv /tmp/plex_raw.xml plex/plex.xml
+
+          # Fix header to include EPG link pointing to your final guide
+          sed -i '1s/.*/#EXTM3U url-tvg="https:\/\/raw.githubusercontent.com\/wpgx\/Motel\/main\/plex\/plex.xml"/' plex/plex.m3u8
+
+      - name: Commit Plex files
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add playlist.m3u8 epg.xml
-          git commit -m "update" || exit 0
+          git add plex/plex.m3u8 plex/plex.xml
+          git commit -m "update plex ca" || echo "no changes"
           git push
