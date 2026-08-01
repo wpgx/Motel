@@ -1,8 +1,6 @@
 name: Build DCMASTER
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */6 * * *'
 
 jobs:
   build:
@@ -11,91 +9,32 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
-      - name: Build DCMASTER - DCTV + Samsung ALL + Plex ALL (CA only)
+      - name: Download BOTH files (no filter yet)
         run: |
-          pip install requests -q
-          python3 << 'PY'
-          import requests, re
+          curl -L -A "Mozilla/5.0" -o /tmp/samsung.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
+          curl -L -A "Mozilla/5.0" -o /tmp/plex.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
+          
+          echo "Samsung size:" $(wc -l < /tmp/samsung.m3u) "INF:" $(grep -c "#EXTINF" /tmp/samsung.m3u)
+          echo "Plex size:" $(wc -l < /tmp/plex.m3u) "INF:" $(grep -c "#EXTINF" /tmp/plex.m3u)
+          echo "First 3 Canada lines in Samsung:"
+          grep -i "canada" /tmp/samsung.m3u | head -3
+          echo "First 3 INF lines in Samsung:"
+          grep "#EXTINF" /tmp/samsung.m3u | head -3
 
-          h={'User-Agent':'Mozilla/5.0'}
-
-          # BOTH from him - exactly as you asked
-          urls={
-            "Samsung-ALL": "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u",
-            "Plex-ALL": "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
-          }
-
-          base=open("dctv.m3u8", encoding="utf-8", errors="ignore").read().splitlines()
-          print(f"DCTV base (your Pluto CA): {len([x for x in base if '#EXTINF' in x])}")
-
-          merged_extra=[]
-          for name, url in urls.items():
-              r=requests.get(url, headers=h, timeout=60)
-              print(f"\n{name} {url} -> {r.status_code} total in file: {r.text.count('#EXTINF')}")
-              lines=r.text.splitlines()
-              ca=0
-              for i, line in enumerate(lines):
-                  if not line.startswith("#EXTINF"):
-                      continue
-                  low=line.lower()
-                  # HIS tag for Canada is group-title="Canada"
-                  if 'canada' in low:
-                      merged_extra.append(line)
-                      if i+1 < len(lines) and "http" in lines[i+1]:
-                          merged_extra.append(lines[i+1].strip())
-                      ca+=1
-              print(f"{name} Canada only extracted: {ca}")
-
-          print(f"\nTotal Canada from both ALL files: {len([x for x in merged_extra if '#EXTINF' in x])}")
-
-          # Merge with DCTV
-          out=[]
-          seen=set()
-          for l in base:
-              if l.startswith("#EXTINF"):
-                  seen.add(l.split(",")[-1].lower().strip())
-              if l.strip() and not l.startswith("#EXTM3U"):
-                  out.append(l)
-
-          added=0
-          for i in range(0, len(merged_extra), 2):
-              if i+1 >= len(merged_extra): break
-              inf=merged_extra[i]
-              url=merged_extra[i+1]
-              key=inf.split(",")[-1].lower().strip()
-              if key in seen or not key:
-                  continue
-              seen.add(key)
-              out.append(inf)
-              out.append(url)
-              added+=1
-
-          final=["#EXTM3U"]
-          c=1
-          for x in out:
-              if x.startswith("#EXTINF"):
-                  x=re.sub(r'tvg-chno="[^"]*"', '', x)
-                  x=x.replace("#EXTINF:", f'#EXTINF: tvg-chno="{c}" ')
-                  c+=1
-              final.append(x)
-
-          open("dcmaster.m3u8","w",encoding="utf-8").write("\n".join(final))
-          import shutil, os
-          if os.path.exists("dctv.xml"):
-              shutil.copy("dctv.xml","dcmaster.xml")
-
-          total=len([x for x in final if '#EXTINF' in x])
-          print(f"\nFINAL DCMASTER.M3U8: {total} channels = {len([x for x in base if '#EXTINF' in x])} DCTV + {added} Samsung+Plex CA (from ALL files)")
-          PY
+          # Merge DCTV + both files (NO filter)
+          cat dctv.m3u8 > dcmaster.m3u8
+          cat /tmp/samsung.m3u | grep -v "#EXTM3U" >> dcmaster.m3u8
+          cat /tmp/plex.m3u | grep -v "#EXTM3U" >> dcmaster.m3u8
+          
+          echo "FINAL dcmaster.m3u8 INF:" $(grep -c "#EXTINF" dcmaster.m3u8)
+          
+          cp dctv.xml dcmaster.xml || echo "no xml"
 
       - name: Push
         run: |
           git config user.name "dc-bot"
           git config user.email "bot@github.com"
           git add dcmaster.m3u8 dcmaster.xml
-          git commit -m "DCMASTER Samsung+Plex ALL->CA" || echo "no change"
+          git commit -m "TEST NO FILTER - 5000+ channels" || echo "no change"
           git push
