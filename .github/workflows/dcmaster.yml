@@ -30,18 +30,40 @@ jobs:
                       blocks.append(cur)
                       cur=[]
                   else:
-                      # keep VLCOPT, HTTP, etc
                       if cur:
                           cur.append(l)
               return blocks
 
+          def guess_cat(name):
+              n=name.lower()
+              if "action" in n: return "Action"
+              if "comedy" in n: return "Comedy"
+              if "horror" in n or "thriller" in n: return "Horror"
+              if "drama" in n: return "Drama"
+              if "kids" in n or "family" in n or "cartoon" in n: return "Kids"
+              if "western" in n: return "Western"
+              if "crime" in n: return "Crime"
+              return "Movies"
+
+          def set_group(extinf, group):
+              import re
+              if 'group-title=' in extinf:
+                  return re.sub(r'group-title="[^"]*"', f'group-title="{group}"', extinf)
+              else:
+                  return extinf.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{group}"')
+
           seen=set()
           merged=[]
           for f in ["dcfull.m3u8","tubiroku.m3u"]:
+              is_tubi = "tubiroku" in f
               for block in parse_full(f):
                   url = block[-1]
                   if url not in seen and url.startswith("http"):
                       seen.add(url)
+                      if is_tubi:
+                          # put tubi into normal categories, no separate Tubi
+                          ch_name = block[0].split(",")[-1]
+                          block[0] = set_group(block[0], guess_cat(ch_name))
                       merged.append(block)
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
