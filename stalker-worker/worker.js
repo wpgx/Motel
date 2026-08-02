@@ -1,22 +1,18 @@
-const PLAYLIST_URL = "https://raw.githubusercontent.com/wpgx/Motel/main/motel.m3u8";
+const PLAYLIST_URL="https://raw.githubusercontent.com/wpgx/Motel/main/motel.m3u8";
 function parseM3U(t){let l=t.split('\n'),c=[],id=1,cur=null;for(let x of l){x=x.trim();if(x.startsWith('#EXTINF:')){let n=x.split(',').pop().trim()||`Ch ${id}`;let lo=(x.match(/tvg-logo="([^"]+)"/)||[])[1]||"";let gr=(x.match(/group-title="([^"]+)"/)||[])[1]||"General";cur={name:n,logo:lo,group:gr}}else if(x&&!x.startsWith('#')&&cur){c.push({id,name:cur.name,cmd:x,logo:cur.logo,group:cur.group});id++;cur=null}}return c}
+const HTML=`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Motel TV</title><script src="https://cdn.jsdelivr.net/npm/hls.js@latest"><\/script><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;height:100vh}#list{width:360px;overflow-y:auto;background:#111}.ch{padding:10px;border-bottom:1px solid #222;cursor:pointer;display:flex;align-items:center;gap:10px}.ch:hover{background:#222}.ch img{width:40px;height:40px;object-fit:contain}#player{flex:1;background:#000;display:flex;align-items:center;justify-content:center}video{width:100%;height:100%}#search{width:100%;padding:12px;box-sizing:border-box;background:#222;color:#fff;border:none;position:sticky;top:0}</style></head><body><div id="list"><input id="search" placeholder="Search 185 channels..."><div id="channels">Loading...</div></div><div id="player"><video id="video" controls autoplay></video></div><script>
+let all=[];async function load(){let r=await fetch('/playlist');let j=await r.json();all=j.data;render(all)}function render(list){let c=document.getElementById('channels');c.innerHTML='';list.forEach(ch=>{let d=document.createElement('div');d.className='ch';d.innerHTML='<img src="'+(ch.logo||'')+'" onerror="this.style.display=\\'none\\'"><div><b>'+ch.name+'</b><br><small>'+ch.group+'</small></div>';d.onclick=()=>play(ch.cmd);c.appendChild(d)})}function play(u){let v=document.getElementById('video');if(Hls.isSupported()){let h=new Hls();h.loadSource(u);h.attachMedia(v);h.on(Hls.Events.MANIFEST_PARSED,()=>v.play())}else{v.src=u;v.play()}}document.getElementById('search').oninput=e=>{let q=e.target.value.toLowerCase();render(all.filter(ch=>ch.name.toLowerCase().includes(q)))};load();<\/script></body></html>`;
 export default{
  async fetch(req){
-  const u=new URL(req.url); const a=u.searchParams.get('action');
-  const h={"Access-Control-Allow-Origin":"*","Content-Type":"application/json"};
-  const txt=await fetch(PLAYLIST_URL).then(r=>r.text()); const chs=parseM3U(txt);
-  if(a==='handshake'||a==='do_handshake'||!a&&u.pathname.includes('stalker')){return new Response(JSON.stringify({js:{token:"1234",id:"1",status:"OK"}}),{headers:h})}
+  const u=new URL(req.url); const a=u.searchParams.get('action'); const path=u.pathname;
+  if(path==='/playlist'){const txt=await fetch(PLAYLIST_URL).then(r=>r.text());const chs=parseM3U(txt);return new Response(JSON.stringify({data:chs}),{headers:{"Access-Control-Allow-Origin":"*","Content-Type":"application/json"}})}
+  if(path==='/'&&!a){return new Response(HTML,{headers:{"Content-Type":"text/html"}})}
+  const h={"Access-Control-Allow-Origin":"*","Content-Type":"application/json"}; const txt=await fetch(PLAYLIST_URL).then(r=>r.text()); const chs=parseM3U(txt);
+  if(a==='handshake'||a==='do_handshake'){return new Response(JSON.stringify({js:{token:"1234",id:"1"}}),{headers:h})}
   if(a==='get_profile'){return new Response(JSON.stringify({js:{id:"1",name:"Motel"}}),{headers:h})}
   if(a==='get_genres'){const g=[...new Set(chs.map(c=>c.group))].map((gg,i)=>({id:(i+1)+"",title:gg}));return new Response(JSON.stringify({js:g}),{headers:h})}
-  if(a==='get_ordered_list'||a==='get_all_channels'||a==='get_ordered_list_genre'||a==='get_ordered_list_genre_and_search'){
-    const data=chs.map(c=>({id:c.id+"",name:c.name,number:c.id+"",cmd:c.cmd,logo:c.logo,tv_genre_id:"1"}));
-    return new Response(JSON.stringify({js:{total_items:data.length,max_page_items:500,data}}),{headers:h})
-  }
-  if(a==='itv_create_link'||a==='create_link'||a==='get_link'||a==='itv_get_ordered_list'){
-    const id=u.searchParams.get('id')||"1"; const ch=chs.find(x=>x.id+""===id)||chs[0];
-    return new Response(JSON.stringify({js:{cmd:ch.cmd}}),{headers:h})
-  }
-  const data=chs.map(c=>({id:c.id+"",name:c.name,number:c.id+"",cmd:c.cmd,logo:c.logo}));
-  return new Response(JSON.stringify({js:{total_items:data.length,max_page_items:500,data}}),{headers:h})
+  if(a&&a.includes('ordered_list')||a==='get_all_channels'){const data=chs.map(c=>({id:c.id+"",name:c.name,number:c.id+"",cmd:c.cmd,logo:c.logo,tv_genre_id:"1"}));return new Response(JSON.stringify({js:{total_items:data.length,max_page_items:500,data}}),{headers:h})}
+  if(a&&a.includes('create_link')||a&&a.includes('get_link')){const id=u.searchParams.get('id')||"1";const ch=chs.find(x=>x.id+""===id)||chs[0];return new Response(JSON.stringify({js:{cmd:ch.cmd}}),{headers:h})}
+  return new Response(JSON.stringify({js:{total_items:chs.length}}),{headers:h})
  }
 }
