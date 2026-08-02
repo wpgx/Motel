@@ -1,59 +1,22 @@
 const PLAYLIST_URL = "https://raw.githubusercontent.com/wpgx/Motel/main/motel.m3u8";
-
-function parseM3U(text) {
-  const lines = text.split('\n');
-  let channels = [];
-  let id = 1;
-  let current = null;
-  for (let line of lines) {
-    line = line.trim();
-    if (line.startsWith('#EXTINF:')) {
-      let name = line.split(',').pop().trim() || `Channel ${id}`;
-      let logo = (line.match(/tvg-logo="([^"]+)"/) || [])[1] || "";
-      let group = (line.match(/group-title="([^"]+)"/) || [])[1] || "General";
-      current = { name, logo, group };
-    } else if (line &&!line.startsWith('#') && current) {
-      channels.push({ id, number: id, name: current.name, cmd: line, logo: current.logo, group: current.group });
-      id++; current = null;
-    }
+function parseM3U(t){let l=t.split('\n'),c=[],id=1,cur=null;for(let x of l){x=x.trim();if(x.startsWith('#EXTINF:')){let n=x.split(',').pop().trim()||`Ch ${id}`;let lo=(x.match(/tvg-logo="([^"]+)"/)||[])[1]||"";let gr=(x.match(/group-title="([^"]+)"/)||[])[1]||"General";cur={name:n,logo:lo,group:gr}}else if(x&&!x.startsWith('#')&&cur){c.push({id,name:cur.name,cmd:x,logo:cur.logo,group:cur.group});id++;cur=null}}return c}
+export default{
+ async fetch(req){
+  const u=new URL(req.url); const a=u.searchParams.get('action');
+  const h={"Access-Control-Allow-Origin":"*","Content-Type":"application/json"};
+  const txt=await fetch(PLAYLIST_URL).then(r=>r.text()); const chs=parseM3U(txt);
+  if(a==='handshake'||a==='do_handshake'||!a&&u.pathname.includes('stalker')){return new Response(JSON.stringify({js:{token:"1234",id:"1",status:"OK"}}),{headers:h})}
+  if(a==='get_profile'){return new Response(JSON.stringify({js:{id:"1",name:"Motel"}}),{headers:h})}
+  if(a==='get_genres'){const g=[...new Set(chs.map(c=>c.group))].map((gg,i)=>({id:(i+1)+"",title:gg}));return new Response(JSON.stringify({js:g}),{headers:h})}
+  if(a==='get_ordered_list'||a==='get_all_channels'||a==='get_ordered_list_genre'||a==='get_ordered_list_genre_and_search'){
+    const data=chs.map(c=>({id:c.id+"",name:c.name,number:c.id+"",cmd:c.cmd,logo:c.logo,tv_genre_id:"1"}));
+    return new Response(JSON.stringify({js:{total_items:data.length,max_page_items:500,data}}),{headers:h})
   }
-  return channels;
-}
-
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const action = url.searchParams.get('action');
-    const headers = { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" };
-    const m3uText = await fetch(PLAYLIST_URL).then(r=>r.text());
-    const channels = parseM3U(m3uText);
-
-    if (action === 'handshake' || action === 'do_handshake' || action === null) {
-      // Return handshake for root too so browser test looks cleaner
-      if(url.searchParams.has('action')) {
-        return new Response(JSON.stringify({ js: { token: "123", id: "1", status: "OK" } }), { headers });
-      }
-    }
-    if (action === 'get_profile') {
-      return new Response(JSON.stringify({ js: { id: "1", name: "Motel", status: "OK" } }), { headers });
-    }
-    if (action === 'get_genres') {
-      const genres = [...new Set(channels.map(c=>c.group))].map((g,i)=>({id: (i+1).toString(), title: g, alias: g}));
-      return new Response(JSON.stringify({ js: genres }), { headers });
-    }
-    // This is what STB Emu actually reads
-    const js = {
-      total_items: channels.length,
-      max_page_items: 1000,
-      data: channels.map(c=>({
-        id: c.id.toString(),
-        name: c.name,
-        number: c.number.toString(),
-        cmd: c.cmd, // <-- NO ffmpeg prefix
-        logo: c.logo,
-        tv_genre_id: "1"
-      }))
-    };
-    return new Response(JSON.stringify({ js }), { headers });
+  if(a==='itv_create_link'||a==='create_link'||a==='get_link'||a==='itv_get_ordered_list'){
+    const id=u.searchParams.get('id')||"1"; const ch=chs.find(x=>x.id+""===id)||chs[0];
+    return new Response(JSON.stringify({js:{cmd:ch.cmd}}),{headers:h})
   }
+  const data=chs.map(c=>({id:c.id+"",name:c.name,number:c.id+"",cmd:c.cmd,logo:c.logo}));
+  return new Response(JSON.stringify({js:{total_items:data.length,max_page_items:500,data}}),{headers:h})
+ }
 }
