@@ -1,60 +1,73 @@
 name: dcmaster
 on:
-  schedule:
-    - cron: '30 */6 * * *'
+  schedule: [{ cron: '30 */6 * * *' }]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build dcmaster.m3u8 keep headers
-        run: |
+      - run: |
           python3 << 'PY'
-          def parse_full(path):
-              lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
-              blocks=[];cur=[]
-              for l in lines:
+          import re, requests, shutil
+          def load_blocks(text):
+              blocks=[]; cur=[]
+              for l in text.replace("\r","").split("\n"):
+                  l=l.strip()
+                  if not l: continue
                   if l.startswith("#EXTINF"):
                       if cur: blocks.append(cur)
                       cur=[l]
                   elif l.startswith("http"):
                       cur.append(l); blocks.append(cur); cur=[]
-                  else:
-                      if cur: cur.append(l)
               return blocks
 
-          merged=[]
-          for f in ["dcfull.m3u8","tubiroku.m3u"]:
-              merged.extend(parse_full(f))
+          # dcfull already has 1-~500 with correct numbers
+          dcfull = open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()
+          dcfull_blocks = load_blocks(dcfull)
+
+          # Tubi from CF now HAS numbers 600+
+          tubi_txt = requests.get("https://tubiroku.donxman.workers.dev/", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
+          tubi_blocks = load_blocks(tubi_txt)
+
+          # Roku on Git - GitHub IP not blocked
+          roku_blocks=[]
+          for src in [
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
+            "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
+          ]:
+              try:
+                  r=requests.get(src, headers={"User-Agent":"Mozilla/5.0"}, timeout=20)
+                  if r.ok and "#EXTINF" in r.text:
+                      roku_blocks = load_blocks(r.text)
+                      if len(roku_blocks)>10: break
+              except: pass
+
+          # renumber Roku 800+
+          final=[]
+          chno=1
+          # keep dcfull numbers 1-600 as is
+          final.extend(dcfull_blocks)
+          chno = len(dcfull_blocks)+1
+          # Tubi already 600+ but re-number to avoid gap
+          for b in tubi_blocks:
+              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
+              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
+              final.append(b); chno+=1
+          for b in roku_blocks:
+              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
+              b[0]=re.sub(r'tvg-id="([^"]*)"', lambda m: f'tvg-id="roku.{m.group(1)}"', b[0])
+              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}" group-title="Roku"',1)
+              final.append(b); chno+=1
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
               o.write("#EXTM3U\n")
-              for block in merged:
-                  for line in block:
-                      o.write(line+"\n")
-
-          import shutil
+              for b in final:
+                  o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
-
-          def get_content(f):
-              try:
-                  txt=open(f,encoding='utf-8',errors='ignore').read()
-                  txt=txt.replace('<?xml version="1.0" encoding="UTF-8"?>','')
-                  s=txt.find("<tv")
-                  s=txt.find(">",s)+1 if s!=-1 else 0
-                  e=txt.rfind("</tv>")
-                  return txt[s:e] if e!=-1 else ""
-              except: return ""
-          c1=get_content("dcfull.xml")
-          c2=get_content("tubiroku.xml")
-          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><tv>\n{c1}\n{c2}\n</tv>')
-          print(f"Total with dupes kept: {len(merged)}")
+          print(f"built {len(final)} channels 1-{len(final)}")
           PY
-
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "build dcmaster keep dupes for ALL CHANNELS"
-          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
+          commit_message: "dcmaster: CF Tubi numbered + Git Roku"
+          file_pattern: "dcmaster.m3u8 dcmaster.m3u"
