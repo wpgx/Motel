@@ -1,70 +1,58 @@
-name: Build DCMASTER
+name: dcmaster
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '30 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Build CANADA ONLY
+      - name: Build dcmaster - keep original categories
         run: |
-          set +e
-          echo "DCTV INF: $(grep -c "#EXTINF" dctv.m3u8)"
-          curl -L -s -A "Mozilla/5.0" -o /tmp/s.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.m3u"
-          curl -L -s -A "Mozilla/5.0" -o /tmp/p.m3u "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.m3u"
-          curl -L -s -A "Mozilla/5.0" -o /tmp/s.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/SamsungTVPlus-All.xml"
-          curl -L -s -A "Mozilla/5.0" -o /tmp/p.xml "https://raw.githubusercontent.com/abusaeeidx/IPTV-Scraper-Zilla/main/Plex-All.xml"
-          if [ ! -s /tmp/s.xml ]; then curl -L -s -o /tmp/s.xml "https://i.mjh.nz/SamsungTVPlus/all.xml"; fi
-          if [ ! -s /tmp/p.xml ]; then curl -L -s -o /tmp/p.xml "https://i.mjh.nz/Plex/all.xml"; fi
-          cat > /tmp/b.py << 'ENDPY'
+          python3 << 'PY'
+          def parse(path):
+              try:
+                  lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
+              except:
+                  return []
+              out=[]
+              for i,l in enumerate(lines):
+                  if l.startswith("#EXTINF"):
+                      url = lines[i+1].strip() if i+1 < len(lines) else ""
+                      if url.startswith("http"):
+                          out.append((l,url))
+              return out
+
+          seen=set()
+          merged=[]
+          for f in ["samsung-ca.m3u","tubiroku.m3u","pluto.m3u"]:
+              for extinf,url in parse(f):
+                  if url not in seen:
+                      seen.add(url)
+                      merged.append((extinf,url))
+
+          with open("dcmaster.m3u","w",encoding="utf-8") as o:
+              o.write("#EXTM3U\n")
+              for e,u in merged:
+                  o.write(f"{e}\n{u}\n")
+
+          # xml merge - keep all guides
           import re
-          def get_ca(inp, out):
+          def inner(f):
               try:
-                  txt=open(inp,encoding="utf-8",errors="ignore").read().splitlines()
-              except:
-                  return 0
-              res=[]
-              for i,l in enumerate(txt):
-                  if not l.startswith("#EXTINF"):
-                      continue
-                  low=l.lower()
-                  if 'channel-id="ca' in low or 'group-title="canada"' in low:
-                      res.append(l)
-                      if i+1 < len(txt) and txt[i+1].strip().startswith("http"):
-                          res.append(txt[i+1].strip())
-              open(out,"w",encoding="utf-8").write("\n".join(res))
-              c=len([x for x in res if "#EXTINF" in x])
-              print(f"{inp} CA={c}")
-              return c
-          s=get_ca("/tmp/s.m3u","/tmp/s-ca.m3u")
-          p=get_ca("/tmp/p.m3u","/tmp/p-ca.m3u")
-          print(f"Extra CA total {s+p}")
-          final=["#EXTM3U"]
-          with open("dctv.m3u8",encoding="utf-8",errors="ignore") as f:
-              for line in f:
-                  if line.strip() and "#EXTM3U" not in line:
-                      final.append(line.strip())
-          for fp in ["/tmp/s-ca.m3u","/tmp/p-ca.m3u"]:
-              try:
-                  with open(fp,encoding="utf-8",errors="ignore") as ff:
-                      for line in ff:
-                          if line.strip():
-                              final.append(line.strip())
-              except:
-                  pass
-          out=[]
-          ch=1
-          for x in final:
-              if x.startswith("#EXTINF"):
-                  x=re.sub(r'tvg-chno="[^"]*"','',x)
-                  x=x.replace("#EXTINF:",f'#EXTINF: tvg-chno="{ch}" ',1)
-                  ch+=1
-              out.append(x)
-          open("dcmaster.m3u8","w",encoding="utf-8").write("\n".join(out))
-          print(f"FINAL m3u8 {len([x for
+                  t=open(f,encoding='utf-8',errors='ignore').read()
+                  m=re.search(r'<tv[^>]*>(.*)</tv>', t, re.S)
+                  return m.group(1) if m else ""
+              except: return ""
+          combined = inner("samsung-ca.xml") + inner("tubiroku.xml") + inner("pluto.xml")
+          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><tv>\n{combined}\n</tv>')
+          print(f"Total unique: {len(seen)}")
+          PY
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "build dcmaster"
+          file_pattern: "dcmaster.m3u dcmaster.xml"
