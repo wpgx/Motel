@@ -2,7 +2,7 @@ name: Update Samsung CA - from Render
 on:
   workflow_dispatch:
   schedule:
-    - cron: '8 2,8,14,20 * * *'
+    - cron: '10 14,17,20,23,2,5 * * *'  # 8:10am, 11:10am, 2:10pm, 5:10pm, 8:10pm, 11:10pm CST
 
 jobs:
   build:
@@ -11,29 +11,34 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Wake Render + wait for guide build
+        run: |
+          BASE="https://motel-r45n.onrender.com"
+          curl -L -A "Mozilla/5.0" "$BASE/" --max-time 30 || true
+          echo "Woke Render, waiting 60s for it to build fresh guide..."
+          sleep 60
+
       - name: Pull Samsung from Render
         run: |
           BASE="https://motel-r45n.onrender.com"
 
           echo "Fetching XML..."
-          curl -L -A "Mozilla/5.0" "$BASE/samsung-ca.xml" --max-time 120 -o samsung-ca.xml
-          echo "XML: $(grep -c "<channel" samsung-ca.xml) channels"
+          curl -L -A "Mozilla/5.0" "$BASE/samsung-ca.xml" --max-time 180 -o samsung-ca.xml
+          echo "XML: $(grep -c "<programme" samsung-ca.xml) programs / $(grep -c "<channel" samsung-ca.xml) channels"
 
-          echo "Fetching playlist.m3u8 (contains Samsung)..."
+          echo "Fetching playlist..."
           curl -L -A "Mozilla/5.0" "$BASE/playlist.m3u8" --max-time 120 -o /tmp/playlist.m3u8
-          
-          # Filter playlist to only Samsung CA if possible, or take whole file as samsung-ca
-          # Your playlist.m3u8 IS the Samsung CA if that's all you run on Render
           cp /tmp/playlist.m3u8 samsung-ca.m3u8
           
           M3U=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
           echo "M3U $M3U channels"
-          head -n 3 samsung-ca.m3u8
 
-          if [ "$M3U" -lt 10 ]; then
-            echo "Still too small - checking /samsung-ca.m3u directly"
-            curl -L -A "Mozilla/5.0" "$BASE/samsung-ca.m3u" --max-time 120 -o samsung-ca.m3u8 || true
-            M3U=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
+          # FAIL if guide too short (means chunk loop not running on Render yet)
+          PROG=$(grep -c "<programme" samsung-ca.xml || echo 0)
+          if [ "$PROG" -lt 500 ]; then
+            echo "Guide too short ($PROG programs) - keeping old file"
+            git checkout -- samsung-ca.xml || true
           fi
 
           ls -lh samsung-ca.*
@@ -42,5 +47,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add samsung-ca.m3u8 samsung-ca.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "samsung ca $M3U ch from playlist"
+          git commit -m "samsung ca $M3U ch / $PROG prog"
           git push
