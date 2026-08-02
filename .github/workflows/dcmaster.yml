@@ -3,13 +3,11 @@ on:
   schedule:
     - cron: '30 */6 * * *'
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build dcmaster.m3u8 keep headers
         run: |
           python3 << 'PY'
@@ -18,75 +16,39 @@ jobs:
                   lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
               except:
                   return []
-              blocks=[]
-              cur=[]
+              blocks=[];cur=[]
               for l in lines:
                   if l.startswith("#EXTINF"):
-                      if cur:
-                          blocks.append(cur)
+                      if cur: blocks.append(cur)
                       cur=[l]
                   elif l.startswith("http"):
-                      cur.append(l)
-                      blocks.append(cur)
-                      cur=[]
+                      cur.append(l); blocks.append(cur); cur=[]
                   else:
-                      if cur:
-                          cur.append(l)
+                      if cur: cur.append(l)
               return blocks
-
-          def guess_cat(name):
-              n=name.lower()
-              if "action" in n: return "Action"
-              if "comedy" in n: return "Comedy"
-              if "horror" in n or "thriller" in n: return "Horror"
-              if "drama" in n: return "Drama"
-              if "kids" in n or "family" in n or "cartoon" in n: return "Kids"
-              if "western" in n: return "Western"
-              if "crime" in n: return "Crime"
-              return "Movies"
-
-          def set_group(extinf, group):
-              import re
-              if 'group-title=' in extinf:
-                  return re.sub(r'group-title="[^"]*"', f'group-title="{group}"', extinf)
-              else:
-                  return extinf.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{group}"')
-
-          seen=set()
-          merged=[]
+          seen=set();merged=[]
           for f in ["dcfull.m3u8","tubiroku.m3u"]:
-              is_tubi = "tubiroku" in f
               for block in parse_full(f):
-                  url = block[-1]
+                  url=block[-1]
                   if url not in seen and url.startswith("http"):
-                      seen.add(url)
-                      if is_tubi:
-                          # put tubi into normal categories, no separate Tubi
-                          ch_name = block[0].split(",")[-1]
-                          block[0] = set_group(block[0], guess_cat(ch_name))
-                      merged.append(block)
-
+                      seen.add(url); merged.append(block)
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
               o.write("#EXTM3U\n")
               for block in merged:
-                  for line in block:
-                      o.write(line+"\n")
-
-          import shutil, re
-          shutil.copy("dcmaster.m3u8", "dcmaster.m3u")
-
+                  for line in block: o.write(line+"\n")
+          import shutil,re
+          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
           def inner(f):
               try:
                   t=open(f,encoding='utf-8',errors='ignore').read()
-                  m=re.search(r'<tv[^>]*>(.*)</tv>', t, re.S)
+                  m=re.search(r'<tv[^>]*>(.*)</tv>',t,re.S)
                   return m.group(1) if m else ""
               except: return ""
-          combined = inner("dcfull.xml") + inner("tubiroku.xml")
+          combined=inner("dcfull.xml")+inner("tubiroku.xml")
           open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><tv>\n{combined}\n</tv>')
           print(f"Unique: {len(seen)}")
           PY
-
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "build dcmaster.m3u8 with headers"
+          commit_message: "rollback to 640 working"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
