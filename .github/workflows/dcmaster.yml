@@ -10,36 +10,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build dcmaster.m3u8 keep headers + tubi category
+      - name: Build dcmaster.m3u8 keep headers
         run: |
           python3 << 'PY'
           def parse_full(path):
-              lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
-              blocks=[];cur=[]
+              try:
+                  lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
+              except:
+                  return []
+              blocks=[]
+              cur=[]
               for l in lines:
                   if l.startswith("#EXTINF"):
-                      if cur: blocks.append(cur)
+                      if cur:
+                          blocks.append(cur)
                       cur=[l]
                   elif l.startswith("http"):
-                      cur.append(l); blocks.append(cur); cur=[]
+                      cur.append(l)
+                      blocks.append(cur)
+                      cur=[]
                   else:
-                      if cur: cur.append(l)
+                      # keep VLCOPT, HTTP, etc
+                      if cur:
+                          cur.append(l)
               return blocks
 
-          def add_group(extinf, group):
-              if 'group-title=' in extinf:
-                  return extinf
-              return extinf.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{group}"', 1)
-
-          seen=set();merged=[]
+          seen=set()
+          merged=[]
           for f in ["dcfull.m3u8","tubiroku.m3u"]:
-              is_tubi = "tubiroku" in f
               for block in parse_full(f):
-                  url=block[-1]
+                  url = block[-1]
                   if url not in seen and url.startswith("http"):
                       seen.add(url)
-                      if is_tubi:
-                          block[0]=add_group(block[0],"Tubi")
                       merged.append(block)
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
@@ -48,34 +50,21 @@ jobs:
                   for line in block:
                       o.write(line+"\n")
 
-          import shutil
-          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
+          import shutil, re
+          shutil.copy("dcmaster.m3u8", "dcmaster.m3u")
 
-          # --- SAFE XML MERGE - keeps all dcfull guide ---
-          def get_content(f):
+          def inner(f):
               try:
-                  txt=open(f,encoding='utf-8',errors='ignore').read()
-                  # remove xml header and outer <tv></tv> without regex
-                  txt=txt.replace('<?xml version="1.0" encoding="UTF-8"?>','')
-                  txt=txt.replace('<?xml version="1.0"?>','')
-                  # find first > after <tv and last </tv>
-                  start=txt.find("<tv")
-                  if start!=-1:
-                      start=txt.find(">",start)+1
-                      end=txt.rfind("</tv>")
-                      return txt[start:end]
-                  return txt
-              except:
-                  return ""
-
-          c1=get_content("dcfull.xml")
-          c2=get_content("tubiroku.xml")
-          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><tv>\n{c1}\n{c2}\n</tv>')
-          print(f"m3u unique: {len(seen)}")
-          print(f"xml chars dcfull: {len(c1)} tubi: {len(c2)}")
+                  t=open(f,encoding='utf-8',errors='ignore').read()
+                  m=re.search(r'<tv[^>]*>(.*)</tv>', t, re.S)
+                  return m.group(1) if m else ""
+              except: return ""
+          combined = inner("dcfull.xml") + inner("tubiroku.xml")
+          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><tv>\n{combined}\n</tv>')
+          print(f"Unique: {len(seen)}")
           PY
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "build dcmaster 640 tubi cat full guide"
+          commit_message: "build dcmaster.m3u8 with headers"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
