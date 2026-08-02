@@ -1,0 +1,28 @@
+name: tubiroku-sync
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Grab from Cloudflare
+        run: |
+          mkdir -p docs
+          curl -L -o docs/all.m3u https://tubiroku.donxman.workers.dev/all
+          curl -L -o docs/tubi.m3u https://tubiroku.donxman.workers.dev/tubi
+          curl -L -o docs/roku.m3u https://tubiroku.donxman.workers.dev/roku
+          curl -L -o docs/all.xml https://tubiroku.donxman.workers.dev/epg.xml
+          curl -L -o docs/tubi.xml https://tubiroku.donxman.workers.dev/epg.xml
+          # Count lines so you know it worked
+          wc -l docs/*.m3u docs/*.xml
+
+      - name: Publish
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "sync from cloudflare"
+          file_pattern: "docs/*"
