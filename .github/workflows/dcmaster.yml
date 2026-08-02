@@ -10,36 +10,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build dcmaster.m3u8
+      - name: Build dcmaster.m3u8 keep headers
         run: |
           python3 << 'PY'
-          def parse(path):
+          def parse_full(path):
               try:
                   lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
               except:
                   return []
-              out=[]
-              for i,l in enumerate(lines):
+              blocks=[]
+              cur=[]
+              for l in lines:
                   if l.startswith("#EXTINF"):
-                      url = lines[i+1].strip() if i+1 < len(lines) else ""
-                      if url.startswith("http"):
-                          out.append((l,url))
-              return out
+                      if cur:
+                          blocks.append(cur)
+                      cur=[l]
+                  elif l.startswith("http"):
+                      cur.append(l)
+                      blocks.append(cur)
+                      cur=[]
+                  else:
+                      # keep VLCOPT, HTTP, etc
+                      if cur:
+                          cur.append(l)
+              return blocks
 
           seen=set()
           merged=[]
           for f in ["dcfull.m3u8","tubiroku.m3u"]:
-              for extinf,url in parse(f):
-                  if url not in seen:
+              for block in parse_full(f):
+                  url = block[-1]
+                  if url not in seen and url.startswith("http"):
                       seen.add(url)
-                      merged.append((extinf,url))
+                      merged.append(block)
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
               o.write("#EXTM3U\n")
-              for e,u in merged:
-                  o.write(f"{e}\n{u}\n")
+              for block in merged:
+                  for line in block:
+                      o.write(line+"\n")
 
-          import re
+          import shutil, re
+          shutil.copy("dcmaster.m3u8", "dcmaster.m3u")
+
           def inner(f):
               try:
                   t=open(f,encoding='utf-8',errors='ignore').read()
@@ -47,3 +60,11 @@ jobs:
                   return m.group(1) if m else ""
               except: return ""
           combined = inner("dcfull.xml") + inner("tubiroku.xml")
+          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><tv>\n{combined}\n</tv>')
+          print(f"Unique: {len(seen)}")
+          PY
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "build dcmaster.m3u8 with headers"
+          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
