@@ -28,6 +28,7 @@ jobs:
           tubi_txt = requests.get("https://tubiroku.donxman.workers.dev/", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
           tubi_blocks = load_blocks(tubi_txt)
 
+          # Roku on Git - GitHub IP not blocked
           roku_blocks=[]
           for src in [
             "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
@@ -36,37 +37,49 @@ jobs:
               try:
                   r=requests.get(src, headers={"User-Agent":"Mozilla/5.0"}, timeout=20)
                   if r.ok and "#EXTINF" in r.text:
-                      roku_blocks = load_blocks(r.text)
-                      if len(roku_blocks)>10: break
+                      tmp = load_blocks(r.text)
+                      if len(tmp)>10:
+                          roku_blocks = tmp
+                          break
               except: pass
 
           final=[]
-          final.extend(dcfull_blocks) # 1-4587
+          final.extend(dcfull_blocks)
 
-          # TUBI HARDCODED 5000
+          # TUBI HARDCODED 5000 - keep original tvg-id tubi-xxx
           chno = 5000
           for b in tubi_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
+              if 'group-title="Tubi"' not in b[0]:
+                  b[0]=re.sub(r'group-title="[^"]*"','',b[0])
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi"',1)
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
-          # ROKU HARDCODED 6000
+          # ROKU HARDCODED 6000 - KEEP ORIGINAL tvg-id so it matches EPG
           chno = 6000
           for b in roku_blocks:
+              orig_match = re.search(r'tvg-id="([^"]+)"', b[0])
+              orig_id = orig_match.group(1) if orig_match and orig_match.group(1) else ""
+              if not orig_id:
+                  name = b[0].split(",")[-1].strip()
+                  orig_id = "roku." + re.sub(r'[^a-z0-9]+','-', name.lower()).strip("-")
+                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{orig_id}"',1)
+
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              if 'group-title' not in b[0]:
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku"',1)
-              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
+              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
+              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write("#EXTM3U\n")
+              o.write('#EXTM3U url-tvg="https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml,https://tubiroku.donxman.workers.dev/epg.xml"\n')
               for b in final:
                   o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
-          print(f"built {len(final)}: Pluto/Samsung 1-4587, Tubi 5000+, Roku 6000+")
+          print(f"built {len(final)}: dcfull {len(dcfull_blocks)}, Tubi {len(tubi_blocks)}, Roku {len(roku_blocks)}")
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: hardcode Tubi 5000 Roku 6000"
+          commit_message: "dcmaster: fix Roku guide keep tvg-id + url-tvg header"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u"
