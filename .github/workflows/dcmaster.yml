@@ -22,15 +22,12 @@ jobs:
                       cur.append(l); blocks.append(cur); cur=[]
               return blocks
 
-          # dcfull already has 1-~500 with correct numbers
           dcfull = open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()
           dcfull_blocks = load_blocks(dcfull)
 
-          # Tubi from CF now HAS numbers 600+
           tubi_txt = requests.get("https://tubiroku.donxman.workers.dev/", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
           tubi_blocks = load_blocks(tubi_txt)
 
-          # Roku on Git - GitHub IP not blocked
           roku_blocks=[]
           for src in [
             "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
@@ -43,21 +40,20 @@ jobs:
                       if len(roku_blocks)>10: break
               except: pass
 
-          # renumber Roku 800+
           final=[]
-          chno=1
-          # keep dcfull numbers 1-600 as is
           final.extend(dcfull_blocks)
           chno = len(dcfull_blocks)+1
-          # Tubi already 600+ but re-number to avoid gap
+
           for b in tubi_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
+
           for b in roku_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              b[0]=re.sub(r'tvg-id="([^"]*)"', lambda m: f'tvg-id="roku.{m.group(1)}"', b[0])
-              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}" group-title="Roku"',1)
+              if 'group-title' not in b[0]:
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku"',1)
+              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
@@ -69,5 +65,5 @@ jobs:
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: CF Tubi numbered + Git Roku"
+          commit_message: "dcmaster: fix Roku tvg-id to match EPG"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u"
