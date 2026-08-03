@@ -41,14 +41,17 @@ jobs:
               except: pass
 
           final=[]
-          final.extend(dcfull_blocks)
-          chno = len(dcfull_blocks)+1
+          final.extend(dcfull_blocks) # 1-4587
 
+          # TUBI HARDCODED 5000
+          chno = 5000
           for b in tubi_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
+          # ROKU HARDCODED 6000
+          chno = 6000
           for b in roku_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
               if 'group-title' not in b[0]:
@@ -61,9 +64,9 @@ jobs:
               for b in final:
                   o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
-          print(f"built {len(final)} channels 1-{len(final)}")
+          print(f"built {len(final)}: Pluto/Samsung 1-4587, Tubi 5000+, Roku 6000+")
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: fix Roku tvg-id to match EPG"
+          commit_message: "dcmaster: hardcode Tubi 5000 Roku 6000"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u"
