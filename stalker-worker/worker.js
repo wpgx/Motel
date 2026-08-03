@@ -1,59 +1,47 @@
 export default{
   async fetch(req){
-    const url=new URL(req.url);
-    const act=url.searchParams.get('action')||"";
-    const J={"Content-Type":"application/json","Access-Control-Allow-Origin":"*"};
-    if(act.includes('handshake')||act.includes('get_profile')||act.includes('get_genres')||act.includes('get_ordered_list')||act.includes('create_link')||act.includes('get_events')){
-      // dummy JSON so Pro doesn't crash if it tries API
-      return new Response(JSON.stringify({js:{token:"1",id:"1",data:[],total_items:2}}),{headers:J});
+    const J={"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"*"};
+    if(req.method==="OPTIONS") return new Response("",{headers:J});
+
+    let url=new URL(req.url);
+    let params=url.searchParams;
+    if(req.method==="POST"){
+      const b=await req.text();
+      const p=new URLSearchParams(b);
+      for(const [k,v] of p) params.set(k,v);
     }
-    // MAIN TV BOX UI - served at /c/
-    const html=`<html><head><meta charset="utf-8"><style>
-body{margin:0;background:#0a1628;color:#fff;font-family:Arial;display:flex;height:100vh}
-#list{width:380px;background:#12233f;overflow-y:auto;border-right:2px solid #1e3a5f}
-.ch{padding:14px 16px;border-bottom:1px solid #1a2f50;cursor:pointer;display:flex;align-items:center}
-.ch.active{background:#1e90ff}
-#videoWrap{flex:1;background:#000;position:relative;display:flex;align-items:center;justify-content:center}
-#player{width:100%;height:100%;background:#000}
-#info{position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,.7);padding:10px 20px;border-radius:6px}
-</style></head><body>
-<div id="list"></div>
-<div id="videoWrap"><video id="player" controls autoplay></video><div id="info">Select channel</div></div>
-<script>
-const CHS=[
- {name:"BUNNY HD",url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"},
- {name:"SINTEL HD",url:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"},
- {name:"DCTV TEST",url:"https://raw.githubusercontent.com/wpgx/Motel/main/dctv.m3u8"}
-];
-const list=document.getElementById('list'), video=document.getElementById('player'), info=document.getElementById('info');
-let idx=0;
-function render(){
- list.innerHTML='';
- CHS.forEach((c,i)=>{
-  const d=document.createElement('div'); d.className='ch'+(i===idx?' active':''); d.textContent=(i+1)+'. '+c.name;
-  d.onclick=()=>play(i); list.appendChild(d);
- });
-}
-function play(i){
- idx=i; const c=CHS[i]; info.textContent=c.name;
- try{
-  if(window.gSTB){ gSTB.Stop(); gSTB.Play(c.url); info.textContent=c.name+' (gSTB)'; }
-  else { 
-   if(Hls.isSupported()){ const hls=new Hls(); hls.loadSource(c.url); hls.attachMedia(video); }
-   else video.src=c.url; video.play();
-  }
- }catch(e){ video.src=c.url; video.play(); }
- render();
-}
-document.addEventListener('keydown',e=>{
- if(e.key==='ArrowDown'){ idx=Math.min(CHS.length-1,idx+1); render(); e.preventDefault();}
- if(e.key==='ArrowUp'){ idx=Math.max(0,idx-1); render(); e.preventDefault();}
- if(e.key==='Enter'){ play(idx); }
-});
-render();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
-</body></html>`;
-    return new Response(html,{headers:{"Content-Type":"text/html","Access-Control-Allow-Origin":"*"}});
+    const act=params.get('action')||"";
+    const id=params.get('id')||"1";
+
+    if(!act){
+      return new Response("<html><body style=background:#000></body></html>",{headers:{"Content-Type":"text/html"}});
+    }
+
+    const CHS=[
+      {id:"1",name:"BUNNY TEST",number:"1",cmd:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",tv_genre_id:"1",use_http_tmp_link:0,genre_id:"1"},
+      {id:"2",name:"SINTEL TEST",number:"2",cmd:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",tv_genre_id:"1",use_http_tmp_link:0,genre_id:"1"}
+    ];
+
+    if(act.includes('handshake')){
+      return new Response(JSON.stringify({js:{token:"12345",id:"1",result:0}}),{headers:J});
+    }
+    if(act.includes('get_profile')){
+      return new Response(JSON.stringify({js:{id:"1",stb_type:"MAG250",version:"0.2.18-r22",api_version:"349"}}),{headers:J});
+    }
+    if(act.includes('get_genres')){
+      return new Response(JSON.stringify({js:[{id:"1",title:"Live TV",alias:"live"}]}),{headers:J});
+    }
+    if(act.includes('get_ordered_list')||act.includes('get_all_channels')||act.includes('get_order')){
+      return new Response(JSON.stringify({js:{total_items:CHS.length,max_page_items:14,cur_page:1,selected_item:1,data:CHS}}),{headers:J});
+    }
+    if(act.includes('create_link')||act.includes('get_link')||act.includes('do_order')){
+      const c=CHS.find(x=>x.id===id)||CHS[0];
+      return new Response(JSON.stringify({js:{id:id,info:{name:c.name},cmd:c.cmd,cmds:[{id:"1",ch_id:id,cmd:c.cmd}]}}),{headers:J});
+    }
+    if(act.includes('get_events')){
+      const now=Math.floor(Date.now()/1000);
+      return new Response(JSON.stringify({js:{events:[{id:"1",name:"Live",start_timestamp:now-3600,stop_timestamp:now+3600}]}}),{headers:J});
+    }
+    return new Response(JSON.stringify({js:{}}),{headers:J});
   }
 }
