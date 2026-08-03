@@ -9,7 +9,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           python3 << 'PY'
-          import re, requests, shutil
+          import re, requests, shutil, os
+
           def load_blocks(text):
               blocks=[]; cur=[]
               for l in text.replace("\r","").split("\n"):
@@ -22,9 +23,21 @@ jobs:
                       cur.append(l); blocks.append(cur); cur=[]
               return blocks
 
+          def get_inner_xml(src):
+              txt=""
+              try:
+                  if os.path.exists(src):
+                      txt=open(src,encoding='utf-8',errors='ignore').read()
+                  else:
+                      txt=requests.get(src, headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
+                  if "<tv>" in txt:
+                      return txt.split("<tv>")[-1].split("</tv>")[0]
+                  return txt
+              except:
+                  return ""
+
+          # CHANNELS - dcfull + tubiroku + roku
           dcfull_raw = open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()
-          m = re.search(r'#EXTM3U[^\n]*url-tvg="([^"]+)"', dcfull_raw)
-          dcfull_epgs = m.group(1) if m else ""
           dcfull_blocks = load_blocks(dcfull_raw)
 
           tubi_txt = requests.get("https://tubiroku.donxman.workers.dev/", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
@@ -38,94 +51,54 @@ jobs:
               try:
                   r=requests.get(src, headers={"User-Agent":"Mozilla/5.0"}, timeout=20)
                   if r.ok and "#EXTINF" in r.text:
-                      tmp = load_blocks(r.text)
+                      tmp=load_blocks(r.text)
                       if len(tmp)>10:
-                          roku_blocks = tmp
-                          break
+                          roku_blocks=tmp; break
               except: pass
 
-          final=[]
-          final.extend(dcfull_blocks)
+          final=[]; final.extend(dcfull_blocks)
 
           chno=5000
           for b in tubi_blocks:
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
+              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0]); b[0]=re.sub(r'group-title="[^"]*"','',b[0])
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
           chno=6000
           for b in roku_blocks:
-              orig_match = re.search(r'tvg-id="([^"]+)"', b[0])
-              orig_id = orig_match.group(1) if orig_match else ""
-              if not orig_id:
-                  name = b[0].split(",")[-1].strip()
-                  orig_id = "roku." + re.sub(r'[^a-z0-9]+','-', name.lower()).strip("-")
-                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{orig_id}"',1)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
+              m=re.search(r'tvg-id="([^"]+)"',b[0]); tid=m.group(1) if m else ""
+              if not tid:
+                  name=b[0].split(",")[-1].strip(); tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
+                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0]); b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
+              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0]); b[0]=re.sub(r'group-title="[^"]*"','',b[0])
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
-          # ONLY use dcmaster.xml - no more matthuisman
-          full_epg_list = "https://raw.githubusercontent.com/donxman/dcfull/main/dcmaster.xml"
-
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write(f'#EXTM3U url-tvg="{full_epg_list}"\n')
-              for b in final:
-                  o.write(b[0]+"\n"+b[-1]+"\n")
+              o.write('#EXTM3U url-tvg="https://raw.githubusercontent.com/donxman/dcfull/main/dcmaster.xml"\n')
+              for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
 
-          # dcmaster.xml merges ALL dcfull EPGs + tubiroku + Roku
-          try:
-              all_channels = {}
-              all_programmes = []
-              def parse_epg_xml(txt):
-                  chans={}; progs=[]
-                  try:
-                      for cm in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
-                          cid = re.search(r'id="([^"]+)"', cm.group(0)).group(1)
-                          if cid not in chans: chans[cid]=cm.group(0)
-                      for pm in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
-                          progs.append(pm.group(0))
-                  except: pass
-                  return chans, progs
+          # GUIDE - dcfull.xml + tubiroku.xml + roku
+          dcfull_xml = get_inner_xml("dcfull.xml")
+          tubi_xml = get_inner_xml("tubiroku.xml")
+          if not tubi_xml:
+              tubi_xml = get_inner_xml("https://tubiroku.donxman.workers.dev/tubiroku.xml")
 
-              for epg_url in dcfull_epgs.split(","):
-                  epg_url=epg_url.strip()
-                  if not epg_url: continue
-                  try:
-                      t=requests.get(epg_url, headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
-                      if "<tv" in t:
-                          c,p=parse_epg_xml(t)
-                          all_channels.update(c); all_programmes.extend(p)
-                  except: pass
+          roku_extra=""
+          all_so_far = dcfull_xml + tubi_xml
+          for b in roku_blocks:
+              mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""; name=b[0].split(",")[-1].strip()
+              if tid and tid not in all_so_far:
+                  roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
 
-              try:
-                  tubi_epg=requests.get("https://tubiroku.donxman.workers.dev/tubiroku.xml", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
-                  if "<tv" not in tubi_epg:
-                      tubi_epg=requests.get("https://tubiroku.donxman.workers.dev/epg.xml", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
-                  c,p=parse_epg_xml(tubi_epg)
-                  all_channels.update(c); all_programmes.extend(p)
-              except: pass
+          final_xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>'
+          open("dcmaster.xml","w",encoding="utf-8").write(final_xml)
 
-              for b in roku_blocks:
-                  mm=re.search(r'tvg-id="([^"]+)"',b[0])
-                  tid=mm.group(1) if mm else ""; name=b[0].split(",")[-1].strip()
-                  if tid and tid not in all_channels:
-                      all_channels[tid]=f'<channel id="{tid}"><display-name>{name}</display-name></channel>'
-                      all_programmes.append(f'<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>')
-
-              out='<?xml version="1.0" encoding="UTF-8"?><tv>\n'+"\n".join(all_channels.values())+"\n"+"\n".join(all_programmes)+"\n</tv>"
-              open("dcmaster.xml","w",encoding="utf-8").write(out)
-              print(f"dcmaster.xml: {len(all_channels)} channels")
-          except Exception as e:
-              print(f"epg fail {e}")
-
-          print(f"built {len(final)}: dcfull {len(dcfull_blocks)}, Tubi {len(tubi_blocks)}, Roku {len(roku_blocks)}")
+          print(f"Channels: dcfull={len(dcfull_blocks)} Tubi={len(tubi_blocks)} Roku={len(roku_blocks)} Total={len(final)}")
+          print(f"Guide: dcfull.xml={len(dcfull_xml)//1024}KB tubiroku.xml={len(tubi_xml)//1024}KB + Roku")
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: use only dcmaster.xml no matthuisman"
+          commit_message: "dcmaster: dcfull + tubiroku + Roku channels and guides"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
