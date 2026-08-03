@@ -1,30 +1,60 @@
 export default {
-  async fetch(req) {
-    const url = new URL(req.url);
-    if (req.method === "OPTIONS") return new Response(null,{headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET, POST, OPTIONS","Access-Control-Allow-Headers":"*"}});
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action') || url.searchParams.get('type') || '';
 
-    let p = {};
-    url.searchParams.forEach((v,k)=>p[k]=v);
-    if (req.method==="POST"){
-      const t = await req.text().catch(()=>"" );
-      if(t){ try{ new URLSearchParams(t).forEach((v,k)=>p[k]=v); }catch(e){} try{Object.assign(p,JSON.parse(t))}catch(e){} }
+    // Load your m3u from the same repo deployment
+    const m3uUrl = new URL('/motel.m3u8', url.origin).href;
+    const m3uText = await fetch(m3uUrl).then(r=>r.text()).catch(()=>'');
+
+    function parseM3U(text){
+      let channels=[], id=1, cur={};
+      text.split('\n').forEach(line=>{
+        line=line.trim();
+        if(line.startsWith('#EXTINF:')){
+          let name = line.split(',').pop().trim();
+          let logo = (line.match(/tvg-logo="([^"]+)"/)||[])[1]||'';
+          let group = (line.match(/group-title="([^"]+)"/)||[])[1]||'Motel TV';
+          cur={name, logo, group};
+        } else if(line &&!line.startsWith('#')){
+          channels.push({
+            id: String(id),
+            name: cur.name || `Channel ${id}`,
+            number: String(id),
+            tv_genre_id: '1',
+            logo: cur.logo || '',
+            group: cur.group,
+            cmd: line,
+            use_http_tmp_link: 0,
+            genres_str: cur.group
+          });
+          id++;
+        }
+      });
+      return channels;
     }
-    let action = (p.action||"").toLowerCase();
-    if(!action) action = "handshake"; // FORCE - if no action, treat as handshake
 
-    const CH = [
-      {id:"1", name:"Bunny Test", num:"1", cmd:"ch1", url:"https://test-streams.mux.dev/x36xhzz.m3u8"},
-      {id:"2", name:"Sintel Test", num:"2", cmd:"ch2", url:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"},
-    ];
-    const map = {ch1:CH[0],ch2:CH[1]};
+    const channels = parseM3U(m3uText);
+    const cors = { 'Access-Control-Allow-Origin':'*', 'Content-Type':'application/json' };
 
-    let js={};
-    if(action==="handshake") js={token:"aabbccddeeff11223344556677889900", random:"123456", not_valid:0, id:"1"};
-    else if(action==="get_profile") js={stb_type:"MAG250", sn:"0000001", ver:"0.2.18", mac:p.mac||"00:1A:79:00:00:01", auth:1};
-    else if(action==="get_genres") js=[{id:"1", alias:"all", title:"All"}];
-    else if(action.includes("ordered")||action.includes("all_channels")) js={total_items:2,max_page_items:14,cur_page:1,total_pages:1,data:CH.map(c=>({id:c.id,name:c.name,number:c.num,cmd:c.cmd,tv_genre_id:"1", use_http_tmp_link:0}))};
-    else if(action==="create_link"){ const ch=map[p.cmd]||CH[0]; js={cmd:`ffmpeg ${ch.url}`, id:ch.id, storage_name:"", error:""}; }
-
-    return new Response(JSON.stringify({js}),{headers:{"Access-Control-Allow-Origin":"*","Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-cache"}});
+    if(action==='handshake' || url.pathname.includes('handshake')){
+      return new Response(JSON.stringify({js:{token:'12345', random:'1234'}}), {headers:cors});
+    }
+    if(action==='get_profile'){
+      return new Response(JSON.stringify({js:{
+        stb_type:'MAG250', version:'Motel 1.0', fname:'Guest',
+        account: 'Motel Guest'
+      }}), {headers:cors});
+    }
+    if(action==='get_genres'){
+      let groups=[...new Set(channels.map(c=>c.group))];
+      let genres=groups.map((g,i)=>({id:String(i+1), title:g, alias:g.toLowerCase()}));
+      return new Response(JSON.stringify({js:genres}), {headers:cors});
+    }
+    if(action.includes('channel') || action==='get_ordered_list' || action==='get_all_channels' || action==='get_channels'){
+      return new Response(JSON.stringify({js:{data:channels, total_items:channels.length, max_page_items:500}}), {headers:cors});
+    }
+    // default empty
+    return new Response(JSON.stringify({js:[]}), {headers:cors});
   }
 }
