@@ -46,7 +46,6 @@ jobs:
           final=[]
           final.extend(dcfull_blocks)
 
-          # TUBI HARDCODED 5000 - keep original tvg-id tubi-xxx
           chno = 5000
           for b in tubi_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
@@ -56,7 +55,6 @@ jobs:
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
-          # ROKU HARDCODED 6000 - KEEP ORIGINAL tvg-id so it matches EPG
           chno = 6000
           for b in roku_blocks:
               orig_match = re.search(r'tvg-id="([^"]+)"', b[0])
@@ -66,20 +64,50 @@ jobs:
                   orig_id = "roku." + re.sub(r'[^a-z0-9]+','-', name.lower()).strip("-")
                   b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
                   b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{orig_id}"',1)
-
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
               b[0]=re.sub(r'group-title="[^"]*"','',b[0])
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml,https://tubiroku.donxman.workers.dev/epg.xml"\n')
+              o.write('#EXTM3U url-tvg="https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml,https://tubiroku.donxman.workers.dev/tubiroku.xml"\n')
               for b in final:
                   o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
+
+          # --- BUILD dcmaster.xml WITH ROKU GUIDE ---
+          try:
+              pluto = requests.get("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml", timeout=30).text
+              try:
+                  tubi_epg = requests.get("https://tubiroku.donxman.workers.dev/tubiroku.xml", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
+              except:
+                  tubi_epg = ""
+              if "<tv" not in tubi_epg:
+                  tubi_epg = requests.get("https://tubiroku.donxman.workers.dev/epg.xml", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
+
+              # ensure every Roku ID in dcmaster has guide entry
+              extra=""
+              for b in roku_blocks:
+                  m=re.search(r'tvg-id="([^"]+)"',b[0])
+                  tid=m.group(1) if m else ""
+                  name=b[0].split(",")[-1].strip()
+                  if tid and tid not in tubi_epg and tid not in pluto:
+                      extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel><programme start="20260101000000 +0000" stop="20260101235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>'
+
+              inner = tubi_epg.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in tubi_epg else ""
+              inner = inner.replace('<?xml version="1.0" encoding="UTF-8"?>','')
+              merged = pluto.replace("</tv>", inner + extra + "</tv>")
+              open("dcmaster.xml","w",encoding="utf-8").write(merged)
+              print("dcmaster.xml built with Roku guide")
+          except Exception as e:
+              print(f"epg failed {e}")
+              try:
+                  open("dcmaster.xml","w",encoding="utf-8").write(tubi_epg)
+              except: pass
+
           print(f"built {len(final)}: dcfull {len(dcfull_blocks)}, Tubi {len(tubi_blocks)}, Roku {len(roku_blocks)}")
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: fix Roku guide keep tvg-id + url-tvg header"
-          file_pattern: "dcmaster.m3u8 dcmaster.m3u"
+          commit_message: "dcmaster: fix Roku guide keep tvg-id + dcmaster.xml"
+          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
