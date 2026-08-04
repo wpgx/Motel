@@ -26,15 +26,11 @@ jobs:
           def get_inner(path):
               if not os.path.exists(path): return ""
               txt=open(path,encoding='utf-8',errors='ignore').read()
-              if "<tv>" in txt:
-                  return txt.split("<tv>")[-1].split("</tv>")[0]
-              return txt
+              return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
 
-          # LOCAL FILES ONLY
-          dcfull_blocks = load_blocks(open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()) if os.path.exists("dcfull.m3u8") else []
-          tubi_blocks = load_blocks(open("tubiroku.m3u8",encoding='utf-8',errors='ignore').read()) if os.path.exists("tubiroku.m3u8") else []
+          dcfull_blocks = load_blocks(open("dcfull.m3u8",encoding='utf-8',errors='ignore').read())
+          tubi_blocks = load_blocks(open("tubiroku.m3u",encoding='utf-8',errors='ignore').read())
 
-          # ONLY ROKU REMOTE
           roku_blocks=[]
           for src in ["https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u","https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"]:
               try:
@@ -76,11 +72,10 @@ jobs:
               if tid and tid not in all_so_far:
                   roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
 
-          final_xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>'
-          open("dcmaster.xml","w",encoding="utf-8").write(final_xml)
-          print(f"BUILD OK: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)}")
+          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
+          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} from tubiroku.m3u + Roku {len(roku_blocks)} = {len(final)}")
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: local files + motel.deecee.ca"
+          commit_message: "dcmaster: dcfull + tubiroku.m3u + Roku"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
