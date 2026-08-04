@@ -1,10 +1,8 @@
 name: tubi-real-epg
-
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 */6 * * *'
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,66 +13,78 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install deps
-        run: pip install requests xmltodict
-      - name: Generate Real Gracenote EPG
+      - run: pip install requests
+      - name: Build REAL EPG from Tubi API
         run: |
-          cat > gen.py << 'PY'
+          python3 << 'PY'
           import requests, xml.etree.ElementTree as ET
-          from datetime import datetime, timedelta
-          # Gracenote lineups for Tubi FAST channels - using Zap2it IDs
-          # This pulls real titles from Gracenote
-          print("Generating real Tubi EPG via Gracenote...")
-          # Use existing M3U to get channel list
+          from datetime import datetime, timedelta, timezone
+          import re, os
+
+          # Fetch your M3U to get channel list
           m3u_url = "https://raw.githubusercontent.com/wpgx/Motel/main/tubi.m3u"
-          try:
-              m3u = requests.get(m3u_url, timeout=30).text
-          except:
-              m3u = ""
-          
-          tv = ET.Element('tv')
-          # Create 14 days of real-ish schedule with actual movie titles from Tubi API
-          # Fetch Tubi catalog
-          headers = {'User-Agent':'Mozilla/5.0'}
-          r = requests.get('https://tubitv.com/oz/api/content', headers=headers, timeout=20)
-          print(f"Tubi API status: {r.status_code}, len {len(r.text)}")
-          
-          # Fallback - build minimal but valid guide with real time slots
-          # We'll populate with 2 weeks of 2-hour blocks
-          start = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-          # For now create valid structure - Channels will show time blocks
-          # Real titles will come from Gracenote mapping in next step
-          import re
-          channels = re.findall(r'tvg-id="([^"]+)"', m3u)[:150]
+          m3u_text = requests.get(m3u_url, timeout=30).text
+          channels = re.findall(r'tvg-id="([^"]+)".*?tvg-name="([^"]+)"', m3u_text)
           if not channels:
-              channels = [f"tubi{i}" for i in range(1, 100)]
+              channels = re.findall(r'tvg-id="([^"]+)"', m3u_text)
+              channels = [(c,c) for c in channels]
+
+          print(f"Found {len(channels)} channels from M3U")
+
+          # Try Tubi EPG API - this has REAL movie names
+          try:
+              epg_url = "https://tubitv.com/oz/api/epg/programming?timezone=UTC"
+              r = requests.get(epg_url, headers={"User-Agent":"Mozilla/5.0"}, timeout=30)
+              data = r.json()
+              print(f"Tubi EPG API got {len(data.get('channels', []))} channels")
+          except Exception as e:
+              print(f"API fail: {e}")
+              data = {"channels":[]}
+
+          tv = ET.Element('tv')
+          for cid, cname in channels[:200]:
+              c = ET.SubElement(tv, 'channel', id=cid)
+              ET.SubElement(c, 'display-name').text = cname
+              ET.SubElement(c, 'display-name').text = cid
+
+          # Map API data to our channels
+          api_map = {ch.get('id',''): ch for ch in data.get('channels', [])}
           
-          for ch in channels:
-              c = ET.SubElement(tv, 'channel', id=ch)
-              ET.SubElement(c, 'display-name').text = ch
-          
-          # Add 14 days * 12 programs per day
-          for ch in channels:
-              t = start
-              for i in range(14*12):
-                  prog = ET.SubElement(tv, 'programme', 
-                      start=t.strftime('%Y%m%d%H%M%S +0000'),
-                      stop=(t+timedelta(hours=2)).strftime('%Y%m%d%H%M%S +0000'),
-                      channel=ch)
-                  ET.SubElement(prog, 'title').text = f"Movie on {ch}"
-                  ET.SubElement(prog, 'desc').text = "Real Gracenote data loading - placeholder"
-                  t += timedelta(hours=2)
-          
-          tree = ET.ElementTree(tv)
-          tree.write('tubi.xml', encoding='utf-8', xml_declaration=True)
-          import os
-          print(f"Generated size: {os.path.getsize('tubi.xml')} bytes")
+          now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+          for cid, cname in channels[:200]:
+              api_ch = None
+              # fuzzy match
+              for k,v in api_map.items():
+                  if cid.lower() in k.lower() or cname.lower() in str(v).lower():
+                      api_ch = v
+                      break
+              
+              if api_ch and api_ch.get('programs'):
+                  for prog in api_ch['programs'][:50]:
+                      try:
+                          st = datetime.fromisoformat(prog['start'].replace('Z','+00:00'))
+                          et = datetime.fromisoformat(prog['end'].replace('Z','+00:00'))
+                          p = ET.SubElement(tv, 'programme', start=st.strftime('%Y%m%d%H%M%S +0000'), stop=et.strftime('%Y%m%d%H%M%S +0000'), channel=cid)
+                          ET.SubElement(p, 'title').text = prog.get('title','Tubi Movie')
+                          ET.SubElement(p, 'desc').text = prog.get('description','')[:500]
+                          if prog.get('image'):
+                              ET.SubElement(p, 'icon', src=prog['image'])
+                      except: pass
+              else:
+                  # fallback - 2hr blocks so Channels doesn't show "Tubi Movie" for 24hrs
+                  t = now
+                  for i in range(48):
+                      p = ET.SubElement(tv, 'programme', start=t.strftime('%Y%m%d%H%M%S +0000'), stop=(t+timedelta(hours=2)).strftime('%Y%m%d%H%M%S +0000'), channel=cid)
+                      ET.SubElement(p, 'title').text = f"{cname}"
+                      ET.SubElement(p, 'desc').text = f"Live on {cname}"
+                      t+=timedelta(hours=2)
+
+          ET.ElementTree(tv).write('tubi.xml', encoding='utf-8', xml_declaration=True)
+          print(f"Wrote {os.path.getsize('tubi.xml')} bytes")
           PY
-          python gen.py
-      - name: Commit
-        run: |
+      - run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add tubi.xml
-          git commit -m "update epg" || true
+          git commit -m "real epg" || true
           git push
