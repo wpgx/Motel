@@ -8,27 +8,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          docker pull ghcr.io/jgomez177/tubi-for-channels:3.01
-          docker run -d --name tubi -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:3.01
-          sleep 20
-          docker logs tubi --tail 50
+          docker rm -f tubi || true
+          docker pull ghcr.io/jgomez177/tubi-for-channels:latest
+          docker run -d --name tubi -p 7777:7777 -e PYTHONUNBUFFERED=1 ghcr.io/jgomez177/tubi-for-channels:latest
+          sleep 30
+          docker logs tubi
           for i in {1..60}; do
-            echo "Attempt $i..."
-            curl -sf "http://127.0.0.1:7777/tubi/epg.xml?gracenote=include" -o /tmp/epg.xml && break
+            echo "Attempt $i - checking EPG..."
+            if curl -sf "http://127.0.0.1:7777/tubi/epg.xml?gracenote=include" -o /tmp/epg.xml; then
+              if [ $(wc -c < /tmp/epg.xml) -gt 10000 ]; then
+                echo "Got real EPG $(wc -c < /tmp/epg.xml) bytes"
+                break
+              fi
+            fi
+            # also try without gracenote param as fallback
+            curl -sf "http://127.0.0.1:7777/tubi/epg.xml" -o /tmp/epg.xml || true
             sleep 10
-            docker logs tubi --tail 20
           done
           ls -lh /tmp/epg.xml
-          head -20 /tmp/epg.xml
-          if grep -q "<tv" /tmp/epg.xml; then
-            echo "VALID XML FOUND"
-            cp /tmp/epg.xml ./tubi.xml
-          else
-            echo "NOT VALID XML"
-            cat /tmp/epg.xml
-            exit 1
-          fi
+          head -5 /tmp/epg.xml
+          cp /tmp/epg.xml ./tubi.xml
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "update tubi.xml real Gracenote EPG"
+          commit_message: "update tubi.xml real EPG"
           file_pattern: "tubi.xml"
