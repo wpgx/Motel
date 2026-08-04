@@ -8,22 +8,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          echo "Trying to pull image..."
-          docker pull ghcr.io/jgomez177/tubi-for-channels:3.01 || docker pull ghcr.io/jgomez177/tubi-for-channels || true
-          docker images | grep tubi
-          docker run -d --name t -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:3.01 || \
-          docker run -d --name t -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels || \
-          docker run -d --name t -p 7777:7777 --entrypoint /bin/sh ghcr.io/jgomez177/tubi-for-channels -c "python -m tubi_for_channels"
+          docker pull ghcr.io/jgomez177/tubi-for-channels:3.01
+          docker run -d --name tubi -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:3.01
           sleep 15
           docker ps -a
-          docker logs t || true
-          curl -v http://127.0.0.1:7777/ || true
-          for i in {1..20}; do
+          docker logs tubi --tail 100
+          for i in {1..30}; do
+            echo "Attempt $i"
             curl -sf http://127.0.0.1:7777/tubi/epg.xml -o /tmp/epg.xml && break
-            sleep 5
+            sleep 10
           done
-          ls -lh /tmp/ || true
-          [ -f /tmp/epg.xml ] && cp /tmp/epg.xml ./tubireal.xml || (docker logs t; exit 1)
+          cp /tmp/epg.xml ./tubireal.xml
+          ls -lh ./tubireal.xml
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "tubi real EPG"
