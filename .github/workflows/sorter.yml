@@ -1,0 +1,36 @@
+name: Sort DCcatalog
+
+on:
+  schedule:
+    - cron: '40 */6 * * *'  # 10 min after dcmaster (30 */6 * * *)
+  workflow_dispatch:
+
+jobs:
+  sort:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Sort to DCcatalog.m3u8 / DCcatalog.xml
+        run: |
+          python3 sort_dc.py
+          ls -lh DCcatalog.*
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add DCcatalog.m3u8 DCcatalog.xml pluto_sort.yml
+          git diff --cached --quiet || git commit -m "auto-sort: DCcatalog.m3u8 + DCcatalog.xml [${{ github.run_id }}]"
+          git push
