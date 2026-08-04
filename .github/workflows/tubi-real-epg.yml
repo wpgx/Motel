@@ -14,38 +14,74 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install requests
-      - run: |
+      - name: Build REAL EPG
+        run: |
           python3 << 'PY'
-          import requests, xml.etree.ElementTree as ET, os
+          import requests, xml.etree.ElementTree as ET, os, json
           from datetime import datetime, timezone
-          headers={"User-Agent":"Mozilla/5.0"}
-          url="https://tubitv.com/oz/api/epg/programming?timezone=UTC"
-          r=requests.get(url, headers=headers, timeout=30)
-          print(f"Status {r.status_code}")
-          data=r.json()
-          chans=data.get('channels',[])
-          print(f"Channels: {len(chans)}")
+          headers={
+              "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+              "Accept":"application/json, text/plain, */*",
+              "Referer":"https://tubitv.com/live"
+          }
+          urls=[
+              "https://tubitv.com/oz/api/epg/programming?timezone=UTC",
+              "https://tubitv.com/oz/api/guide?timezone=UTC",
+              "https://tubitv.com/oz/api/epg/channels?timezone=UTC"
+          ]
+          data=None
+          for url in urls:
+              try:
+                  print(f"Trying {url}")
+                  r=requests.get(url, headers=headers, timeout=30)
+                  print(f"  -> {r.status_code} len={len(r.text)} first100={r.text[:100]}")
+                  if r.status_code==200 and len(r.text)>200:
+                      data=r.json()
+                      break
+              except Exception as e:
+                  print(f"  -> fail {e}")
+          
+          if not data:
+              print("All APIs failed - creating minimal valid file")
+              data={"channels":[]}
+
+          chans=data.get('channels',[]) or data.get('guide',[]) or []
+          if isinstance(data, list):
+              chans=data
+          print(f"Final channels: {len(chans)}")
+
           tv=ET.Element('tv')
-          for ch in chans:
-              cid=str(ch.get('id'))
+          for ch in chans[:150]:
+              cid=str(ch.get('id') or ch.get('channel_id') or ch.get('slug') or 'ch')
               c=ET.SubElement(tv,'channel',id=cid)
-              ET.SubElement(c,'display-name').text=ch.get('title',cid)
-          for ch in chans:
-              cid=str(ch.get('id'))
-              for prog in ch.get('programs',[])[:100]:
+              ET.SubElement(c,'display-name').text=ch.get('title') or ch.get('name') or cid
+
+          for ch in chans[:150]:
+              cid=str(ch.get('id') or ch.get('channel_id') or 'ch')
+              progs=ch.get('programs') or ch.get('content') or []
+              for prog in progs[:100]:
                   try:
-                      st=datetime.fromisoformat(prog['start'].replace('Z','+00:00'))
-                      et=datetime.fromisoformat(prog['end'].replace('Z','+00:00'))
+                      title=prog.get('title') or prog.get('program_title') or 'Movie'
+                      desc=(prog.get('description') or '')[:500]
+                      st_str=prog.get('start') or prog.get('start_time')
+                      et_str=prog.get('end') or prog.get('end_time')
+                      if not st_str: continue
+                      st=datetime.fromisoformat(st_str.replace('Z','+00:00'))
+                      et=datetime.fromisoformat(et_str.replace('Z','+00:00')) if et_str else st
                       p=ET.SubElement(tv,'programme',start=st.strftime('%Y%m%d%H%M%S +0000'),stop=et.strftime('%Y%m%d%H%M%S +0000'),channel=cid)
-                      ET.SubElement(p,'title').text=prog.get('title','Movie')
-                      desc=prog.get('description','')[:500]
+                      ET.SubElement(p,'title').text=title
                       if desc:
                           ET.SubElement(p,'desc').text=desc
-                  except: pass
+                  except Exception as e:
+                      pass
+
           ET.ElementTree(tv).write('tubi.xml',encoding='utf-8',xml_declaration=True)
           print(f"SIZE {os.path.getsize('tubi.xml')}")
+          with open('tubi.xml') as f:
+              print(f.read(300))
           PY
-      - run: |
+      - name: Commit
+        run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add tubi.xml
