@@ -1,0 +1,69 @@
+name: Sort DCcatalog
+on:
+  schedule:
+    - cron: '40 */6 * * *' # 10 min after dcmaster 30 */6 * * *
+  workflow_dispatch:
+
+jobs:
+  sort:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sort dcmaster -> DCcatalog.m3u8 + DCcatalog.xml
+        run: |
+          python3 << 'PY'
+          import re
+          from pathlib import Path
+          src = Path("dcmaster.m3u.txt")
+          if not src.exists():
+            src = Path("dcmaster.m3u8")
+          lines = src.read_text(encoding='utf-8', errors='ignore').splitlines()
+          mapping = {
+            "News & Opinion":"News & Weather","News + Opinion":"News & Weather",
+            "Sports":"Sports","Sports & Outdoors":"Sports","Motor Sports":"Sports",
+            "Movies":"Movies","Classic TV":"Classic","Classic TV Comedy":"Classic","Westerns":"Classic",
+            "Comedy":"Comedy","South Park":"Comedy","Game Shows":"Comedy","Daytime & Talk Shows":"Comedy",
+            "Crime":"Crime & Mystery","Crime Drama":"Crime & Mystery","True Crime":"Crime & Mystery","Paranormal":"Crime & Mystery",
+            "Drama":"Drama & Sci-Fi","Sci-Fi & Horror":"Drama & Sci-Fi","Out of This World":"Drama & Sci-Fi","Documentary + Science":"Drama & Sci-Fi",
+            "Entertainment":"Entertainment & Reality","Reality":"Entertainment & Reality","Reality TV":"Entertainment & Reality","Competition Reality":"Entertainment & Reality","Lifestyle & Pop Culture":"Entertainment & Reality",
+            "Home & Food":"Home & Food","Home + Food":"Home & Food","Kids":"Kids","Kids en Français":"Kids",
+          }
+          order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science","Roku","Tubi"]
+          idx={c:i for i,c in enumerate(order)}
+          entries=[]
+          for i,l in enumerate(lines):
+            if l.startswith("#EXTINF"):
+              m=re.search(r'group-title="([^"]+)"',l)
+              orig=m.group(1) if m else "Other"
+              cat=mapping.get(orig,orig)
+              entries.append((cat,l.rsplit(",",1)[-1].lower(),l,lines[i+1] if i+1<len(lines) else ""))
+          entries.sort(key=lambda x:(idx.get(x[0],999),x[1]))
+          out=[f'#EXTM3U url-tvg="DCcatalog.xml"']
+          ch=1
+          for cat,_,ext,url in entries:
+            ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
+            ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
+            out.append(ext); out.append(url); ch+=1
+          Path("DCcatalog.m3u8").write_text("\n".join(out))
+          # xml
+          xml=['<?xml version="1.0" encoding="UTF-8"?><tv>']
+          for cat,_,ext,url in entries:
+            mid=re.search(r'tvg-id="([^"]+)"',ext)
+            mid=mid.group(1) if mid else ""
+            xml.append(f'<channel id="{mid}"><display-name>{ext.rsplit(",",1)[-1]}</display-name></channel>')
+          xml.append('</tv>')
+          Path("DCcatalog.xml").write_text("\n".join(xml))
+          print(f"Built {len(entries)} channels")
+          PY
+
+      - name: Commit DCcatalog
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add DCcatalog.m3u8 DCcatalog.xml
+          git diff --cached --quiet && exit 0
+          git commit -m "auto: rebuild DCcatalog 10min after dcmaster"
+          git push
