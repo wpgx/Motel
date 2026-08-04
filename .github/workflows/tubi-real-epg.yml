@@ -1,6 +1,7 @@
 name: tubi-real-epg
 on:
   workflow_dispatch:
+  schedule: [{ cron: '15 */6 * * *' }]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,16 +11,24 @@ jobs:
           docker pull ghcr.io/jgomez177/tubi-for-channels:3.01
           docker run -d --name tubi -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:3.01
           sleep 20
-          docker ps -a
-          docker logs tubi
-          echo "Trying endpoints..."
-          curl -v http://127.0.0.1:7777/ || true
-          curl -v http://127.0.0.1:7777/tubi/epg.xml -o /tmp/epg.xml || true
-          curl -v http://127.0.0.1:7777/epg.xml -o /tmp/epg.xml || true
-          ls -lh /tmp/
-          cp /tmp/epg.xml ./tubi.xml || (docker exec tubi find / -name "*.xml" 2>/dev/null; exit 1)
-          ls -lh ./tubi.xml
+          docker logs tubi --tail 50
+          for i in {1..60}; do
+            echo "Attempt $i..."
+            curl -sf "http://127.0.0.1:7777/tubi/epg.xml?gracenote=include" -o /tmp/epg.xml && break
+            sleep 10
+            docker logs tubi --tail 20
+          done
+          ls -lh /tmp/epg.xml
+          head -20 /tmp/epg.xml
+          if grep -q "<tv" /tmp/epg.xml; then
+            echo "VALID XML FOUND"
+            cp /tmp/epg.xml ./tubi.xml
+          else
+            echo "NOT VALID XML"
+            cat /tmp/epg.xml
+            exit 1
+          fi
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "update tubi.xml real EPG"
+          commit_message: "update tubi.xml real Gracenote EPG"
           file_pattern: "tubi.xml"
