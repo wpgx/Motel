@@ -1,7 +1,7 @@
 name: dcmaster
 on:
-  schedule: # dcmaster - was 30 */6 * * *
-- cron: '35 1,4,7,10,13,16,19,22 * * *'  # 10 mins after dcfull
+  schedule:
+    - cron: '35 1,4,7,10,13,16,19,22 * * *' # 10 mins after dcfull
   workflow_dispatch:
 jobs:
   build:
