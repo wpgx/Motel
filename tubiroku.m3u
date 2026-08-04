@@ -1,4 +1,4 @@
-#EXTM3U url-tvg="https://tubiroku.donxman.workers.dev/tubiroku.xml"
+#EXTM3U url-tvg="https://tubiroku.donxman.workers.dev/epg.xml"
 #EXTINF:-1 tvg-id="tubi-520220a7-f8c9-488b-b311-0654a1d3c1b8" tvg-chno="5000" group-title="Tubi",A&E Crime 360
 https://live-manifest.production-public.tubi.io/live/520220a7-f8c9-488b-b311-0654a1d3c1b8/playlist.m3u8
 #EXTINF:-1 tvg-id="tubi-14e4f5f2-9787-4c49-8554-f2ad109764a7" tvg-chno="5001" group-title="Tubi",ABC News Live
@@ -343,3 +343,5 @@ https://live-manifest.production-public.tubi.io/live/236f6c6f-2c44-496f-897e-6ea
 https://live-manifest.production-public.tubi.io/live/8a3bfd19-8982-4a0a-b76c-14d02ea82fad/playlist.m3u8
 #EXTINF:-1 tvg-id="tubi-f9eae274-e379-4d83-8a2b-bbb4c8f015aa" tvg-chno="5171" group-title="Tubi",Xplore
 https://live-manifest.production-public.tubi.io/live/f9eae274-e379-4d83-8a2b-bbb4c8f015aa/playlist.m3u8
+#EXTINF:-1 tvg-id="YahooFinance.us@SD" tvg-chno="6000" group-title="Roku",Yahoo! Finance (1080p)
+https://yahoo-roku-us.amagi.tv/playlist.m3u8
