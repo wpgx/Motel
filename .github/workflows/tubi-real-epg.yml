@@ -1,34 +1,29 @@
 name: tubi-real-epg
 on:
-  schedule: [{ cron: '15 */6 * * *' }]
   workflow_dispatch:
+  schedule: [{ cron: '15 */6 * * *' }]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: run tubi container
-        run: |
-          docker pull ghcr.io/jgomez177/tubi-for-channels:latest
-          docker run -d --name t --network host ghcr.io/jgomez177/tubi-for-channels:latest
-          sleep 10
-          docker ps
+      - run: |
+          echo "Trying to pull image..."
+          docker pull ghcr.io/jgomez177/tubi-for-channels:3.01 || docker pull ghcr.io/jgomez177/tubi-for-channels || true
+          docker images | grep tubi
+          docker run -d --name t -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:3.01 || \
+          docker run -d --name t -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels || \
+          docker run -d --name t -p 7777:7777 --entrypoint /bin/sh ghcr.io/jgomez177/tubi-for-channels -c "python -m tubi_for_channels"
+          sleep 15
+          docker ps -a
           docker logs t || true
-          for i in {1..30}; do
-            echo "Attempt $i to get EPG..."
-            if curl -sf http://127.0.0.1:7777/tubi/epg.xml -o /tmp/epg.xml; then
-              echo "GOT IT"
-              wc -l /tmp/epg.xml
-              break
-            fi
-            sleep 10
-            docker logs t --tail 50 || true
+          curl -v http://127.0.0.1:7777/ || true
+          for i in {1..20}; do
+            curl -sf http://127.0.0.1:7777/tubi/epg.xml -o /tmp/epg.xml && break
+            sleep 5
           done
-          if [ -f /tmp/epg.xml ]; then
-            cp /tmp/epg.xml ./tubireal.xml
-          else
-            echo "Failed to get EPG" && docker logs t && exit 1
-          fi
+          ls -lh /tmp/ || true
+          [ -f /tmp/epg.xml ] && cp /tmp/epg.xml ./tubireal.xml || (docker logs t; exit 1)
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "tubi real EPG"
