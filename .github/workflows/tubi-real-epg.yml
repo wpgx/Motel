@@ -8,27 +8,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          docker rm -f tubi || true
           docker pull ghcr.io/jgomez177/tubi-for-channels:latest
-          docker run -d --name tubi -p 7777:7777 -e PYTHONUNBUFFERED=1 ghcr.io/jgomez177/tubi-for-channels:latest
-          sleep 30
-          docker logs tubi
-          for i in {1..60}; do
-            echo "Attempt $i - checking EPG..."
-            if curl -sf "http://127.0.0.1:7777/tubi/epg.xml?gracenote=include" -o /tmp/epg.xml; then
-              if [ $(wc -c < /tmp/epg.xml) -gt 10000 ]; then
-                echo "Got real EPG $(wc -c < /tmp/epg.xml) bytes"
-                break
-              fi
-            fi
-            # also try without gracenote param as fallback
-            curl -sf "http://127.0.0.1:7777/tubi/epg.xml" -o /tmp/epg.xml || true
-            sleep 10
-          done
-          ls -lh /tmp/epg.xml
-          head -5 /tmp/epg.xml
-          cp /tmp/epg.xml ./tubi.xml
+          docker run -d --name tubi -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:latest
+          echo "Waiting 60s for EPG to generate..."
+          sleep 60
+          docker logs tubi --tail 100
+          echo "=== FIND XML FILES INSIDE CONTAINER ==="
+          docker exec tubi find /app -type f -name "*.xml" -o -name "*.gz" | head -20
+          docker exec tubi ls -lh /app/
+          docker exec tubi ls -lh /app/tubi_data/ || true
+          # Copy any XML out
+          docker cp tubi:/app/tubi_data/tubi.xml /tmp/tubi.xml || true
+          docker cp tubi:/app/epg.xml /tmp/tubi.xml || true
+          docker cp tubi:/app/tubi/epg.xml /tmp/tubi.xml || true
+          docker cp tubi:/app/tubi_data/epg.xml /tmp/tubi.xml || true
+          # Last ditch - try web again with bigger file
+          curl -s "http://127.0.0.1:7777/tubi/epg.xml?gracenote=include" -o /tmp/web.xml || true
+          ls -lh /tmp/*.xml || true
+          # Pick biggest file
+          ls -S /tmp/*.xml | head -1
+          BIGGEST=$(ls -S /tmp/*.xml | head -1)
+          echo "Biggest is $BIGGEST size $(wc -c < $BIGGEST)"
+          head -20 $BIGGEST
+          cp $BIGGEST ./tubi.xml
+          echo "Final tubi.xml size $(wc -c < ./tubi.xml)"
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "update tubi.xml real EPG"
+          commit_message: "update tubi.xml real Gracenote"
           file_pattern: "tubi.xml"
