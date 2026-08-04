@@ -19,20 +19,18 @@ jobs:
         uses: actions/checkout@v4
 
 
-      - name: Download iptv-org playlist
+      - name: Download iptv-org files
         run: |
           mkdir work
+
           curl -L https://iptv-org.github.io/iptv/index.m3u \
           -o work/master.m3u
 
-
-      - name: Download EPG
-        run: |
           curl -L https://iptv-org.github.io/epg/guides/us.xml \
           -o work/master.xml
 
 
-      - name: Build Network Playlist
+      - name: Build playlist and guide
         run: |
 
           cat > work/build.py <<'PY'
@@ -43,102 +41,116 @@ jobs:
 
           channels = {
 
-          # NEW YORK
-          "WABCTV": "001 ABC New York",
-          "WCBSTV": "002 CBS New York",
-          "WNBC": "003 NBC New York",
-          "WNYW": "004 FOX New York",
+              "WABCTV":  ("001 ABC New York"),
+              "WCBSTV":  ("002 CBS New York"),
+              "WNBC":    ("003 NBC New York"),
+              "WNYW":    ("004 FOX New York"),
 
-          # LOS ANGELES
-          "KABCTV": "005 ABC Los Angeles",
-          "KCBSTV": "006 CBS Los Angeles",
-          "KNBC": "007 NBC Los Angeles",
-          "KTTV": "008 FOX Los Angeles",
+              "KABCTV":  ("005 ABC Los Angeles"),
+              "KCBSTV":  ("006 CBS Los Angeles"),
+              "KNBC":    ("007 NBC Los Angeles"),
+              "KTTV":    ("008 FOX Los Angeles"),
 
-          # CW
-          "KTLA": "009 CW Los Angeles",
+              "KTLA":    ("009 CW Los Angeles"),
 
-          # FAVORITES
-          "WGN": "010 WGN Chicago",
-          "WSBK": "011 WSBK Boston"
+              "WGNDT":   ("010 WGN Chicago"),
+              "WSBK":    ("011 WSBK Boston")
 
           }
 
 
-          source = Path("work/master.m3u").read_text(
-              errors="ignore"
+          m3u = Path(
+              "work/master.m3u"
+          ).read_text(errors="ignore")
+
+
+          entries = m3u.split("#EXTINF")
+
+          found = []
+
+
+          for entry in entries:
+
+              if not entry.strip():
+                  continue
+
+              match = re.search(
+                  r'tvg-id="([^"]+)"',
+                  entry
+              )
+
+              if not match:
+                  continue
+
+              tvgid = match.group(1).upper()
+
+
+              for key,name in channels.items():
+
+                  if key in tvgid:
+
+                      header = "#EXTINF" + entry
+
+                      header = re.sub(
+                          r'group-title="[^"]*"',
+                          'group-title="Networks"',
+                          header,
+                          count=2
+                      )
+
+                      found.append(
+                          (name, header)
+                      )
+
+                      break
+
+
+
+          # sort by channel number
+
+          found.sort(
+              key=lambda x:int(x[0][:3])
           )
 
 
-          lines = source.splitlines()
+          playlist = [
+              "#EXTM3U"
+          ]
+
+          epg_ids = []
 
 
-          playlist = ["#EXTM3U"]
+          for name,block in found:
 
-          keep = False
+              playlist.append(block)
 
+              mid = re.search(
+                  r'tvg-id="([^"]+)"',
+                  block
+              )
 
-          for line in lines:
-
-              if line.startswith("#EXTINF"):
-
-                  keep = False
-
-                  match = re.search(
-                      r'tvg-id="([^"]+)"',
-                      line
+              if mid:
+                  epg_ids.append(
+                      mid.group(1)
                   )
 
-                  if match:
 
-                      tvgid = match.group(1).upper()
-
-                      for key,name in channels.items():
-
-                          if key in tvgid:
-
-                              keep = True
-
-                              line = line.replace(
-                                  ",",
-                                  f' group-title="Networks",{name},',
-                                  1
-                              )
-
-                              break
-
-
-              if keep:
-
-                  playlist.append(line)
-
-
-          Path("networks.m3u8").write_text(
+          Path(
+              "networks.m3u8"
+          ).write_text(
               "\n".join(playlist),
               encoding="utf-8"
           )
 
 
-          # EPG matching
+          # EPG
 
-          xml = Path("work/master.xml").read_text(
-              errors="ignore"
-          )
-
-
-          ids = []
+          xml = Path(
+              "work/master.xml"
+          ).read_text(errors="ignore")
 
 
-          for c in channels:
-
-              ids += re.findall(
-                  r'id="([^"]*'+c+r'[^"]*)"',
-                  xml,
-                  re.I
-              )
-
-
-          result = "<tv>\n"
+          epg = "<tv>\n"
 
 
           for block in re.findall(
@@ -146,25 +158,34 @@ jobs:
               xml
           ):
 
-              if any(
-                  i in block
-                  for i in ids
-              ):
+              for eid in epg_ids:
 
-                  result += block + "\n"
+                  if eid in block:
 
-
-          result += "</tv>"
+                      epg += block + "\n"
+                      break
 
 
-          Path("networks.xml").write_text(
-              result,
+          epg += "</tv>"
+
+
+          Path(
+              "networks.xml"
+          ).write_text(
+              epg,
               encoding="utf-8"
           )
 
 
-          print("DONE")
+          print(
+              "Channels found:",
+              len(found)
+          )
 
+          print(
+              "EPG IDs:",
+              epg_ids
+          )
 
           PY
 
@@ -172,8 +193,7 @@ jobs:
           python work/build.py
 
 
-
-      - name: Commit results
+      - name: Commit files
         run: |
 
           git config --global user.name "github-actions"
@@ -182,6 +202,6 @@ jobs:
 
           git add networks.m3u8 networks.xml
 
-          git commit -m "Update network locals" || echo "No changes"
+          git commit -m "Update network pack" || echo "No changes"
 
           git push
