@@ -10,79 +10,108 @@ permissions:
 
 jobs:
   build-playlist:
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+
+      - name: Checkout
         uses: actions/checkout@v4
+
 
       - name: Download iptv-org playlist
         run: |
-          mkdir -p work
-          curl -L https://iptv-org.github.io/iptv/index.m3u -o work/master.m3u
+          mkdir work
+          curl -L https://iptv-org.github.io/iptv/index.m3u \
+          -o work/master.m3u
 
-      - name: Download iptv-org EPG
-        run: |
-          curl -L https://iptv-org.github.io/epg/guides/us.xml -o work/master.xml
 
-      - name: Build filtered playlist and guide
+      - name: Download EPG
         run: |
+          curl -L https://iptv-org.github.io/epg/guides/us.xml \
+          -o work/master.xml
+
+
+      - name: Build Network Playlist
+        run: |
+
           cat > work/build.py <<'PY'
+
           from pathlib import Path
           import re
 
-          wanted = [
-              "WABC",
-              "WCBS",
-              "WNBC",
-              "WNYW",
-              "KABC",
-              "KCBS",
-              "KNBC",
-              "KTTV",
-              "KTLA",
-              "WGN",
-              "WSBK"
-          ]
 
-          groups = {
-              "WABC": "Network East",
-              "WCBS": "Network East",
-              "WNBC": "Network East",
-              "WNYW": "Network East",
+          channels = {
 
-              "KABC": "Network West",
-              "KCBS": "Network West",
-              "KNBC": "Network West",
-              "KTTV": "Network West",
+          # NEW YORK
+          "WABCTV": "001 ABC New York",
+          "WCBSTV": "002 CBS New York",
+          "WNBC": "003 NBC New York",
+          "WNYW": "004 FOX New York",
 
-              "KTLA": "CW",
-              "WGN": "Favorites",
-              "WSBK": "Favorites"
+          # LOS ANGELES
+          "KABCTV": "005 ABC Los Angeles",
+          "KCBSTV": "006 CBS Los Angeles",
+          "KNBC": "007 NBC Los Angeles",
+          "KTTV": "008 FOX Los Angeles",
+
+          # CW
+          "KTLA": "009 CW Los Angeles",
+
+          # FAVORITES
+          "WGN": "010 WGN Chicago",
+          "WSBK": "011 WSBK Boston"
+
           }
 
-          m3u = Path("work/master.m3u").read_text(errors="ignore")
 
-          lines = m3u.splitlines()
+          source = Path("work/master.m3u").read_text(
+              errors="ignore"
+          )
+
+
+          lines = source.splitlines()
+
 
           playlist = ["#EXTM3U"]
+
           keep = False
 
+
           for line in lines:
+
               if line.startswith("#EXTINF"):
+
                   keep = False
 
-                  for station in wanted:
-                      if station.lower() in line.lower():
-                          keep = True
-                          line = line.replace(
-                              'group-title="',
-                              f'group-title="{groups[station]},'
-                          )
-                          break
+                  match = re.search(
+                      r'tvg-id="([^"]+)"',
+                      line
+                  )
+
+                  if match:
+
+                      tvgid = match.group(1).upper()
+
+                      for key,name in channels.items():
+
+                          if key in tvgid:
+
+                              keep = True
+
+                              line = line.replace(
+                                  ",",
+                                  f' group-title="Networks",{name},',
+                                  1
+                              )
+
+                              break
+
 
               if keep:
+
                   playlist.append(line)
+
 
           Path("networks.m3u8").write_text(
               "\n".join(playlist),
@@ -90,38 +119,69 @@ jobs:
           )
 
 
-          # Simple EPG filter
-          xml = Path("work/master.xml").read_text(errors="ignore")
+          # EPG matching
 
-          matches = []
+          xml = Path("work/master.xml").read_text(
+              errors="ignore"
+          )
 
-          for station in wanted:
-              matches += re.findall(
-                  r'<channel[^>]*id="[^"]*' + station + r'[^"]*"[\s\S]*?</channel>',
+
+          ids = []
+
+
+          for c in channels:
+
+              ids += re.findall(
+                  r'id="([^"]*'+c+r'[^"]*)"',
                   xml,
-                  re.IGNORECASE
+                  re.I
               )
 
-          epg = "<tv>\n" + "\n".join(matches) + "\n</tv>"
+
+          result = "<tv>\n"
+
+
+          for block in re.findall(
+              r'<channel[\s\S]*?</channel>',
+              xml
+          ):
+
+              if any(
+                  i in block
+                  for i in ids
+              ):
+
+                  result += block + "\n"
+
+
+          result += "</tv>"
+
 
           Path("networks.xml").write_text(
-              epg,
+              result,
               encoding="utf-8"
           )
 
-          print("Playlist and guide created")
+
+          print("DONE")
+
 
           PY
 
+
           python work/build.py
 
-      - name: Commit files
+
+
+      - name: Commit results
         run: |
+
           git config --global user.name "github-actions"
+
           git config --global user.email "actions@github.com"
 
           git add networks.m3u8 networks.xml
 
-          git commit -m "Update network playlist and guide" || echo "No changes"
+          git commit -m "Update network locals" || echo "No changes"
 
           git push
