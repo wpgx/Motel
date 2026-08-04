@@ -1,0 +1,24 @@
+name: tubi-real-epg
+on:
+  schedule: [{ cron: '15 */6 * * *' }]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          docker run -d --name t -p 7777:7777 ghcr.io/jgomez177/tubi-for-channels:latest
+          echo "waiting for Tubi EPG..."
+          for i in {1..60}; do
+            sleep 5
+            curl -sf http://localhost:7777/tubi/epg.xml -o /tmp/epg.xml && break
+            echo "try $i..."
+          done
+          ls -lh /tmp/epg.xml
+          cp /tmp/epg.xml ./tubireal.xml || echo "failed"
+          docker logs t | tail -100
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "tubi real EPG"
+          file_pattern: "tubireal.xml"
