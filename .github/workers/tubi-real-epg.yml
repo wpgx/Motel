@@ -1,0 +1,58 @@
+name: tubi-real-epg
+on: workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - run: |
+          python3 << 'PY'
+          import requests, xml.etree.ElementTree as ET, os
+          from datetime import datetime, timezone
+          headers={"User-Agent":"Mozilla/5.0"}
+          url="https://tubitv.com/oz/api/epg/programming?timezone=UTC"
+          print(f"Fetching {url}")
+          r=requests.get(url, headers=headers, timeout=30)
+          print(f"Status {r.status_code} size {len(r.text)}")
+          data=r.json()
+          chans=data.get('channels',[])
+          print(f"Channels found: {len(chans)}")
+
+          tv=ET.Element('tv')
+          for ch in chans:
+              cid=str(ch.get('id'))
+              c=ET.SubElement(tv,'channel',id=cid)
+              ET.SubElement(c,'display-name').text=ch.get('title',cid)
+
+          for ch in chans:
+              cid=str(ch.get('id'))
+              for prog in ch.get('programs',[])[:100]:
+                  try:
+                      st=datetime.fromisoformat(prog['start'].replace('Z','+00:00'))
+                      et=datetime.fromisoformat(prog['end'].replace('Z','+00:00'))
+                      p=ET.SubElement(tv,'programme',start=st.strftime('%Y%m%d%H%M%S +0000'),stop=et.strftime('%Y%m%d%H%M%S +0000'),channel=cid)
+                      ET.SubElement(p,'title').text=prog.get('title','')
+                      desc=prog.get('description','') or prog.get('short_description','')
+                      if desc:
+                          ET.SubElement(p,'desc').text=desc[:500]
+                  except Exception as e:
+                      print(f"prog err {e}")
+
+          ET.ElementTree(tv).write('tubi.xml',encoding='utf-8',xml_declaration=True)
+          print(f"FINAL SIZE: {os.path.getsize('tubi.xml')}")
+          # Show first 500 chars
+          with open('tubi.xml') as f:
+              print(f.read(500))
+          PY
+      - run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add tubi.xml
+          git commit -m "real" || true
+          git push
