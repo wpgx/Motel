@@ -23,33 +23,22 @@ jobs:
                       cur.append(l); blocks.append(cur); cur=[]
               return blocks
 
-          def get_inner_xml(src):
-              txt=""
-              try:
-                  if os.path.exists(src):
-                      txt=open(src,encoding='utf-8',errors='ignore').read()
-                  else:
-                      txt=requests.get(src, headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
-                  if "<tv>" in txt:
-                      return txt.split("<tv>")[-1].split("</tv>")[0]
-                  return txt
-              except:
-                  return ""
+          def get_inner(path):
+              if not os.path.exists(path): return ""
+              txt=open(path,encoding='utf-8',errors='ignore').read()
+              if "<tv>" in txt:
+                  return txt.split("<tv>")[-1].split("</tv>")[0]
+              return txt
 
-          # CHANNELS - dcfull + tubiroku + roku
-          dcfull_raw = open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()
-          dcfull_blocks = load_blocks(dcfull_raw)
+          # LOCAL FILES ONLY
+          dcfull_blocks = load_blocks(open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()) if os.path.exists("dcfull.m3u8") else []
+          tubi_blocks = load_blocks(open("tubiroku.m3u8",encoding='utf-8',errors='ignore').read()) if os.path.exists("tubiroku.m3u8") else []
 
-          tubi_txt = requests.get("https://tubiroku.donxman.workers.dev/", headers={"User-Agent":"Mozilla/5.0"}, timeout=30).text
-          tubi_blocks = load_blocks(tubi_txt)
-
+          # ONLY ROKU REMOTE
           roku_blocks=[]
-          for src in [
-            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
-            "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
-          ]:
+          for src in ["https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u","https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"]:
               try:
-                  r=requests.get(src, headers={"User-Agent":"Mozilla/5.0"}, timeout=20)
+                  r=requests.get(src, timeout=20)
                   if r.ok and "#EXTINF" in r.text:
                       tmp=load_blocks(r.text)
                       if len(tmp)>10:
@@ -57,13 +46,11 @@ jobs:
               except: pass
 
           final=[]; final.extend(dcfull_blocks)
-
           chno=5000
           for b in tubi_blocks:
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0]); b[0]=re.sub(r'group-title="[^"]*"','',b[0])
               b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
               final.append(b); chno+=1
-
           chno=6000
           for b in roku_blocks:
               m=re.search(r'tvg-id="([^"]+)"',b[0]); tid=m.group(1) if m else ""
@@ -75,15 +62,12 @@ jobs:
               final.append(b); chno+=1
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://raw.githubusercontent.com/donxman/dcfull/main/dcmaster.xml"\n')
+              o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
               for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
 
-          # GUIDE - dcfull.xml + tubiroku.xml + roku
-          dcfull_xml = get_inner_xml("dcfull.xml")
-          tubi_xml = get_inner_xml("tubiroku.xml")
-          if not tubi_xml:
-              tubi_xml = get_inner_xml("https://tubiroku.donxman.workers.dev/tubiroku.xml")
+          dcfull_xml = get_inner("dcfull.xml")
+          tubi_xml = get_inner("tubiroku.xml")
 
           roku_extra=""
           all_so_far = dcfull_xml + tubi_xml
@@ -94,11 +78,9 @@ jobs:
 
           final_xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>'
           open("dcmaster.xml","w",encoding="utf-8").write(final_xml)
-
-          print(f"Channels: dcfull={len(dcfull_blocks)} Tubi={len(tubi_blocks)} Roku={len(roku_blocks)} Total={len(final)}")
-          print(f"Guide: dcfull.xml={len(dcfull_xml)//1024}KB tubiroku.xml={len(tubi_xml)//1024}KB + Roku")
+          print(f"BUILD OK: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)}")
           PY
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: dcfull + tubiroku + Roku channels and guides"
+          commit_message: "dcmaster: local files + motel.deecee.ca"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
