@@ -2,7 +2,7 @@ name: Update Samsung CA - from Render
 on:
   workflow_dispatch:
   schedule:
-    - cron: '10 14,17,20,23,2,5 * * *'  # 8:10am, 11:10am, 2:10pm, 5:10pm, 8:10pm, 11:10pm CST
+    - cron: '10 2,5,8,11,14,17,20,23 * * *'  # 8:10am, 11:10am, 2:10pm, 5:10pm, 8:10pm, 11:10pm, 2:10am, 5:10am CSTT
 
 jobs:
   build:
