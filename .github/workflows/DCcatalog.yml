@@ -15,12 +15,17 @@ jobs:
       - name: Sort dcmaster -> DCcatalog.m3u8 + DCcatalog.xml
         run: |
           python3 << 'PY'
-          import re
+          import re, gzip, shutil
           from pathlib import Path
+
+          def fix_xml_text(txt):
+              return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
+
           src = Path("dcmaster.m3u.txt")
           if not src.exists():
             src = Path("dcmaster.m3u8")
           lines = src.read_text(encoding='utf-8', errors='ignore').splitlines()
+
           mapping = {
             "News & Opinion":"News & Weather","News + Opinion":"News & Weather",
             "Sports":"Sports","Sports & Outdoors":"Sports","Motor Sports":"Sports",
@@ -33,6 +38,7 @@ jobs:
           }
           order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science","Roku","Tubi"]
           idx={c:i for i,c in enumerate(order)}
+
           entries=[]
           for i,l in enumerate(lines):
             if l.startswith("#EXTINF"):
@@ -40,30 +46,45 @@ jobs:
               orig=m.group(1) if m else "Other"
               cat=mapping.get(orig,orig)
               entries.append((cat,l.rsplit(",",1)[-1].lower(),l,lines[i+1] if i+1<len(lines) else ""))
+
           entries.sort(key=lambda x:(idx.get(x[0],999),x[1]))
-          out=[f'#EXTM3U url-tvg="DCcatalog.xml"']
+
+          out=[f'#EXTM3U url-tvg="https://motel.deecee.ca/DCcatalog.xml"']
           ch=1
+          keep_ids=[]
           for cat,_,ext,url in entries:
             ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
-            ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
+            if 'tvg-chno=' in ext:
+              ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
+            else:
+              ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{ch}"', 1)
             out.append(ext); out.append(url); ch+=1
-          Path("DCcatalog.m3u8").write_text("\n".join(out))
-          # xml
-          xml=['<?xml version="1.0" encoding="UTF-8"?><tv>']
-          for cat,_,ext,url in entries:
-            mid=re.search(r'tvg-id="([^"]+)"',ext)
-            mid=mid.group(1) if mid else ""
-            xml.append(f'<channel id="{mid}"><display-name>{ext.rsplit(",",1)[-1]}</display-name></channel>')
-          xml.append('</tv>')
-          Path("DCcatalog.xml").write_text("\n".join(xml))
+            mm=re.search(r'tvg-id="([^"]+)"',ext)
+            if mm: keep_ids.append(mm.group(1))
+
+          Path("DCcatalog.m3u8").write_text("\n".join(out), encoding='utf-8')
           print(f"Built {len(entries)} channels")
+
+          # --- FIXED XML: reuse dcmaster.xml, don't rebuild empty one ---
+          if Path("dcmaster.xml").exists():
+            raw = Path("dcmaster.xml").read_text(encoding='utf-8', errors='ignore')
+            raw = fix_xml_text(raw)
+            # Keep full guide - don't filter, just reuse dcmaster's guide which is already correct
+            Path("DCcatalog.xml").write_text(raw, encoding='utf-8')
+            # Make gz for Formuler
+            with open("DCcatalog.xml","rb") as f_in:
+              with gzip.open("DCcatalog.xml.gz","wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+            print("DCcatalog.xml reused from dcmaster.xml")
+          else:
+            Path("DCcatalog.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><tv></tv>', encoding='utf-8')
           PY
 
       - name: Commit DCcatalog
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add DCcatalog.m3u8 DCcatalog.xml
+          git add DCcatalog.m3u8 DCcatalog.xml DCcatalog.xml.gz
           git diff --cached --quiet && exit 0
-          git commit -m "auto: rebuild DCcatalog 10min after dcmaster"
+          git commit -m "auto: rebuild DCcatalog 10min after dcmaster - Formuler fixed"
           git push
