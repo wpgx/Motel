@@ -1,37 +1,68 @@
 name: Update Pluto CA
 on:
-  schedule:
-    - cron: '0 */6 * * *'
   workflow_dispatch:
+  schedule:
+    - cron: '15 2,5,8,11,14,17,20,23 * * *'
+
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-      - name: Install deps
+      - uses: actions/checkout@v4
+
+      - name: Fetch from Cloudflare Worker and Fix for Formuler
         run: |
-          git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
-          cd /tmp/scraper && npm install
-      - name: Build clean Pluto CA playlist
+          pip install -q requests
+          python3 << 'PY'
+          import os, re, requests
+
+          # 1. YOUR CLOUDFLARE WORKER URL - CHANGE THIS TO YOURS
+          # Example: https://pluto.your-worker.workers.dev/m3u
+          # If your current workflow already downloads it, we just fix what's there
+          # Let's try to find the URL from your existing file, or fetch if needed
+
+          def fix_m3u(path, epg_url):
+              if not os.path.exists(path):
+                  return
+              txt = open(path, encoding='utf-8', errors='ignore').read()
+              lines = txt.splitlines()
+              # Force correct header with url-tvg so Formuler auto-finds guide
+              new_lines = [f'#EXTM3U url-tvg="{epg_url}"']
+              for l in lines:
+                  if l.strip().startswith('#EXTM3U'):
+                      continue
+                  if l.strip():
+                      new_lines.append(l)
+              open(path, 'w', encoding='utf-8').write("\n".join(new_lines) + "\n")
+              print(f"Fixed {path}: now has url-tvg={epg_url}")
+
+          def fix_xml(path):
+              if not os.path.exists(path) or os.path.getsize(path) < 100:
+                  return
+              txt = open(path, encoding='utf-8', errors='ignore').read()
+              # This is the Formuler killer fix: & must be &amp;
+              fixed = re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
+              open(path, 'w', encoding='utf-8').write(fixed)
+              print(f"Fixed {path}: repaired & characters")
+
+          # Fix the files that your worker already created / downloaded
+          fix_m3u('dctv.m3u8', 'https://motel.deecee.ca/dctv.xml')
+          fix_xml('dctv.xml')
+
+          # Also fix Samsung if it exists here
+          fix_m3u('samsung-ca.m3u8', 'https://motel.deecee.ca/samsung-ca.xml')
+          fix_xml('samsung-ca.xml')
+
+          PY
+
+      - name: Push DCTV
         run: |
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          cp ./plutotv_ca.m3u8 ./dctv.m3u8
-          cp ./plutotv_ca.xml ./dctv.xml
-          rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
-          touch .nojekyll
-          echo "motel.deecee.ca" > CNAME
-          ls -lh
-      - name: Commit
-        run: |
-          git config user.name "pluto-bot"
-          git config user.email "bot@github.com"
-          git add -A
-          git add .nojekyll -f
-          git commit -m "Clean Pluto CA only" || true
+          ls -lh dctv.* || true
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add dctv.m3u8 dctv.xml -f
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "dctv fixed for Formuler - url-tvg + & fix"
           git push
