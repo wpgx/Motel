@@ -2,7 +2,7 @@ name: Update Samsung CA - from Render
 on:
   workflow_dispatch:
   schedule:
-    - cron: '10 2,5,8,11,14,17,20,23 * * *'  # 8:10am, 11:10am, 2:10pm, 5:10pm, 8:10pm, 11:10pm, 2:10am, 5:10am CST
+    - cron: '10 2,5,8,11,14,17,20,23 * * *'
 
 jobs:
   build:
@@ -16,16 +16,15 @@ jobs:
         run: |
           BASE="https://motel-r45n.onrender.com"
           echo "Waking Render..."
-          # Try 3 times, it can take 90s+ cold start
           for i in 1 2 3; do
             curl -L -A "Mozilla/5.0" "$BASE/" --max-time 60 -o /dev/null && break
             echo "Wake attempt $i failed, retrying in 20s..."
             sleep 20
           done
-          echo "Woke Render, waiting 90s for it to build fresh guide..."
+          echo "Woke Render, waiting 90s..."
           sleep 90
 
-      - name: Pull Samsung from Render
+      - name: Pull Samsung from Render - FIXED FOR FORMULER
         run: |
           BASE="https://motel-r45n.onrender.com"
 
@@ -39,25 +38,30 @@ jobs:
           echo "Fetching playlist..."
           curl -L -A "Mozilla/5.0" "$BASE/playlist.m3u8" --connect-timeout 30 --max-time 180 --retry 3 --retry-delay 10 -o /tmp/playlist.m3u8
           
-          # --- FIX THE BAKED-IN RENDER GUIDE URL ---
-          # Replace whatever url-tvg Render put in there with your own GitHub-hosted guide
-          # This stops Sparkle from auto-forcing the Render link
           sed -i 's|url-tvg="[^"]*"|url-tvg="https://motel.deecee.ca/samsung-ca.xml"|g' /tmp/playlist.m3u8
-          # If no url-tvg existed, add it
           if ! grep -q 'url-tvg' /tmp/playlist.m3u8; then
             sed -i '1s|#EXTM3U|#EXTM3U url-tvg="https://motel.deecee.ca/samsung-ca.xml"|' /tmp/playlist.m3u8
           fi
           
           cp /tmp/playlist.m3u8 samsung-ca.m3u8
+
+          # --- FORMULER XML FIX ---
+          python3 << 'PY'
+          import re
+          with open('samsung-ca.xml','r',encoding='utf-8',errors='ignore') as f:
+              xml = f.read()
+          fixed = re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', xml)
+          open('samsung-ca.xml','w',encoding='utf-8').write(fixed)
+          print("Fixed samsung-ca.xml & -> &amp;")
+          PY
+
           M3U=$(grep -c "#EXTINF" samsung-ca.m3u8 || echo 0)
           echo "M3U $M3U channels"
           echo "Header is now: $(head -1 samsung-ca.m3u8)"
 
-          # FAIL SAFE: if guide too short, don't overwrite good file
           if [ "$PROG" -lt 500 ] || [ "$XML_SIZE" -lt 50000 ]; then
             echo "Guide too short ($PROG programs) - Render still waking. Keeping old file"
             git checkout -- samsung-ca.xml samsung-ca.m3u8 || true
-            # Don't fail the job, just skip commit
             echo "SKIP=true" >> $GITHUB_ENV
           fi
 
@@ -74,5 +78,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add samsung-ca.m3u8 samsung-ca.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "samsung ca $M3U ch / $PROG prog"
+          git commit -m "samsung ca $M3U ch / $PROG prog - Formuler fixed"
           git push
