@@ -1,7 +1,7 @@
 name: Sort DCcatalog
 on:
   schedule:
-    - cron: '40 2,5,8,11,14,17,20,23 * * *'
+    - cron: '50 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
 
 jobs:
