@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '25 2,5,8,11,14,17,20,23 * * *'
+
+jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
