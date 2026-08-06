@@ -3,7 +3,6 @@ on:
   schedule:
     - cron: '50 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
-
 jobs:
   sort:
     runs-on: ubuntu-latest
@@ -11,97 +10,66 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Sort dcmaster -> DCcatalog.m3u8 + DCcatalog.xml
+      - name: Sort dcmaster -> DCcatalog
         run: |
           python3 << 'PY'
           import re, gzip, shutil
           from pathlib import Path
-
-          def fix_xml_text(txt):
-              return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
-
+          def fix_xml_text(t): return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', t)
           def guess_category(name, orig):
-              # If it's already a good category, keep it
-              if orig not in ("Roku","Tubi","Other"):
-                  return orig
-              n = name.lower()
-              # keyword sort for Roku/Tubi
+              if orig not in ("Roku","Tubi","Other"): return orig
+              n=name.lower()
               if any(k in n for k in ["news","weather","cheddar","newsy"]): return "News & Weather"
-              if any(k in n for k in ["espn","nfl","nba","mlb","sports","golf","racing","fishing","wrestling"]): return "Sports"
-              if any(k in n for k in ["movie","cinema","film","western","action"]): return "Movies"
+              if any(k in n for k in ["sports","espn","nfl","nba","mlb","golf","racing"]): return "Sports"
+              if any(k in n for k in ["kids","cartoon","nick"]): return "Kids"
+              if any(k in n for k in ["comedy","laugh","game show"]): return "Comedy"
+              if any(k in n for k in ["crime","mystery","detective"]): return "Crime & Mystery"
+              if any(k in n for k in ["drama","sci-fi","horror","space"]): return "Drama & Sci-Fi"
+              if any(k in n for k in ["reality","home","food","lifestyle","cooking"]): return "Entertainment & Reality"
+              if any(k in n for k in ["music","mtv"]): return "Music"
+              if any(k in n for k in ["nature","science","wild","history"]): return "Nature & Science"
               if any(k in n for k in ["classic","retro","western"]): return "Classic"
-              if any(k in n for k in ["comedy","laugh","stand-up","south park","game show","funny"]): return "Comedy"
-              if any(k in n for k in ["crime","investigation","mystery","detective","police"]): return "Crime & Mystery"
-              if any(k in n for k in ["drama","sci-fi","scifi","horror","thriller","space"]): return "Drama & Sci-Fi"
-              if any(k in n for k in ["reality","housewives","love","cooking","food","home","lifestyle","entertainment"]): return "Entertainment & Reality"
-              if any(k in n for k in ["kids","cartoon","nick","disney junior","paw patrol","spongebob"]): return "Kids"
-              if any(k in n for k in ["music","mtv","concert"]): return "Music"
-              if any(k in n for k in ["nature","science","wild","history","documentary","animal"]): return "Nature & Science"
-              return "Movies" # default for Tubi/Roku
+              return "Movies"
 
-          src = Path("dcmaster.m3u.txt")
-          if not src.exists():
-            src = Path("dcmaster.m3u8")
+          src = Path("dcmaster.m3u8") # FIX: never read txt
           lines = src.read_text(encoding='utf-8', errors='ignore').splitlines()
 
-          mapping = {
-            "News & Opinion":"News & Weather","News + Opinion":"News & Weather",
-            "Sports":"Sports","Sports & Outdoors":"Sports","Motor Sports":"Sports",
-            "Movies":"Movies","Classic TV":"Classic","Classic TV Comedy":"Classic","Westerns":"Classic",
-            "Comedy":"Comedy","South Park":"Comedy","Game Shows":"Comedy","Daytime & Talk Shows":"Comedy",
-            "Crime":"Crime & Mystery","Crime Drama":"Crime & Mystery","True Crime":"Crime & Mystery","Paranormal":"Crime & Mystery",
-            "Drama":"Drama & Sci-Fi","Sci-Fi & Horror":"Drama & Sci-Fi","Out of This World":"Drama & Sci-Fi","Documentary + Science":"Drama & Sci-Fi",
-            "Entertainment":"Entertainment & Reality","Reality":"Entertainment & Reality","Reality TV":"Entertainment & Reality","Competition Reality":"Entertainment & Reality","Lifestyle & Pop Culture":"Entertainment & Reality",
-            "Home & Food":"Home & Food","Home + Food":"Home & Food","Kids":"Kids","Kids en Français":"Kids",
-          }
-          # No more Roku / Tubi in final list
           order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science"]
           idx={c:i for i,c in enumerate(order)}
 
-          entries=[]
+          entries=[]; seen=set()
           for i,l in enumerate(lines):
-            if l.startswith("#EXTINF"):
-              m=re.search(r'group-title="([^"]+)"',l)
-              orig=m.group(1) if m else "Other"
-              base_cat=mapping.get(orig,orig)
-              name = l.rsplit(",",1)[-1].strip()
-              # if Roku/Tubi, guess real category
-              if base_cat in ("Roku","Tubi"):
-                  cat = guess_category(name, base_cat)
-              else:
-                  cat = base_cat
-              entries.append((cat,name.lower(),l,lines[i+1] if i+1<len(lines) else ""))
+              if l.startswith("#EXTINF"):
+                  url = lines[i+1].strip() if i+1 < len(lines) else ""
+                  if not url or url in seen: continue # FIX: kills category doubles
+                  seen.add(url)
+                  m=re.search(r'group-title="([^"]+)"',l); orig=m.group(1) if m else "Other"
+                  name=l.rsplit(",",1)[-1].strip()
+                  cat = guess_category(name, orig) if orig in ("Roku","Tubi") else orig
+                  entries.append((cat,name.lower(),l,url))
 
           entries.sort(key=lambda x:(idx.get(x[0],999),x[1]))
-
           out=[f'#EXTM3U url-tvg="https://motel.deecee.ca/DCcatalog.xml"']
           ch=1
           for cat,_,ext,url in entries:
-            ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
-            if 'tvg-chno=' in ext:
-              ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
-            else:
-              ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{ch}"', 1)
-            out.append(ext); out.append(url); ch+=1
-
+              ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
+              if 'tvg-chno=' in ext: ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
+              else: ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{ch}"',1)
+              out.append(ext); out.append(url); ch+=1
           Path("DCcatalog.m3u8").write_text("\n".join(out), encoding='utf-8')
-          print(f"Built {len(entries)} channels - Roku/Tubi groups removed")
+          print(f"Built {len(entries)} clean")
 
           if Path("dcmaster.xml").exists():
-            raw = Path("dcmaster.xml").read_text(encoding='utf-8', errors='ignore')
-            raw = fix_xml_text(raw)
-            Path("DCcatalog.xml").write_text(raw, encoding='utf-8')
-            with open("DCcatalog.xml","rb") as f_in:
-              with gzip.open("DCcatalog.xml.gz","wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+              raw=fix_xml_text(Path("dcmaster.xml").read_text(encoding='utf-8', errors='ignore'))
+              Path("DCcatalog.xml").write_text(raw, encoding='utf-8')
+              with open("DCcatalog.xml","rb") as f_in, gzip.open("DCcatalog.xml.gz","wb") as f_out:
+                  shutil.copyfileobj(f_in, f_out)
           PY
-
-      - name: Commit DCcatalog
+      - name: Commit
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add DCcatalog.m3u8 DCcatalog.xml DCcatalog.xml.gz
           git diff --cached --quiet && exit 0
-          git commit -m "DCcatalog: remove Roku/Tubi groups, auto-sort into main cats"
+          git commit -m "DCcatalog: fix category doubles"
           git push
