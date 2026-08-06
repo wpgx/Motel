@@ -1,4 +1,4 @@
-name: Update Pluto CA -> pluto.m3u8
+name: Update Pluto CA
 
 on:
   schedule:
@@ -12,47 +12,40 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: 1 - Clone Scraper (JWT fix)
+      - name: Clone scraper and install
         run: |
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper
           git checkout main
           npm install
 
-      - name: 2 - Scrape Pluto CA
+      - name: Run scraper and add welcome
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          mv ./plutotv_ca.m3u8 ./pluto.m3u8
-          mv ./plutotv_ca.xml ./pluto.xml
+          cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
+          cp ./plutotv_ca.xml ./pluto.xml
+          rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
+          
           touch .nojekyll
-
-      - name: 3 - Add Welcome + Guide link + Formuler Fix
-        run: |
-          cp ./pluto.m3u8 ./pluto.tmp
+          
           echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto.xml"' > ./pluto.m3u8
           echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!' >> ./pluto.m3u8
           echo 'https://motel.deecee.ca/welcome.m3u8' >> ./pluto.m3u8
           echo '' >> ./pluto.m3u8
-          grep -v "^#EXTM3U" ./pluto.tmp >> ./pluto.m3u8
-          rm ./pluto.tmp
-          
-          # Formuler fix: & -> &amp; in m3u8 so Formuler doesn't break EPG
-          sed -i 's/&/&amp;/g' ./pluto.m3u8
-          # Fix xml if needed
-          sed -i 's/&amp;amp;/&amp;/g' ./pluto.xml
-          
-          head -3 ./pluto.m3u8
+          grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./pluto.m3u8
+          rm -f ./plutotv_ca.tmp
+          head -5 ./pluto.m3u8
 
-      - name: 4 - Commit and cleanup old files
+      - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
           git add ./pluto.m3u8 ./pluto.xml .nojekyll
-          # DELETE the old confusing names
-          git rm -f ./dctv.m3u8 ./dctv.xml ./dcfull.m3u8 ./dcfull.xml ./dcfast.m3u8 ./dcfast.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Pluto -> pluto.m3u8 cleanup" && git push)
+          git rm -f ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Update pluto $(date -u)" && git push)
