@@ -1,11 +1,8 @@
-name: Build DCMaster
+name: Build DCMASTER
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 2,5,8,11,14,17,20,23 * * *'
-concurrency:
-  group: dcmaster
-  cancel-in-progress: true
+    - cron: '35 2,5,8,11,14,17,20,23 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,96 +10,79 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build dcmaster
+      - name: Build DCMASTER
         run: |
-          python3 - << 'PY'
-          import re, requests, shutil, gzip
-          from pathlib import Path
+          python3 << 'PY'
+          import re, os
+          def load(f):
+              if not os.path.exists(f): return []
+              lines=open(f,encoding='utf-8',errors='ignore').read().splitlines()
+              pairs=[]
+              for i,l in enumerate(lines):
+                  if l.startswith('#EXTINF'):
+                      nxt=lines[i+1] if i+1 < len(lines) else ""
+                      if nxt.startswith('http'):
+                          pairs.append((l,nxt))
+              print(f"{f}: {len(pairs)} ch")
+              return pairs
 
-          m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"']
-          seen_urls = set()
-          cnum = 1
+          def get_group(inf):
+              m=re.search(r'group-title=["\']([^"\']+)["\']',inf,re.I)
+              return m.group(1).lower() if m else ""
 
-          def add_playlist(url, source_name):
-              global cnum
-              print(f"Fetching {source_name}...", flush=True)
-              try:
-                  r = requests.get(url, timeout=90, headers={"User-Agent":"Mozilla/5.0"})
-                  r.raise_for_status()
-                  lines = r.text.splitlines()
-                  added = 0
-                  for i, line in enumerate(lines):
-                      if not line.startswith("#EXTINF"):
-                          continue
-                      next_url = lines[i+1].strip() if i+1 < len(lines) else ""
-                      if not next_url.startswith("http") or next_url in seen_urls:
-                          continue
-                      # Keep original group-title, don't overwrite!
-                      if 'tvg-chno=' in line:
-                          line = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{cnum}"', line)
-                      else:
-                          line = line.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{cnum}"', 1)
+          # MASTER = DCFULL + anything else you want
+          # DCFULL already is pluto + samsung-ca
+          # Add more here if you have them: samsung-us.m3u8, etc
+          sources = ['dcfull.m3u8']
+          # optional extras - will be added if they exist
+          for extra in ['samsung-us.m3u8','roku.m3u8','plex.m3u8']:
+              if os.path.exists(extra):
+                  sources.append(extra)
 
-                      # keep tvg-id if missing
-                      if 'tvg-id=' not in line:
-                          clean = re.sub(r'[^a-z0-9]', '', line.rsplit(',',1)[-1].lower())[:20]
-                          line = line.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-id="{source_name}.{clean}"', 1)
+          seen=set()
+          merged=[]
+          for f in sources:
+              for inf,url in load(f):
+                  if url not in seen:
+                      seen.add(url)
+                      merged.append((inf,url))
 
-                      m3u.append(line)
-                      m3u.append(next_url)
-                      seen_urls.add(next_url)
-                      cnum+=1
-                      added+=1
-                  print(f" -> {source_name} added {added}", flush=True)
-              except Exception as e:
-                  print(f" -> {source_name} FAILED: {e}", flush=True)
+          # keep All -> Fav -> rest order from dcfull
+          all_ch = [p for p in merged if 'all channel' in get_group(p[0])]
+          favs = [p for p in merged if 'favor' in get_group(p[0])]
+          rest = [p for p in merged if p not in all_ch and p not in favs]
+          ordered = all_ch + favs + rest
 
-          # === SOURCES - REAL CATEGORIES KEPT ===
-          add_playlist("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/US.m3u8", "pluto")
-          add_playlist("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/US.m3u8", "samsung")
-          add_playlist("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/US.m3u8", "plex")
-          add_playlist("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Tubi/US.m3u8", "tubi")
-          add_playlist("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/US.m3u8", "roku")
-          add_playlist("https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Stirr/US.m3u8", "stirr")
+          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"']
+          for inf,url in ordered:
+              out.append(inf)
+              out.append(url)
 
-          # Optional: add your other sources here if you had them
-          # add_playlist("https://raw.githubusercontent.com/Drewski2222/... ", "other")
+          open('dcmaster.m3u8','w',encoding='utf-8').write("\n".join(out)+"\n")
+          open('dcmaster.m3u','w',encoding='utf-8').write("\n".join(out)+"\n")
+          print(f"DCMASTER: {len(ordered)} ch")
 
-          text = "\n".join(m3u)
-          Path("dcmaster.m3u8").write_text(text, encoding='utf-8')
-          Path("dcmaster.m3u").write_text(text, encoding='utf-8')
-          print(f"\nDCMaster built: {len(seen_urls)} channels", flush=True)
-
-          # Build a combined EPG from matthuisman if you don't have your own
-          # You had dcmaster.xml before, we will just merge the 3 main xmltvs
-          epg_urls = [
-              "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/xmltv.xml",
-              "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/xmltv.xml",
-              "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Tubi/xmltv.xml",
-              "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/xmltv.xml",
-          ]
-          # For now just keep your existing dcmaster.xml if it exists, or fetch one as placeholder
-          # so your DCcatalog xml step doesn't break
-          if not Path("dcmaster.xml").exists():
-              try:
-                  r = requests.get(epg_urls[0], timeout=90)
-                  Path("dcmaster.xml").write_bytes(r.content)
-              except:
-                  Path("dcmaster.xml").write_text("<tv></tv>", encoding='utf-8')
-
-          # gzip
-          with open("dcmaster.xml","rb") as f_in:
-              with gzip.open("dcmaster.xml.gz","wb") as f_out:
-                  shutil.copyfileobj(f_in, f_out)
-
+          # xml merge all
+          channels={}
+          progs=[]
+          for xf in ['dcfull.xml','pluto.xml','samsung-ca.xml','samsung-us.xml','roku.xml','plex.xml']:
+              if not os.path.exists(xf): continue
+              txt=open(xf,encoding='utf-8',errors='ignore').read()
+              for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
+                  channels[m.group(1)]=m.group(0)
+              for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
+                  progs.append(m.group(0))
+          with open('dcmaster.xml','w',encoding='utf-8') as o:
+              o.write('<?xml version="1.0"?>\n<tv>\n')
+              for c in channels.values(): o.write(c+"\n")
+              for p in progs: o.write(p+"\n")
+              o.write('</tv>\n')
           PY
-          ls -lh dcmaster.*
-
       - name: Push
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml dcmaster.xml.gz -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcmaster: keep real Tubi/Roku categories"
+          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
+          git diff --cached --quiet && exit 0
+          git commit -m "dcmaster $(grep -c "#EXTINF" dcmaster.m3u8) ch"
           git push
