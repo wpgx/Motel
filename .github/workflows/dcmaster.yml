@@ -1,88 +1,112 @@
-name: Build DCMASTER
+name: dcmaster
 on:
-  workflow_dispatch:
   schedule:
     - cron: '35 2,5,8,11,14,17,20,23 * * *'
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCMASTER
-        run: |
+      - run: |
           python3 << 'PY'
-          import re, os
-          def load(f):
-              if not os.path.exists(f): return []
-              lines=open(f,encoding='utf-8',errors='ignore').read().splitlines()
-              pairs=[]
-              for i,l in enumerate(lines):
-                  if l.startswith('#EXTINF'):
-                      nxt=lines[i+1] if i+1 < len(lines) else ""
-                      if nxt.startswith('http'):
-                          pairs.append((l,nxt))
-              print(f"{f}: {len(pairs)} ch")
-              return pairs
+          import re, requests, os, shutil
 
-          def get_group(inf):
-              m=re.search(r'group-title=["\']([^"\']+)["\']',inf,re.I)
+          def load_blocks(text):
+              blocks=[]; cur=[]
+              for l in text.replace("\r","").split("\n"):
+                  l=l.strip()
+                  if not l: continue
+                  if l.startswith("#EXTINF"):
+                      if cur: blocks.append(cur)
+                      cur=[l]
+                  elif l.startswith("http"):
+                      cur.append(l); blocks.append(cur); cur=[]
+              return blocks
+
+          def load_file(f):
+              if not os.path.exists(f): return []
+              return load_blocks(open(f,encoding='utf-8',errors='ignore').read())
+
+          def get_group(b):
+              m=re.search(r'group-title=["\']([^"\']+)["\']', b[0], re.I)
               return m.group(1).lower() if m else ""
 
-          # MASTER = DCFULL + anything else you want
-          # DCFULL already is pluto + samsung-ca
-          # Add more here if you have them: samsung-us.m3u8, etc
-          sources = ['dcfull.m3u8']
-          # optional extras - will be added if they exist
-          for extra in ['samsung-us.m3u8','roku.m3u8','plex.m3u8']:
-              if os.path.exists(extra):
-                  sources.append(extra)
+          def get_inner(path):
+              if not os.path.exists(path): return ""
+              txt=open(path,encoding='utf-8',errors='ignore').read()
+              return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
 
+          # 1. DCFULL - keep All Channels -> Favorites -> rest
+          dcfull_blocks = load_file("dcfull.m3u8") or load_file("dcfull.m3u")
+          all_ch = [b for b in dcfull_blocks if 'all channel' in get_group(b)]
+          favs = [b for b in dcfull_blocks if 'favor' in get_group(b)]
+          rest = [b for b in dcfull_blocks if b not in all_ch and b not in favs]
+          dcfull_blocks = all_ch + favs + rest
+          print(f"DCFULL: All {len(all_ch)} + Fav {len(favs)} + Rest {len(rest)} = {len(dcfull_blocks)}")
+
+          # 2. TUBIROKU - tubiroku.m3u is actually Tubi only
+          tubi_blocks = load_file("tubiroku.m3u") or load_file("tubiroku.m3u8")
+          print(f"TUBI (from tubiroku): {len(tubi_blocks)}")
+
+          # 3. ROKU - scrape inside master
+          roku_blocks=[]
+          sources = [
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
+            "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
+          ]
+          for src in sources:
+              try:
+                  r=requests.get(src, timeout=20, headers={'User-Agent':'Mozilla/5.0'})
+                  if r.ok and "#EXTINF" in r.text:
+                      tmp=load_blocks(r.text)
+                      if len(tmp)>10:
+                          roku_blocks=tmp
+                          print(f"ROKU scraped {len(tmp)} from {src}")
+                          break
+              except Exception as e:
+                  print(f"ROKU fail {src}: {e}")
+                  pass
+
+          # 4. MERGE DEDUPED
+          final=[]
           seen=set()
-          merged=[]
-          for f in sources:
-              for inf,url in load(f):
-                  if url not in seen:
-                      seen.add(url)
-                      merged.append((inf,url))
+          for b in dcfull_blocks:
+              url=b[-1]
+              if url not in seen:
+                  seen.add(url)
+                  final.append(b)
 
-          # keep All -> Fav -> rest order from dcfull
-          all_ch = [p for p in merged if 'all channel' in get_group(p[0])]
-          favs = [p for p in merged if 'favor' in get_group(p[0])]
-          rest = [p for p in merged if p not in all_ch and p not in favs]
-          ordered = all_ch + favs + rest
+          chno=5000
+          for b in tubi_blocks:
+              url=b[-1]
+              if url in seen: continue
+              seen.add(url)
+              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
+              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
+              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
+              final.append(b); chno+=1
 
-          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"']
-          for inf,url in ordered:
-              out.append(inf)
-              out.append(url)
+          chno=6000
+          for b in roku_blocks:
+              url=b[-1]
+              if url in seen: continue
+              seen.add(url)
+              m=re.search(r'tvg-id="([^"]+)"',b[0]); tid=m.group(1) if m else ""
+              if not tid:
+                  name=b[0].split(",")[-1].strip()
+                  tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
+                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
+              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
+              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
+              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
+              final.append(b); chno+=1
 
-          open('dcmaster.m3u8','w',encoding='utf-8').write("\n".join(out)+"\n")
-          open('dcmaster.m3u','w',encoding='utf-8').write("\n".join(out)+"\n")
-          print(f"DCMASTER: {len(ordered)} ch")
+          with open("dcmaster.m3u8","w",encoding="utf-8") as o:
+              o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
+              for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
+          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
 
-          # xml merge all
-          channels={}
-          progs=[]
-          for xf in ['dcfull.xml','pluto.xml','samsung-ca.xml','samsung-us.xml','roku.xml','plex.xml']:
-              if not os.path.exists(xf): continue
-              txt=open(xf,encoding='utf-8',errors='ignore').read()
-              for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
-                  channels[m.group(1)]=m.group(0)
-              for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
-                  progs.append(m.group(0))
-          with open('dcmaster.xml','w',encoding='utf-8') as o:
-              o.write('<?xml version="1.0"?>\n<tv>\n')
-              for c in channels.values(): o.write(c+"\n")
-              for p in progs: o.write(p+"\n")
-              o.write('</tv>\n')
-          PY
-      - name: Push
-        run: |
-          git config user.name "bot"
-          git config user.email "bot@bot.com"
-          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
-          git diff --cached --quiet && exit 0
-          git commit -m "dcmaster $(grep -c "#EXTINF" dcmaster.m3u8) ch"
-          git push
+          # XML
+          dcfull_xml = get_inner("dc
