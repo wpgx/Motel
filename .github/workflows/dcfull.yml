@@ -46,7 +46,6 @@ jobs:
 
           m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
           for idx, (inf, url) in enumerate(all_ch, start=1):
-              # force chno sequential
               if 'tvg-chno=' in inf:
                   inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{idx}"', inf)
               else:
@@ -58,7 +57,6 @@ jobs:
           Path("dcfull.m3u").write_text("\n".join(m3u), encoding='utf-8')
           print(f"DCFULL M3U: {len(all_ch)} ch")
 
-          # XML merge
           xml_files = [p for p in ["pluto.xml", "samsung-ca.xml"] if Path(p).exists()]
           print(f"XML files to merge: {xml_files}")
 
@@ -92,14 +90,13 @@ jobs:
                   shutil.copyfileobj(f_in, f_out)
           PY
 
-          touch.nojekyll
           ls -lh dcfull.*
 
       - name: Commit
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcfull.m3u8 dcfull.m3u dcfull.xml.gz.nojekyll -f
+          git add dcfull.m3u8 dcfull.m3u dcfull.xml dcfull.xml.gz -f
           git diff --cached --quiet && echo "no change" && exit 0
           git commit -m "dcfull: no welcome"
           git push
