@@ -12,8 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build DCcatalog from dcmaster
         run: |
-          python3 << 'PY'
-          import re, gzip, shutil
+          python3 - << 'PY'
+          import re, shutil, gzip
           from pathlib import Path
 
           def guess_cat(name):
@@ -34,6 +34,10 @@ jobs:
               return "Movies"
 
           src=Path("dcmaster.m3u8")
+          if not src.exists():
+              print("dcmaster.m3u8 not found")
+              exit(0)
+
           lines=src.read_text(encoding='utf-8', errors='ignore').splitlines()
           order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science"]
           idx={c:i for i,c in enumerate(order)}
@@ -43,30 +47,48 @@ jobs:
           for i,l in enumerate(lines):
               if not l.startswith("#EXTINF"): continue
               url=lines[i+1].strip() if i+1 < len(lines) else ""
-              if not url: continue
+              if not url.startswith("http"): continue
               m=re.search(r'group-title="([^"]+)"',l); orig=m.group(1) if m else "Other"
               name=l.rsplit(",",1)[-1].strip()
-              # KEEP dcmaster cats, only move Tubi/Roku
+              # ONLY dissolve Tubi/Roku, keep dcmaster cats
               cat = guess_cat(name) if orig in ("Tubi","Roku") else orig
-              key=(name.lower(), cat) # kill only twin in same final cat
+              key=(name.lower(), cat)
               if key in seen: continue
               seen.add(key)
               entries.append((cat, name.lower(), l, url))
 
           entries.sort(key=lambda x:(idx.get(x[0],999), x[1]))
-          out=['#EXTM3U url-tvg="https://motel.deecee.ca/DCcatalog.xml"']
-          for cnum,(cat,_,ext,url) in enumerate(entries,1):
+
+          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
+          out.append('#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!')
+          out.append('https://motel.deecee.ca/welcome.m3u8')
+
+          for cnum,(cat,_,ext,url) in enumerate(entries,2):
               ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
+              if 'group-title=' not in ext:
+                  ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
               ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{cnum}"',ext) if 'tvg-chno=' in ext else ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{cnum}"',1)
               out.append(ext); out.append(url)
-          Path("DCcatalog.m3u8").write_text("\n".join(out), encoding='utf-8')
-          print(f"DCcatalog built: {len(entries)} channels - Tubi/Roku moved, dcmaster cats kept")
+
+          Path("dccatalog.m3u8").write_text("\n".join(out), encoding='utf-8')
+          Path("dccatalog.m3u").write_text("\n".join(out), encoding='utf-8')
+          print(f"dccatalog built: {len(entries)} channels - Tubi/Roku dissolved")
+
+          # copy xml - same guide as dcmaster
+          if Path("dcmaster.xml").exists():
+              shutil.copy("dcmaster.xml","dccatalog.xml")
+              with open("dcmaster.xml","rb") as f_in:
+                  with gzip.open("dccatalog.xml.gz","wb") as f_out:
+                      shutil.copyfileobj(f_in, f_out)
           PY
-      - name: Commit
+          touch.nojekyll
+          ls -lh dccatalog.* dcmaster.m3u8 | head -20
+
+      - name: Push
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add DCcatalog.m3u8
-          git diff --cached --quiet && exit 0
-          git commit -m "DCcatalog: keep dcmaster cats, dissolve Tubi/Roku only"
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz.nojekyll -f
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "dccatalog: dissolve Tubi/Roku into main cats"
           git push
