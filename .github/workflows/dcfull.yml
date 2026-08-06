@@ -24,15 +24,40 @@ jobs:
           def fix_xml_text(txt):
               return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
 
+          def is_welcome(line):
+              low = line.lower()
+              return "welcome" in low and "motel" in low
+
           out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
           for f in ['pluto.m3u8', 'samsung-ca.m3u8']:
               if os.path.exists(f):
                   lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
-                  add = [l for l in lines if l.strip() and not l.startswith('#EXTM3U')]
-                  out.extend(add)
-                  print(f"{f}: {len([l for l in add if '#EXTINF' in l])} ch")
+                  # Filter WELCOME motel blocks
+                  i=0
+                  kept=0
+                  dropped=0
+                  while i < len(lines):
+                      l = lines[i]
+                      if not l.strip() or l.startswith('#EXTM3U'):
+                          i+=1
+                          continue
+                      if '#EXTINF' in l:
+                          if is_welcome(l):
+                              # skip this EXTINF + next url line
+                              dropped+=1
+                              i+=2
+                              continue
+                          out.append(l)
+                          kept+=1
+                          if i+1 < len(lines):
+                              out.append(lines[i+1].strip())
+                          i+=2
+                      else:
+                          i+=1
+                  print(f"{f}: {kept} kept, {dropped} welcome dropped")
               else:
                   print(f"Skip {f} - not found")
+
           m3u_text = "\n".join(out)
           open('dcfull.m3u8','w',encoding='utf-8').write(m3u_text + "\n")
           print(f"DCFULL M3U: {m3u_text.count('#EXTINF')} ch")
@@ -46,10 +71,15 @@ jobs:
                   raw = open(xf, encoding='utf-8', errors='ignore').read()
                   txt = fix_xml_text(raw)
                   for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
+                      # drop welcome motel channels
+                      if is_welcome(m.group(0)):
+                          continue
                       channels[m.group(1)] = m.group(0)
                   for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
+                      if is_welcome(m.group(0)):
+                          continue
                       progs.append(m.group(0))
-                  print(f"  {xf} -> {len(channels)} ch so far / {len(progs)} prog so far")
+                  print(f" {xf} -> {len(channels)} ch so far / {len(progs)} prog so far")
               with open('dcfull.xml','w',encoding='utf-8') as o:
                   o.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
                   for c in channels.values(): o.write(c + "\n")
@@ -57,7 +87,7 @@ jobs:
                   o.write('</tv>\n')
               print(f"DCFULL XML FINAL: {len(channels)} ch, {len(progs)} progs")
           PY
-          touch .nojekyll
+          touch.nojekyll
           ls -lh dcfull.*
 
       - name: Push DCFULL
@@ -67,7 +97,7 @@ jobs:
           if [ "$COUNT" -lt 50 ]; then echo "Too small"; exit 1; fi
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcfull.m3u8 dcfull.xml .nojekyll -f
+          git add dcfull.m3u8 dcfull.xml.nojekyll -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcfull $COUNT ch - no welcome, no &amp; bug"
+          git commit -m "dcfull $COUNT ch - no welcome, no & bug"
           git push
