@@ -1,25 +1,15 @@
 name: dcmaster
 on:
-  schedule:
-    - cron: '45 2,5,8,11,14,17,20,23 * * *'
+  schedule: [{ cron: '30 */6 * * *' }]
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Pull latest
-        run: git pull origin main
-
-      - name: Build dcmaster
-        shell: python
-        run: |
-          import re, requests, shutil, os, gzip
+      - run: |
+          python3 << 'PY'
+          import re, requests, shutil, os
 
           def load_blocks(text):
               blocks=[]; cur=[]
@@ -33,17 +23,13 @@ jobs:
                       cur.append(l); blocks.append(cur); cur=[]
               return blocks
 
-          def fix_xml_text(txt):
-              return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
-
           def get_inner(path):
               if not os.path.exists(path): return ""
-              raw=open(path,encoding='utf-8',errors='ignore').read()
-              txt=fix_xml_text(raw)
+              txt=open(path,encoding='utf-8',errors='ignore').read()
               return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
 
-          dcfull_blocks = load_blocks(open("dcfull.m3u8",encoding='utf-8',errors='ignore').read()) if os.path.exists("dcfull.m3u8") else []
-          tubi_blocks = load_blocks(open("tubiroku.m3u",encoding='utf-8',errors='ignore').read()) if os.path.exists("tubiroku.m3u") else []
+          dcfull_blocks = load_blocks(open("dcfull.m3u8",encoding='utf-8',errors='ignore').read())
+          tubi_blocks = load_blocks(open("tubiroku.m3u",encoding='utf-8',errors='ignore').read())
 
           roku_blocks=[]
           for src in ["https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u","https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"]:
@@ -78,32 +64,18 @@ jobs:
 
           dcfull_xml = get_inner("dcfull.xml")
           tubi_xml = get_inner("tubiroku.xml")
+
           roku_extra=""
           all_so_far = dcfull_xml + tubi_xml
           for b in roku_blocks:
               mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""; name=b[0].split(",")[-1].strip()
-              safe_name = fix_xml_text(name)
               if tid and tid not in all_so_far:
-                  roku_extra+=f'<channel id="{tid}"><display-name>{safe_name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{safe_name}</title><desc>Live on Roku Channel</desc></programme>\n'
+                  roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
 
           open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
-
-          with open("dcmaster.xml","rb") as f_in:
-              with gzip.open("dcmaster.xml.gz","wb") as f_out:
-                  shutil.copyfileobj(f_in, f_out)
-
-          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)}")
-
-      - name: Finalize files
-        run: |
-          touch.nojekyll
-          ls -lh dcmaster.*
-
-      - name: Push
-        run: |
-          git config user.name "bot"
-          git config user.email "bot@bot.com"
-          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml dcmaster.xml.gz.nojekyll -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcmaster: dcfull + tubi + roku"
-          git push
+          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} from tubiroku.m3u + Roku {len(roku_blocks)} = {len(final)}")
+          PY
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "dcmaster: dcfull + tubiroku.m3u + Roku"
+          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
