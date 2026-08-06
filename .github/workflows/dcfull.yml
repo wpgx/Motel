@@ -1,8 +1,10 @@
-name: Build DCFULL - Pluto + Samsung
+name: Build DCFULL
+
 on:
-  workflow_dispatch:
   schedule:
-     - cron: '25 2,5,8,11,14,17,20,23 * * *'
+    - cron: '30 */6 * * *'
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,94 +12,94 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Pull latest
-        run: |
-          git pull origin main
-          ls -lh pluto.* samsung-ca.* dcfull.* -S
 
-      - name: Build DCFULL from Pluto + Samsung-CA
+      - name: Build DCFULL
         run: |
           python3 - << 'PY'
-          import os, re
-          def fix_xml_text(txt):
-              return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
+          import re, gzip, shutil, xml.etree.ElementTree as ET
+          from pathlib import Path
 
-          def is_welcome(line):
-              low = line.lower()
-              return "welcome" in low and "motel" in low
+          def load_m3u(path):
+              kept = []
+              dropped = 0
+              if not Path(path).exists():
+                  print(f"{path} missing")
+                  return kept, dropped
+              text = Path(path).read_text(encoding='utf-8', errors='ignore')
+              lines = text.splitlines()
+              for i, line in enumerate(lines):
+                  if not line.startswith("#EXTINF"):
+                      continue
+                  nxt = lines[i+1].strip() if i+1 < len(lines) else ""
+                  name = line.rsplit(',',1)[-1].lower()
+                  if "welcome" in name:
+                      dropped+=1
+                      continue
+                  kept.append((line, nxt))
+              print(f"{path}: {len(kept)} kept, {dropped} welcome dropped")
+              return kept, dropped
 
-          out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
-          for f in ['pluto.m3u8', 'samsung-ca.m3u8']:
-              if os.path.exists(f):
-                  lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
-                  # Filter WELCOME motel blocks
-                  i=0
-                  kept=0
-                  dropped=0
-                  while i < len(lines):
-                      l = lines[i]
-                      if not l.strip() or l.startswith('#EXTM3U'):
-                          i+=1
-                          continue
-                      if '#EXTINF' in l:
-                          if is_welcome(l):
-                              # skip this EXTINF + next url line
-                              dropped+=1
-                              i+=2
-                              continue
-                          out.append(l)
-                          kept+=1
-                          if i+1 < len(lines):
-                              out.append(lines[i+1].strip())
-                          i+=2
-                      else:
-                          i+=1
-                  print(f"{f}: {kept} kept, {dropped} welcome dropped")
+          pluto, _ = load_m3u("pluto.m3u8")
+          sams, _ = load_m3u("samsung-ca.m3u8")
+
+          all_ch = pluto + sams
+
+          m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
+          for idx, (inf, url) in enumerate(all_ch, start=1):
+              # force chno sequential
+              if 'tvg-chno=' in inf:
+                  inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{idx}"', inf)
               else:
-                  print(f"Skip {f} - not found")
+                  inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{idx}"', 1)
+              m3u.append(inf)
+              m3u.append(url)
 
-          m3u_text = "\n".join(out)
-          open('dcfull.m3u8','w',encoding='utf-8').write(m3u_text + "\n")
-          print(f"DCFULL M3U: {m3u_text.count('#EXTINF')} ch")
+          Path("dcfull.m3u8").write_text("\n".join(m3u), encoding='utf-8')
+          Path("dcfull.m3u").write_text("\n".join(m3u), encoding='utf-8')
+          print(f"DCFULL M3U: {len(all_ch)} ch")
 
-          xml_files = [f for f in ['pluto.xml', 'samsung-ca.xml'] if os.path.exists(f) and os.path.getsize(f) > 1000]
+          # XML merge
+          xml_files = [p for p in ["pluto.xml", "samsung-ca.xml"] if Path(p).exists()]
           print(f"XML files to merge: {xml_files}")
-          if xml_files:
-              channels = {}
-              progs = []
-              for xf in xml_files:
-                  raw = open(xf, encoding='utf-8', errors='ignore').read()
-                  txt = fix_xml_text(raw)
-                  for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
-                      # drop welcome motel channels
-                      if is_welcome(m.group(0)):
-                          continue
-                      channels[m.group(1)] = m.group(0)
-                  for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
-                      if is_welcome(m.group(0)):
-                          continue
-                      progs.append(m.group(0))
+
+          channels = {}
+          progs = []
+          for xf in xml_files:
+              try:
+                  tree = ET.parse(xf)
+                  root = tree.getroot()
+                  for ch in root.findall('channel'):
+                      cid = ch.get('id')
+                      if cid not in channels:
+                          channels[cid] = ch
+                  for pr in root.findall('programme'):
+                      progs.append(pr)
                   print(f" {xf} -> {len(channels)} ch so far / {len(progs)} prog so far")
-              with open('dcfull.xml','w',encoding='utf-8') as o:
-                  o.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
-                  for c in channels.values(): o.write(c + "\n")
-                  for p in progs: o.write(p + "\n")
-                  o.write('</tv>\n')
-              print(f"DCFULL XML FINAL: {len(channels)} ch, {len(progs)} progs")
+              except Exception as e:
+                  print(f" {xf} failed: {e}")
+
+          tv = ET.Element('tv')
+          for ch in channels.values():
+              tv.append(ch)
+          for pr in progs:
+              tv.append(pr)
+
+          ET.ElementTree(tv).write("dcfull.xml", encoding='utf-8', xml_declaration=True)
+          print(f"DCFULL XML FINAL: {len(channels)} ch, {len(progs)} progs")
+
+          with open("dcfull.xml","rb") as f_in:
+              with gzip.open("dcfull.xml.gz","wb") as f_out:
+                  shutil.copyfileobj(f_in, f_out)
           PY
+
           touch.nojekyll
           ls -lh dcfull.*
 
-      - name: Push DCFULL
+      - name: Commit
         run: |
-          COUNT=$(grep -c "#EXTINF" dcfull.m3u8 || echo 0)
-          echo "DCFULL = $COUNT channels"
-          if [ "$COUNT" -lt 50 ]; then echo "Too small"; exit 1; fi
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcfull.m3u8 dcfull.xml.nojekyll -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcfull $COUNT ch - no welcome, no & bug"
+          git add dcfull.m3u8 dcfull.m3u dcfull.xml.gz.nojekyll -f
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "dcfull: no welcome"
           git push
