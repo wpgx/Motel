@@ -39,29 +39,33 @@ jobs:
               print(f"{path}: {len(kept)} kept")
               return kept
 
+          def get_group(inf):
+              m = re.search(r'group-title="([^"]+)"', inf)
+              return m.group(1).lower() if m else ""
+
           pluto = load_m3u_keep_order("pluto.m3u8")
           sams = load_m3u_keep_order("samsung-ca.m3u8")
 
+          # Force Favorites to top
+          favs = [x for x in pluto if "favor" in get_group(x[0])]
+          rest = [x for x in pluto if x not in favs]
+          pluto_sorted = favs + rest
+          print(f"Pluto order: {len(favs)} Favorites on top, then {len(rest)} other")
+
           m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
 
-          # Pluto - keep original chno, or force start at 20 if no chno
+          # Pluto 20+
           chno = 20
-          for inf, url in pluto:
+          for inf, url in pluto_sorted:
               if 'tvg-chno=' in inf:
-                  # keep whatever pluto had, but update counter to avoid clash
-                  m = re.search(r'tvg-chno="(\d+)"', inf)
-                  if m:
-                      try:
-                          chno = int(m.group(1)) + 1
-                      except:
-                          pass
+                  inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{chno}"', inf)
               else:
                   inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"', 1)
-                  chno += 1
               m3u.append(inf)
               m3u.append(url)
+              chno += 1
 
-          # Samsung - force start at 1000
+          # Samsung 1000+
           chno = 1000
           for inf, url in sams:
               if 'tvg-chno=' in inf:
@@ -74,9 +78,8 @@ jobs:
 
           Path("dcfull.m3u8").write_text("\n".join(m3u), encoding='utf-8')
           Path("dcfull.m3u").write_text("\n".join(m3u), encoding='utf-8')
-          print(f"DCFULL M3U: {len(pluto)} pluto + {len(sams)} samsung = {len(pluto)+len(sams)} ch - pluto 20+, samsung 1000+")
+          print(f"DCFULL M3U: {len(pluto_sorted)} pluto (20+) + {len(sams)} samsung (1000+) = {len(pluto_sorted)+len(sams)}")
 
-          # XML merge - same as before
           xml_files = [p for p in ["pluto.xml", "samsung-ca.xml"] if Path(p).exists()]
           channels = {}
           progs = []
@@ -113,7 +116,7 @@ jobs:
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcfull.m3u8 dcfull.m3u dcfull.xml dcfull.xml.gz -f
+          git add dcfull.m3u8 dcfull.m3u dcfull.xml.gz -f
           git diff --cached --quiet && echo "no change" && exit 0
-          git commit -m "dcfull: restore 20+ pluto 1000+ samsung order"
+          git commit -m "dcfull: favorites on top 20+ and 1000+"
           git push
