@@ -35,7 +35,7 @@ jobs:
           # FIX 404 - force GitHub to serve .ts files
           touch .nojekyll
           
-          echo "#EXTM3U" > ./dctv.m3u8
+          echo '#EXTM3U url-tvg="https://motel.deecee.ca/dctv.xml"' > ./dctv.m3u8
           echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!' >> ./dctv.m3u8
           echo 'https://motel.deecee.ca/welcome.m3u8' >> ./dctv.m3u8
           echo '' >> ./dctv.m3u8
@@ -43,6 +43,8 @@ jobs:
           rm -f ./plutotv_ca.tmp
           echo "--- First 5 lines ---"
           head -5 ./dctv.m3u8
+          echo "--- Guide size ---"
+          ls -lh ./dctv.*
 
       - name: Commit
         run: |
