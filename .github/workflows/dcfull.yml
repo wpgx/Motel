@@ -2,7 +2,7 @@ name: Build DCFULL
 
 on:
   schedule:
-    - cron: '30 */6 * * *'
+    - cron: '25 */3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -32,29 +32,29 @@ jobs:
                   nxt = lines[i+1].strip() if i+1 < len(lines) else ""
                   if not nxt.startswith("http"):
                       continue
-                  name = line.rsplit(',',1)[-1].lower()
-                  if "welcome" in name:
+                  if "welcome" in line.rsplit(',',1)[-1].lower():
                       continue
                   kept.append((line, nxt))
               print(f"{path}: {len(kept)} kept")
               return kept
 
-          def get_group(inf):
-              m = re.search(r'group-title="([^"]+)"', inf)
-              return m.group(1).lower() if m else ""
-
           pluto = load_m3u_keep_order("pluto.m3u8")
           sams = load_m3u_keep_order("samsung-ca.m3u8")
 
-          # Force Favorites to top
-          favs = [x for x in pluto if "favor" in get_group(x[0])]
+          groups = {}
+          for inf, url in pluto:
+              m = re.search(r'group-title="([^"]+)"', inf)
+              g = m.group(1) if m else "NO GROUP"
+              groups[g] = groups.get(g, 0) + 1
+          print("PLUTO GROUPS FOUND:", groups)
+
+          favs = [x for x in pluto if "favor" in x[0].lower()]
           rest = [x for x in pluto if x not in favs]
           pluto_sorted = favs + rest
-          print(f"Pluto order: {len(favs)} Favorites on top, then {len(rest)} other")
+          print(f"Pluto order: {len(favs)} FAVORITES on top, then {len(rest)} other")
 
           m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
 
-          # Pluto 20+
           chno = 20
           for inf, url in pluto_sorted:
               if 'tvg-chno=' in inf:
@@ -65,7 +65,6 @@ jobs:
               m3u.append(url)
               chno += 1
 
-          # Samsung 1000+
           chno = 1000
           for inf, url in sams:
               if 'tvg-chno=' in inf:
@@ -78,7 +77,6 @@ jobs:
 
           Path("dcfull.m3u8").write_text("\n".join(m3u), encoding='utf-8')
           Path("dcfull.m3u").write_text("\n".join(m3u), encoding='utf-8')
-          print(f"DCFULL M3U: {len(pluto_sorted)} pluto (20+) + {len(sams)} samsung (1000+) = {len(pluto_sorted)+len(sams)}")
 
           xml_files = [p for p in ["pluto.xml", "samsung-ca.xml"] if Path(p).exists()]
           channels = {}
@@ -93,7 +91,6 @@ jobs:
                           channels[cid] = ch
                   for pr in root.findall('programme'):
                       progs.append(pr)
-                  print(f" {xf} -> {len(channels)} ch / {len(progs)} prog")
               except Exception as e:
                   print(f" {xf} failed: {e}")
 
@@ -104,19 +101,17 @@ jobs:
               tv.append(pr)
 
           ET.ElementTree(tv).write("dcfull.xml", encoding='utf-8', xml_declaration=True)
-          print(f"DCFULL XML FINAL: {len(channels)} ch, {len(progs)} progs")
 
           with open("dcfull.xml","rb") as f_in:
               with gzip.open("dcfull.xml.gz","wb") as f_out:
                   shutil.copyfileobj(f_in, f_out)
           PY
-          ls -lh dcfull.*
 
       - name: Commit
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcfull.m3u8 dcfull.m3u dcfull.xml.gz -f
+          git add dcfull.m3u8 dcfull.m3u dcfull.xml dcfull.xml.gz -f
           git diff --cached --quiet && echo "no change" && exit 0
-          git commit -m "dcfull: favorites on top 20+ and 1000+"
+          git commit -m "dcfull: force favorites top"
           git push
