@@ -24,7 +24,7 @@ jobs:
           git checkout main
           npm install
 
-      - name: Run scraper and add welcome
+      - name: Run scraper
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
           node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
@@ -32,12 +32,7 @@ jobs:
           cp ./plutotv_ca.xml ./pluto.xml
           rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
           
-          touch .nojekyll
-          
           echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto.xml"' > ./pluto.m3u8
-          echo '#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!' >> ./pluto.m3u8
-          echo 'https://motel.deecee.ca/welcome.m3u8' >> ./pluto.m3u8
-          echo '' >> ./pluto.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./pluto.m3u8
           rm -f ./plutotv_ca.tmp
           head -5 ./pluto.m3u8
@@ -46,6 +41,6 @@ jobs:
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
-          git add ./pluto.m3u8 ./pluto.xml .nojekyll
-          git rm -f ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Update pluto $(date -u)" && git push)
+          git add ./pluto.m3u8 ./pluto.xml
+          git rm -f ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml .nojekyll 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Update pluto $(date -u) - no welcome" && git push)
