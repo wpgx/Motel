@@ -67,34 +67,4 @@ jobs:
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
               o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
               for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
-          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
-
-          dcfull_xml = get_inner("dcfull.xml")
-          tubi_xml = get_inner("tubiroku.xml")
-          roku_extra=""
-          all_so_far = dcfull_xml + tubi_xml
-          for b in roku_blocks:
-              mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""; name=b[0].split(",")[-1].strip()
-              safe_name = fix_xml_text(name)
-              if tid and tid not in all_so_far:
-                  roku_extra+=f'<channel id="{tid}"><display-name>{safe_name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{safe_name}</title><desc>Live on Roku Channel</desc></programme>\n'
-
-          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
-
-          with open("dcmaster.xml","rb") as f_in:
-              with gzip.open("dcmaster.xml.gz","wb") as f_out:
-                  shutil.copyfileobj(f_in, f_out)
-
-          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)}")
-          PY
-          touch.nojekyll
-          ls -lh dcmaster.*
-
-      - name: Push
-        run: |
-          git config user.name "bot"
-          git config user.email "bot@bot.com"
-          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml dcmaster.xml.gz.nojekyll -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcmaster: dcfull + tubi + roku"
-          git push
+          shutil.copy("dcmaster.m3u8","dcmaster
