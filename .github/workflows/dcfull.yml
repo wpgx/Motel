@@ -1,10 +1,8 @@
 name: Build DCFULL - Pluto + Samsung
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: '35 */6 * * *' # 35 min after pluto
-
+    - cron: '35 */6 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,38 +10,32 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Build DCFULL from Pluto + Samsung-CA
         run: |
-          python3 << 'PY'
+          python3 - << 'PY'
           import os, re
 
           def fix_xml_text(txt):
               return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', txt)
 
-          # --- M3U8 MERGE ---
+          # --- M3U8 MERGE - RAW URLs, NO ENCODING ---
           out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
-          out.append('#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!')
-          out.append('https://motel.deecee.ca/welcome.m3u8')
-          out.append('')
 
           for f in ['pluto.m3u8', 'samsung-ca.m3u8']:
               if os.path.exists(f):
                   lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
-                  add = [l for l in lines if l.strip() and not l.startswith('#EXTM3U') and 'welcome.m3u8' not in l]
+                  add = [l for l in lines if l.strip() and not l.startswith('#EXTM3U')]
                   out.extend(add)
                   print(f"{f}: {len([l for l in add if '#EXTINF' in l])} ch")
               else:
                   print(f"Skip {f} - not found")
 
-          # Formuler fix
+          # DO NOT touch & in m3u8 - keep raw &
           m3u_text = "\n".join(out)
-          m3u_text = m3u_text.replace('&amp;', '&').replace('&', '&amp;')
-          m3u_text = m3u_text.replace('&amp;amp;', '&amp;')
           open('dcfull.m3u8','w',encoding='utf-8').write(m3u_text + "\n")
           print(f"DCFULL M3U: {m3u_text.count('#EXTINF')} ch")
 
-          # --- XML MERGE ---
+          # --- XML MERGE - ONLY HERE we fix & ---
           xml_files = [f for f in ['pluto.xml', 'samsung-ca.xml'] if os.path.exists(f) and os.path.getsize(f) > 1000]
           if xml_files:
               channels = {}
@@ -55,20 +47,14 @@ jobs:
                       channels[m.group(1)] = m.group(0)
                   for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
                       progs.append(m.group(0))
-
               with open('dcfull.xml','w',encoding='utf-8') as o:
                   o.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
-                  for c in channels.values():
-                      o.write(c + "\n")
-                  for p in progs:
-                      o.write(p + "\n")
+                  for c in channels.values(): o.write(c + "\n")
+                  for p in progs: o.write(p + "\n")
                   o.write('</tv>\n')
               print(f"DCFULL XML: {len(channels)} ch, {len(progs)} progs")
           PY
-
           touch .nojekyll
-          ls -lh dcfull.*
-          head -3 dcfull.m3u8
 
       - name: Push DCFULL
         run: |
@@ -78,8 +64,7 @@ jobs:
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dcfull.m3u8 dcfull.xml .nojekyll -f
-          # cleanup old names
           git rm -f dctv.m3u8 dctv.xml dcfast.m3u8 dcfast.xml 2>/dev/null || true
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcfull $COUNT ch - pluto + samsung"
+          git commit -m "dcfull $COUNT ch - no welcome, no &amp; bug"
           git push
