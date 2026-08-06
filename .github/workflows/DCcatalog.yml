@@ -10,97 +10,76 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCcatalog
+      - name: Sort dcmaster -> DCcatalog
         run: |
           python3 << 'PY'
           import re, gzip, shutil
           from pathlib import Path
+          def fix_xml_text(t): return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', t)
 
-          def fix_xml(t): return re.sub(r'&(?!(?:amp|lt|gt|quot|apos);)', '&amp;', t)
-
-          def dissolve_roku_tubi(name, orig):
-              if orig not in ("Roku","Tubi","Other"): return orig
+          def guess_category(name):
               n=name.lower()
-              if any(k in n for k in ["news","weather","cheddar","newsy","abc news","cbc","bloomberg","court tv","law"]): return "News & Weather"
-              if any(k in n for k in ["espn","nfl","nba","nhl","mlb","sports","golf","racing","fishing","wrestling","bein","acc","big 12","pga","nascar","f1","ufc","wwe"]): return "Sports"
-              if any(k in n for k in ["movie","cinema","film","flicks","hallmark movies","western"]): return "Movies"
-              if any(k in n for k in ["classic","retro","vault"]): return "Classic"
-              if any(k in n for k in ["comedy","laugh","stand-up","south park","game show","deal or no deal","funny","joke","failarmy","comic"]): return "Comedy"
-              if any(k in n for k in ["crime","investigation","mystery","detective","police","cold case","forensic","justice","48 hours"]): return "Crime & Mystery"
-              if any(k in n for k in ["drama","sci-fi","scifi","horror","thriller","space","dust","out of this world"]): return "Drama & Sci-Fi"
-              if any(k in n for k in ["reality","housewives","love","bachelor","survivor","cooking","food","home","lifestyle","entertainment","hollywood","celebrity","e!","bravo","dr phil","judge","court"]): return "Entertainment & Reality"
-              if n.startswith("home") or "food" in n or "cook" in n or "kitchen" in n: return "Home & Food"
-              if any(k in n for k in ["kids","cartoon","nick","disney","paw patrol","spongebob","pokemon","anime","gaming","minecraft","mario"]): return "Kids"
-              if "anime" in n or "gaming" in n or "game" in n and "show" not in n: return "Anime & Gaming"
-              if any(k in n for k in ["music","mtv","concert","vevo","tune","radio"]): return "Music"
-              if any(k in n for k in ["nature","science","wild","history","documentary","animal","earth","planet","nova","discovery"]): return "Nature & Science"
-              if any(k in n for k in ["ambiance","relax","chill","nature scenery","fireplace"]): return "Ambiance"
-              return "Entertainment & Reality"
+              if any(k in n for k in ["news","weather","cheddar","newsy","bloomberg","abc news"]): return "News & Weather"
+              if any(k in n for k in ["espn","nfl","nba","mlb","sports","golf","racing","fishing","wrestling","bein"]): return "Sports"
+              if any(k in n for k in ["kids","cartoon","nick","disney","paw patrol","spongebob","pokemon"]): return "Kids"
+              if any(k in n for k in ["comedy","laugh","stand-up","south park","game show","funny","failarmy"]): return "Comedy"
+              if any(k in n for k in ["crime","investigation","mystery","detective","police","a&e crime"]): return "Crime & Mystery"
+              if any(k in n for k in ["drama","sci-fi","scifi","horror","thriller","space","alien","dust"]): return "Drama & Sci-Fi"
+              if any(k in n for k in ["reality","housewives","love","home","food","lifestyle","cooking","kitchen","entertainment"]): return "Entertainment & Reality"
+              if any(k in n for k in ["music","mtv","concert","bounce"]): return "Music"
+              if any(k in n for k in ["nature","science","wild","history","documentary","animal","earth"]): return "Nature & Science"
+              if any(k in n for k in ["classic","retro","western","baywatch","at the movies"]): return "Classic"
+              return "Movies"
 
-          # Full map for dcfull groups -> 14 cats
-          mapping={
-            "News & Opinion":"News & Weather","News + Opinion":"News & Weather","News":"News & Weather",
-            "Sports":"Sports","Sports & Outdoors":"Sports","Motor Sports":"Sports","Sports News":"Sports",
-            "Movies":"Movies","Movie Trailers":"Movies","Westerns":"Movies",
-            "Classic TV":"Classic","Classic TV Comedy":"Classic","Classic":"Classic",
-            "Comedy":"Comedy","South Park":"Comedy","Game Shows":"Comedy","Daytime & Talk Shows":"Comedy",
-            "Crime":"Crime & Mystery","Crime Drama":"Crime & Mystery","True Crime":"Crime & Mystery","Paranormal":"Crime & Mystery",
-            "Drama":"Drama & Sci-Fi","Sci-Fi & Horror":"Drama & Sci-Fi","Out of This World":"Drama & Sci-Fi","Documentary + Science":"Drama & Sci-Fi","Sci-Fi":"Drama & Sci-Fi",
-            "Entertainment":"Entertainment & Reality","Reality":"Entertainment & Reality","Reality TV":"Entertainment & Reality","Competition Reality":"Entertainment & Reality","Lifestyle & Pop Culture":"Entertainment & Reality","Lifestyle":"Entertainment & Reality",
-            "Home & Food":"Home & Food","Home + Food":"Home & Food","Food":"Home & Food","Home":"Home & Food","Home & Garden":"Home & Food",
-            "Kids":"Kids","Kids en Français":"Kids","Kids & Family":"Kids","Animation":"Kids","Cartoons":"Kids",
-            "Anime & Gaming":"Anime & Gaming","Gaming":"Anime & Gaming","Anime":"Anime & Gaming",
-            "Music":"Music","Music Videos":"Music",
-            "Nature & Science":"Nature & Science","Documentary":"Nature & Science","Science":"Nature & Science","Nature":"Nature & Science","History":"Nature & Science",
-            "Ambiance":"Ambiance"
-          }
+          src = Path("dcmaster.m3u8")
+          lines = src.read_text(encoding='utf-8', errors='ignore').splitlines()
 
           order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science"]
           idx={c:i for i,c in enumerate(order)}
 
-          src=Path("dcmaster.m3u8")
-          lines=src.read_text(encoding='utf-8', errors='ignore').splitlines()
-
           entries=[]; seen=set()
           for i,l in enumerate(lines):
-            if not l.startswith("#EXTINF"): continue
-            url=lines[i+1].strip() if i+1 < len(lines) else ""
-            if not url: continue
-            if url in seen: continue # kills CBC/CBC twins only
-            seen.add(url)
-            m=re.search(r'group-title="([^"]+)"',l); orig=m.group(1) if m else "Other"
-            name=l.rsplit(",",1)[-1].strip()
-            # first map dcfull groups, then dissolve Roku/Tubi
-            base=mapping.get(orig, orig)
-            cat = dissolve_roku_tubi(name, base) if base in ("Roku","Tubi","Other") else base
-            if cat not in idx: cat="Entertainment & Reality" # never drop
-            entries.append((cat, name.lower(), l, url))
+              if not l.startswith("#EXTINF"): continue
+              url = lines[i+1].strip() if i+1 < len(lines) else ""
+              if not url or url in seen: continue # keeps 855 unique, kills CBC/CBC twins
+              seen.add(url)
+
+              m=re.search(r'group-title="([^"]+)"',l)
+              orig=m.group(1) if m else "Other"
+              name=l.rsplit(",",1)[-1].strip()
+
+              # KEEP dcmaster categories, only move Tubi and Roku
+              if orig in ("Tubi","Roku"):
+                  cat = guess_category(name)
+              else:
+                  cat = orig
+
+              entries.append((cat, name.lower(), l, url))
 
           entries.sort(key=lambda x:(idx.get(x[0],999), x[1]))
 
-          out=[f'#EXTM3U url-tvg="https://motel.deecee.ca/DCcatalog.xml"']
+          out=['#EXTM3U url-tvg="https://motel.deecee.ca/DCcatalog.xml"']
           ch=1
           for cat,_,ext,url in entries:
-            ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
-            if 'tvg-chno=' in ext:
-              ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
-            else:
-              ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{ch}"',1)
-            out.append(ext); out.append(url); ch+=1
+              ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
+              if 'tvg-chno=' in ext: ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{ch}"',ext)
+              else: ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{ch}"',1)
+              out.append(ext); out.append(url); ch+=1
 
           Path("DCcatalog.m3u8").write_text("\n".join(out), encoding='utf-8')
-          print(f"Built {len(entries)} - should be 855")
+          print(f"Built {len(entries)} - kept dcmaster cats, moved Tubi/Roku, no doubles")
 
           if Path("dcmaster.xml").exists():
-            raw=fix_xml(Path("dcmaster.xml").read_text(encoding='utf-8', errors='ignore'))
-            Path("DCcatalog.xml").write_text(raw, encoding='utf-8')
-            with open("DCcatalog.xml","rb") as f_in, gzip.open("DCcatalog.xml.gz","wb") as f_out:
-              shutil.copyfileobj(f_in, f_out)
+              raw=fix_xml_text(Path("dcmaster.xml").read_text(encoding='utf-8', errors='ignore'))
+              Path("DCcatalog.xml").write_text(raw, encoding='utf-8')
+              with open("DCcatalog.xml","rb") as f_in, gzip.open("DCcatalog.xml.gz","wb") as f_out:
+                  shutil.copyfileobj(f_in, f_out)
           PY
-      - name: Commit
+      - name: Commit DCcatalog
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add DCcatalog.m3u8 DCcatalog.xml DCcatalog.xml.gz
           git diff --cached --quiet && exit 0
-          git commit -m "DCcatalog: fix 650
+          git commit -m "DCcatalog: keep dcmaster categories, move Tubi/Roku, fix doubles"
+          git push
