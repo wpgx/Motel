@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '50 2,5,8,11,14,17,20,23 * * *'
+concurrency:
+  group: dccatalog
+  cancel-in-progress: true
 jobs:
   sort:
     runs-on: ubuntu-latest
@@ -10,71 +13,102 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCcatalog from dcmaster
+      - name: Build DCcatalog
         run: |
           python3 - << 'PY'
           import re, shutil, gzip
           from pathlib import Path
 
+          OVERRIDES = {
+            # --- Classic fixes ---
+            "andy griffith": "Classic", "bonanza": "Classic", "bewitched": "Classic",
+            "i love lucy": "Classic", "gilligan": "Classic", "mash": "Classic",
+            "twilight zone": "Classic", "rifleman": "Classic", "lone ranger": "Classic",
+            "little house": "Classic", "happy days": "Classic", "baywatch": "Classic",
+            "columbo": "Crime & Mystery", "forensic files": "Crime & Mystery",
+            "unsolved mysteries": "Crime & Mystery",
+            # --- News fixes that were wandering ---
+            "cheddar": "News & Weather", "newsy": "News & Weather",
+            "haystack": "News & Weather", "local now": "News & Weather",
+            "newsmax": "News & Weather", "bloomberg": "News & Weather",
+            "weather nation": "News & Weather", "accuweather": "News & Weather",
+            "reuters": "News & Weather", "ap live": "News & Weather",
+            "abc news": "News & Weather", "nbc news": "News & Weather",
+            "cbs news": "News & Weather", "cbc news": "News & Weather",
+            "fox weather": "News & Weather", "weather channel": "News & Weather",
+            "court tv": "News & Weather", "law&crime": "News & Weather",
+          }
+
           def guess_cat(name):
-              n=name.lower()
-              if any(k in n for k in ["news","cheddar","newsy","bloomberg","weather","cbc","court tv","law&crime","newsmax"]): return "News & Weather"
-              if any(k in n for k in ["sports","espn","nfl","nba","nhl","mlb","pga","nascar","racing","fishing","wrestling","wwe","bein","accdn","big 12","stadium","golf"]): return "Sports"
-              if any(k in n for k in ["kids","cartoon","nick","disney","paw patrol","spongebob","pokemon","junior"]): return "Kids"
-              if any(k in n for k in ["anime","gaming","minecraft","mario"]): return "Anime & Gaming"
-              if any(k in n for k in ["comedy","sitcom","laugh","funny","south park","failarmy","afv","stand-up","impractical"]): return "Comedy"
-              if any(k in n for k in ["crime","investigation","mystery","detective","police","forensic","cold case","dateline","48 hours","csi","a&e crime"]): return "Crime & Mystery"
+              n=name.lower().strip()
+              for k,v in OVERRIDES.items():
+                  if k in n:
+                      return v
+
+              # NEWS & WEATHER - lock this down first
+              news_keys = [
+                "news", "cheddar", "bloomberg", "weather", "cbc", "ctv news", "global news",
+                "reuters", "associated press", "ap ", "haystack", "local now", "newsmax",
+                "newsy", "news 12", "accuweather", "weather nation", "weather channel",
+                "court tv", "law&crime", "news nation", "scripps", "abc news", "nbc news",
+                "cbs news", "fox weather", "news on", "live now"
+              ]
+              if any(k in n for k in news_keys):
+                  return "News & Weather"
+
+              if any(k in n for k in ["sports","espn","nfl","nba","nhl","mlb","pga","nascar","racing","fishing","wrestling","wwe","bein","accdn","big 12","stadium","golf","fubo","beisbol"]): return "Sports"
+              if any(k in n for k in ["kids","cartoon","nick","disney","paw patrol","spongebob","pokemon","junior","peppa","barbie","teletubbies"]): return "Kids"
+              if any(k in n for k in ["anime","minecraft","mario","gaming","otaku"]): return "Anime & Gaming"
+              if any(k in n for k in ["classic","retro","western","vault","metv","antenna","cozi","laff","grit","me-tv","decades","reelz","tv land"]): return "Classic"
+              if any(k in n for k in ["comedy","sitcom","laugh","funny","south park","failarmy","afv","stand-up","impractical jokers"]): return "Comedy"
+              if any(k in n for k in ["crime","investigation","mystery","detective","police","forensic","cold case","dateline","48 hours","csi","true crime"]): return "Crime & Mystery"
               if any(k in n for k in ["drama","sci-fi","scifi","horror","thriller","alien","dust","x-files","star trek","space"]): return "Drama & Sci-Fi"
-              if any(k in n for k in ["cooking","food","recipe","kitchen","test kitchen","home","hgtv","house","garden","renovation"]): return "Home & Food"
-              if any(k in n for k in ["reality","housewives","bachelor","love","survivor","entertainment","hollywood","celebrity","judge","court","bravo","dr phil"]): return "Entertainment & Reality"
-              if any(k in n for k in ["music","mtv","vevo","concert"]): return "Music"
-              if any(k in n for k in ["nature","science","wild","history","documentary","animal","earth","planet","nova","smithsonian"]): return "Nature & Science"
-              if any(k in n for k in ["classic","retro","western","vault","baywatch","at the movies"]): return "Classic"
-              if any(k in n for k in ["ambiance","fireplace","relax"]): return "Ambiance"
+              if any(k in n for k in ["cooking","food","recipe","kitchen","test kitchen","hgtv","house","garden","renovation","food network"]): return "Home & Food"
+              if any(k in n for k in ["reality","housewives","bachelor","love island","survivor","hollywood","celebrity","judge","bravo","dr phil","entertainment"]): return "Entertainment & Reality"
+              if any(k in n for k in ["music","mtv","vevo","concert","cmt"]): return "Music"
+              if any(k in n for k in ["nature","science","wild","history","documentary","animal","earth","planet","nova","smithsonian","discovery"]): return "Nature & Science"
+              if any(k in n for k in ["ambiance","fireplace","relax","yule"]): return "Ambiance"
+              if any(k in n for k in ["series","tv shows","classic tv","tv classics"]): return "Classic"
               return "Movies"
 
           src=Path("dcmaster.m3u8")
-          if not src.exists():
-              print("dcmaster.m3u8 not found")
-              exit(0)
-
           lines=src.read_text(encoding='utf-8', errors='ignore').splitlines()
           order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science"]
           idx={c:i for i,c in enumerate(order)}
 
-          seen=set()
-          entries=[]
+          known_cats = {}
+          for i,l in enumerate(lines):
+              if not l.startswith("#EXTINF"): continue
+              m=re.search(r'group-title="([^"]+)"',l)
+              if not m or m.group(1) in ("Tubi","Roku"): continue
+              name=l.rsplit(",",1)[-1].strip().lower()
+              known_cats[name]=m.group(1)
+
+          seen=set(); entries=[]
           for i,l in enumerate(lines):
               if not l.startswith("#EXTINF"): continue
               url=lines[i+1].strip() if i+1 < len(lines) else ""
               if not url.startswith("http"): continue
-              m=re.search(r'group-title="([^"]+)"',l); orig=m.group(1) if m else "Other"
               name=l.rsplit(",",1)[-1].strip()
-              # ONLY dissolve Tubi/Roku, keep dcmaster cats
-              cat = guess_cat(name) if orig in ("Tubi","Roku") else orig
+              if "welcome" in name.lower() and "motel" in name.lower(): continue
+              m=re.search(r'group-title="([^"]+)"',l); orig=m.group(1) if m else "Other"
+              cat = known_cats.get(name.lower()) if orig in ("Tubi","Roku") and name.lower() in known_cats else (guess_cat(name) if orig in ("Tubi","Roku") else orig)
               key=(name.lower(), cat)
               if key in seen: continue
               seen.add(key)
               entries.append((cat, name.lower(), l, url))
 
           entries.sort(key=lambda x:(idx.get(x[0],999), x[1]))
-
           out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
-          out.append('#EXTINF:-1 tvg-id="welcome" tvg-chno="1" group-title="Motel", Welcome to our motel!')
-          out.append('https://motel.deecee.ca/welcome.m3u8')
-
-          for cnum,(cat,_,ext,url) in enumerate(entries,2):
+          for cnum,(cat,_,ext,url) in enumerate(entries,1):
               ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
-              if 'group-title=' not in ext:
-                  ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
+              if 'group-title=' not in ext: ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
               ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{cnum}"',ext) if 'tvg-chno=' in ext else ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{cnum}"',1)
               out.append(ext); out.append(url)
 
           Path("dccatalog.m3u8").write_text("\n".join(out), encoding='utf-8')
           Path("dccatalog.m3u").write_text("\n".join(out), encoding='utf-8')
-          print(f"dccatalog built: {len(entries)} channels - Tubi/Roku dissolved")
-
-          # copy xml - same guide as dcmaster
+          print(f"dccatalog: {len(entries)} channels - news locked, classics fixed")
           if Path("dcmaster.xml").exists():
               shutil.copy("dcmaster.xml","dccatalog.xml")
               with open("dcmaster.xml","rb") as f_in:
@@ -82,13 +116,11 @@ jobs:
                       shutil.copyfileobj(f_in, f_out)
           PY
           touch.nojekyll
-          ls -lh dccatalog.* dcmaster.m3u8 | head -20
-
       - name: Push
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz.nojekyll -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dccatalog: dissolve Tubi/Roku into main cats"
+          git commit -m "dccatalog: fix news wandering + classic"
           git push
