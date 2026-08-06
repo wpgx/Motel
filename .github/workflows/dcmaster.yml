@@ -1,7 +1,7 @@
 name: dcmaster
 on:
   schedule:
-    - cron: '45 2,5,8,11,14,17,20,23 * * *' # 10 min after dcfull
+    - cron: '45 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
 jobs:
   build:
@@ -60,11 +60,4 @@ jobs:
               if not tid:
                   name=b[0].split(",")[-1].strip(); tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
                   b[0]=re.sub(r'tvg-id="[^"]*"','',b[0]); b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0]); b[0]=re.sub(r'group-title="[^"]*"','',b[0])
-              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
-
-          with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
-              for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
-          shutil.copy("dcmaster.m3u8","dcmaster
+              b[0]=re.sub(r'tvg
