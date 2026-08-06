@@ -1,10 +1,8 @@
 name: Build DCFULL
-
 on:
+  workflow_dispatch:
   schedule:
     - cron: '25 */3 * * *'
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,105 +11,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build DCFULL
+      - name: Build DCFULL from DCTV + Samsung-CA
         run: |
-          python3 - << 'PY'
-          import re, gzip, shutil, xml.etree.ElementTree as ET
-          from pathlib import Path
+          python3 << 'PY'
+          import os, re
 
-          def load_m3u_keep_order(path):
-              kept = []
-              if not Path(path).exists():
-                  print(f"{path} missing")
-                  return kept
-              text = Path(path).read_text(encoding='utf-8', errors='ignore')
-              lines = text.splitlines()
-              for i, line in enumerate(lines):
-                  if not line.startswith("#EXTINF"):
-                      continue
-                  nxt = lines[i+1].strip() if i+1 < len(lines) else ""
-                  if not nxt.startswith("http"):
-                      continue
-                  if "welcome" in line.rsplit(',',1)[-1].lower():
-                      continue
-                  kept.append((line, nxt))
-              print(f"{path}: {len(kept)} kept")
-              return kept
-
-          pluto = load_m3u_keep_order("pluto.m3u8")
-          sams = load_m3u_keep_order("samsung-ca.m3u8")
-
-          groups = {}
-          for inf, url in pluto:
-              m = re.search(r'group-title="([^"]+)"', inf)
-              g = m.group(1) if m else "NO GROUP"
-              groups[g] = groups.get(g, 0) + 1
-          print("PLUTO GROUPS FOUND:", groups)
-
-          favs = [x for x in pluto if "favor" in x[0].lower()]
-          rest = [x for x in pluto if x not in favs]
-          pluto_sorted = favs + rest
-          print(f"Pluto order: {len(favs)} FAVORITES on top, then {len(rest)} other")
-
-          m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
-
-          chno = 20
-          for inf, url in pluto_sorted:
-              if 'tvg-chno=' in inf:
-                  inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{chno}"', inf)
+          # --- M3U8 MERGE - keep original order/numbers ---
+          out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
+          for f in ['dctv.m3u8', 'pluto.m3u8', 'samsung-ca.m3u8']:
+              if os.path.exists(f):
+                  lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
+                  add = [l for l in lines if l.strip() and not l.startswith('#EXTM3U')]
+                  out.extend(add)
+                  print(f"{f}: {len([l for l in add if '#EXTINF' in l])} ch")
               else:
-                  inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"', 1)
-              m3u.append(inf)
-              m3u.append(url)
-              chno += 1
+                  print(f"skip {f}")
 
-          chno = 1000
-          for inf, url in sams:
-              if 'tvg-chno=' in inf:
-                  inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{chno}"', inf)
-              else:
-                  inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"', 1)
-              m3u.append(inf)
-              m3u.append(url)
-              chno += 1
+          open('dcfull.m3u8','w',encoding='utf-8').write("\n".join(out) + "\n")
+          open('dcfull.m3u','w',encoding='utf-8').write("\n".join(out) + "\n")
+          print(f"DCFULL M3U: {len([l for l in out if '#EXTINF' in l])} channels")
 
-          Path("dcfull.m3u8").write_text("\n".join(m3u), encoding='utf-8')
-          Path("dcfull.m3u").write_text("\n".join(m3u), encoding='utf-8')
+          # --- XMLTV MERGE ---
+          xml_files = [f for f in ['dctv.xml', 'pluto.xml', 'samsung-ca.xml'] if os.path.exists(f) and os.path.getsize(f) > 1000]
+          if xml_files:
+              channels = {}
+              progs = []
+              for xf in xml_files:
+                  txt = open(xf, encoding='utf-8', errors='ignore').read()
+                  for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
+                      channels[m.group(1)] = m.group(0)
+                  for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
+                      progs.append(m.group(0))
+                  print(f"{xf} -> {len(channels)} ch")
 
-          xml_files = [p for p in ["pluto.xml", "samsung-ca.xml"] if Path(p).exists()]
-          channels = {}
-          progs = []
-          for xf in xml_files:
-              try:
-                  tree = ET.parse(xf)
-                  root = tree.getroot()
-                  for ch in root.findall('channel'):
-                      cid = ch.get('id')
-                      if cid not in channels:
-                          channels[cid] = ch
-                  for pr in root.findall('programme'):
-                      progs.append(pr)
-              except Exception as e:
-                  print(f" {xf} failed: {e}")
-
-          tv = ET.Element('tv')
-          for ch in channels.values():
-              tv.append(ch)
-          for pr in progs:
-              tv.append(pr)
-
-          ET.ElementTree(tv).write("dcfull.xml", encoding='utf-8', xml_declaration=True)
-
-          with open("dcfull.xml","rb") as f_in:
-              with gzip.open("dcfull.xml.gz","wb") as f_out:
-                  shutil.copyfileobj(f_in, f_out)
+              with open('dcfull.xml','w',encoding='utf-8') as o:
+                  o.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
+                  for c in channels.values():
+                      o.write(c + "\n")
+                  for p in progs:
+                      o.write(p + "\n")
+                  o.write('</tv>\n')
           PY
 
-      - name: Commit
+      - name: Push DCFULL
         run: |
+          ls -lh dcfull.* || true
+          COUNT=$(grep -c "#EXTINF" dcfull.m3u8 || echo 0)
+          echo "DCFULL = $COUNT channels"
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add dcfull.m3u8 dcfull.m3u dcfull.xml dcfull.xml.gz -f
-          git diff --cached --quiet && echo "no change" && exit 0
-          git commit -m "dcfull: force favorites top"
+          git add dcfull.m3u8 dcfull.m3u dcfull.xml -f
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "dcfull $COUNT ch restore old merge"
           git push
