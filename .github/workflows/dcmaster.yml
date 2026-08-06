@@ -8,8 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          python3 << 'PY'
+      - name: Build DCMASTER
+        run: |
+          cat > /tmp/build.py << 'PY'
           import re, requests, os, shutil
 
           def load_blocks(text):
@@ -37,7 +38,6 @@ jobs:
               txt=open(path,encoding='utf-8',errors='ignore').read()
               return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
 
-          # 1. DCFULL - keep All Channels -> Favorites -> rest
           dcfull_blocks = load_file("dcfull.m3u8") or load_file("dcfull.m3u")
           all_ch = [b for b in dcfull_blocks if 'all channel' in get_group(b)]
           favs = [b for b in dcfull_blocks if 'favor' in get_group(b)]
@@ -45,15 +45,13 @@ jobs:
           dcfull_blocks = all_ch + favs + rest
           print(f"DCFULL: All {len(all_ch)} + Fav {len(favs)} + Rest {len(rest)} = {len(dcfull_blocks)}")
 
-          # 2. TUBIROKU - tubiroku.m3u is actually Tubi only
           tubi_blocks = load_file("tubiroku.m3u") or load_file("tubiroku.m3u8")
           print(f"TUBI (from tubiroku): {len(tubi_blocks)}")
 
-          # 3. ROKU - scrape inside master
           roku_blocks=[]
           sources = [
-            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
-            "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
+              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
+              "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
           ]
           for src in sources:
               try:
@@ -66,9 +64,7 @@ jobs:
                           break
               except Exception as e:
                   print(f"ROKU fail {src}: {e}")
-                  pass
 
-          # 4. MERGE DEDUPED
           final=[]
           seen=set()
           for b in dcfull_blocks:
@@ -108,5 +104,21 @@ jobs:
               for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
           shutil.copy("dcmaster.m3u8","dcmaster.m3u")
 
-          # XML
-          dcfull_xml = get_inner("dc
+          dcfull_xml = get_inner("dcfull.xml")
+          tubi_xml = get_inner("tubiroku.xml")
+          roku_extra=""
+          all_so_far = dcfull_xml + tubi_xml
+          for b in roku_blocks:
+              mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""
+              name=b[0].split(",")[-1].strip()
+              if tid and tid not in all_so_far:
+                  roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
+
+          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
+          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)} unique")
+          PY
+          python3 /tmp/build.py
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "dcmaster: dcfull + tubi + roku deduped"
+          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
