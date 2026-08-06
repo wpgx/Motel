@@ -2,7 +2,7 @@ name: Build DCFULL
 on:
   workflow_dispatch:
   schedule:
-    - cron: '25 */3 * * *'
+    - cron: '25 2,5,8,11,14,17,20,23 * * *'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,57 +10,61 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build DCFULL from DCTV + Samsung-CA
+      - name: Build DCFULL
         run: |
           python3 << 'PY'
           import os, re
 
-          # --- M3U8 MERGE - keep original order/numbers ---
+          def load(f):
+              lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
+              pairs = []
+              for i,l in enumerate(lines):
+                  if l.startswith('#EXTINF'):
+                      nxt = lines[i+1] if i+1 < len(lines) else ""
+                      if nxt.startswith('http'):
+                          pairs.append((l,nxt))
+              return pairs
+
+          pluto = load('pluto.m3u8') if os.path.exists('pluto.m3u8') else []
+          samsung = load('samsung-ca.m3u8') if os.path.exists('samsung-ca.m3u8') else []
+
+          # force favorites first, everything else after, keep original chno
+          favs = [p for p in pluto if 'favor' in p[0].lower()]
+          rest = [p for p in pluto if p not in favs]
+          pluto_sorted = favs + rest
+          print(f"Pluto: {len(favs)} favs top + {len(rest)} rest = {len(pluto_sorted)}")
+          print(f"Samsung: {len(samsung)}")
+
           out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
-          for f in ['dctv.m3u8', 'pluto.m3u8', 'samsung-ca.m3u8']:
-              if os.path.exists(f):
-                  lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
-                  add = [l for l in lines if l.strip() and not l.startswith('#EXTM3U')]
-                  out.extend(add)
-                  print(f"{f}: {len([l for l in add if '#EXTINF' in l])} ch")
-              else:
-                  print(f"skip {f}")
+          for inf, url in pluto_sorted + samsung:
+              out.append(inf)
+              out.append(url)
 
-          open('dcfull.m3u8','w',encoding='utf-8').write("\n".join(out) + "\n")
-          open('dcfull.m3u','w',encoding='utf-8').write("\n".join(out) + "\n")
-          print(f"DCFULL M3U: {len([l for l in out if '#EXTINF' in l])} channels")
+          open('dcfull.m3u8','w',encoding='utf-8').write("\n".join(out)+"\n")
+          open('dcfull.m3u','w',encoding='utf-8').write("\n".join(out)+"\n")
+          print(f"DCFULL TOTAL: {len(pluto_sorted)+len(samsung)} ch")
 
-          # --- XMLTV MERGE ---
-          xml_files = [f for f in ['dctv.xml', 'pluto.xml', 'samsung-ca.xml'] if os.path.exists(f) and os.path.getsize(f) > 1000]
-          if xml_files:
-              channels = {}
-              progs = []
-              for xf in xml_files:
-                  txt = open(xf, encoding='utf-8', errors='ignore').read()
-                  for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
-                      channels[m.group(1)] = m.group(0)
-                  for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
-                      progs.append(m.group(0))
-                  print(f"{xf} -> {len(channels)} ch")
-
-              with open('dcfull.xml','w',encoding='utf-8') as o:
-                  o.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
-                  for c in channels.values():
-                      o.write(c + "\n")
-                  for p in progs:
-                      o.write(p + "\n")
-                  o.write('</tv>\n')
+          # xml
+          channels = {}
+          progs = []
+          for xf in ['pluto.xml','samsung-ca.xml']:
+              if not os.path.exists(xf): continue
+              txt = open(xf, encoding='utf-8', errors='ignore').read()
+              for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
+                  channels[m.group(1)] = m.group(0)
+              for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
+                  progs.append(m.group(0))
+          with open('dcfull.xml','w',encoding='utf-8') as o:
+              o.write('<?xml version="1.0"?>\n<tv>\n')
+              for c in channels.values(): o.write(c+"\n")
+              for p in progs: o.write(p+"\n")
+              o.write('</tv>\n')
           PY
-
-      - name: Push DCFULL
+      - name: Push
         run: |
-          ls -lh dcfull.* || true
-          COUNT=$(grep -c "#EXTINF" dcfull.m3u8 || echo 0)
-          echo "DCFULL = $COUNT channels"
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dcfull.m3u8 dcfull.m3u dcfull.xml -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcfull $COUNT ch restore old merge"
+          git diff --cached --quiet && exit 0
+          git commit -m "dcfull: pluto+samsung no dupes favs top"
           git push
