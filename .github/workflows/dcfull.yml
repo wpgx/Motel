@@ -19,47 +19,65 @@ jobs:
           import re, gzip, shutil, xml.etree.ElementTree as ET
           from pathlib import Path
 
-          def load_m3u(path):
+          def load_m3u_keep_order(path):
               kept = []
-              dropped = 0
               if not Path(path).exists():
                   print(f"{path} missing")
-                  return kept, dropped
+                  return kept
               text = Path(path).read_text(encoding='utf-8', errors='ignore')
               lines = text.splitlines()
               for i, line in enumerate(lines):
                   if not line.startswith("#EXTINF"):
                       continue
                   nxt = lines[i+1].strip() if i+1 < len(lines) else ""
+                  if not nxt.startswith("http"):
+                      continue
                   name = line.rsplit(',',1)[-1].lower()
                   if "welcome" in name:
-                      dropped+=1
                       continue
                   kept.append((line, nxt))
-              print(f"{path}: {len(kept)} kept, {dropped} welcome dropped")
-              return kept, dropped
+              print(f"{path}: {len(kept)} kept")
+              return kept
 
-          pluto, _ = load_m3u("pluto.m3u8")
-          sams, _ = load_m3u("samsung-ca.m3u8")
-
-          all_ch = pluto + sams
+          pluto = load_m3u_keep_order("pluto.m3u8")
+          sams = load_m3u_keep_order("samsung-ca.m3u8")
 
           m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
-          for idx, (inf, url) in enumerate(all_ch, start=1):
+
+          # Pluto - keep original chno, or force start at 20 if no chno
+          chno = 20
+          for inf, url in pluto:
               if 'tvg-chno=' in inf:
-                  inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{idx}"', inf)
+                  # keep whatever pluto had, but update counter to avoid clash
+                  m = re.search(r'tvg-chno="(\d+)"', inf)
+                  if m:
+                      try:
+                          chno = int(m.group(1)) + 1
+                      except:
+                          pass
               else:
-                  inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{idx}"', 1)
+                  inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"', 1)
+                  chno += 1
               m3u.append(inf)
               m3u.append(url)
 
+          # Samsung - force start at 1000
+          chno = 1000
+          for inf, url in sams:
+              if 'tvg-chno=' in inf:
+                  inf = re.sub(r'tvg-chno="[^"]+"', f'tvg-chno="{chno}"', inf)
+              else:
+                  inf = inf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"', 1)
+              m3u.append(inf)
+              m3u.append(url)
+              chno += 1
+
           Path("dcfull.m3u8").write_text("\n".join(m3u), encoding='utf-8')
           Path("dcfull.m3u").write_text("\n".join(m3u), encoding='utf-8')
-          print(f"DCFULL M3U: {len(all_ch)} ch")
+          print(f"DCFULL M3U: {len(pluto)} pluto + {len(sams)} samsung = {len(pluto)+len(sams)} ch - pluto 20+, samsung 1000+")
 
+          # XML merge - same as before
           xml_files = [p for p in ["pluto.xml", "samsung-ca.xml"] if Path(p).exists()]
-          print(f"XML files to merge: {xml_files}")
-
           channels = {}
           progs = []
           for xf in xml_files:
@@ -72,7 +90,7 @@ jobs:
                           channels[cid] = ch
                   for pr in root.findall('programme'):
                       progs.append(pr)
-                  print(f" {xf} -> {len(channels)} ch so far / {len(progs)} prog so far")
+                  print(f" {xf} -> {len(channels)} ch / {len(progs)} prog")
               except Exception as e:
                   print(f" {xf} failed: {e}")
 
@@ -89,7 +107,6 @@ jobs:
               with gzip.open("dcfull.xml.gz","wb") as f_out:
                   shutil.copyfileobj(f_in, f_out)
           PY
-
           ls -lh dcfull.*
 
       - name: Commit
@@ -98,5 +115,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add dcfull.m3u8 dcfull.m3u dcfull.xml dcfull.xml.gz -f
           git diff --cached --quiet && echo "no change" && exit 0
-          git commit -m "dcfull: no welcome"
+          git commit -m "dcfull: restore 20+ pluto 1000+ samsung order"
           git push
