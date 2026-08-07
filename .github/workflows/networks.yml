@@ -1,88 +1,29 @@
 name: networks
 on:
-  schedule:
-    - cron: '15 3,9,15,21 * * *'
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build NETWORKS
-        run: |
+      - run: |
           cat > /tmp/build.py << 'PY'
-          import re, requests, os, shutil
+          import re, requests
 
-          sources = {
-            "ABC": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_abc.m3u",
-            "CBS": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_cbs.m3u",
-            "NBC": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_nbc.m3u",
-            "FOX": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_fox.m3u",
-            "CW": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_cw.m3u",
-            "PBS": "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_pbs.m3u",
-          }
+          # backups that actually have east/west tags
+          SOURCES = [
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_abc.m3u",
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_cbs.m3u",
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_nbc.m3u",
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_fox.m3u",
+            "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/UDR/Networks.m3u",
+            "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/UDR/Locals.m3u",
+            "https://raw.githubusercontent.com/BuddyChewChew/tubi-scraper/main/tubi_playlist.m3u",
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u",
+          ]
 
-          def load_blocks(text):
+          WANTED = ["ABC", "CBS", "NBC", "FOX", "CW", "PBS"]
+
+          def load_blocks(txt):
               blocks=[]; cur=[]
-              for l in text.replace("\r","").split("\n"):
-                  l=l.strip()
-                  if not l: continue
-                  if l.startswith("#EXTINF"):
-                      if cur: blocks.append(cur)
-                      cur=[l]
-                  elif l.startswith("http"):
-                      cur.append(l); blocks.append(cur); cur=[]
-              return blocks
-
-          final=[]
-          seen=set()
-          chno=7000
-          for net, url in sources.items():
-              try:
-                  r=requests.get(url, timeout=20, headers={'User-Agent':'Mozilla/5.0'})
-                  if not r.ok or "#EXTINF" not in r.text:
-                      print(f"FAIL {net}")
-                      continue
-                  blocks=load_blocks(r.text)
-                  cnt=0
-                  for b in blocks:
-                      link=b[-1]
-                      if not link or link in seen: continue
-                      # keep east/west in name
-                      name = b[0].split(",")[-1].strip()
-                      # normalize group - keep US Networks + East/West tag
-                      group = "US Networks"
-                      if "east" in name.lower() or "eastern" in name.lower():
-                          group = "US East"
-                      elif "west" in name.lower() or "pacific" in name.lower():
-                          group = "US West"
-
-                      # clean old tags
-                      b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-                      b[0]=re.sub(r'group-title="[^"]*"','',b[0])
-                      # ensure tvg-id
-                      if 'tvg-id=' not in b[0]:
-                          tid = f"{net.lower()}.{re.sub(r'[^a-z0-9]+','-',name.lower()).strip('-')}"
-                          b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
-                      b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{group}" tvg-chno="{chno}"',1)
-                      final.append(b)
-                      seen.add(link)
-                      chno+=1; cnt+=1
-                  print(f"{net}: {cnt} channels")
-              except Exception as e:
-                  print(f"ERR {net}: {e}")
-
-          with open("networks.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://iptv-org.github.io/epg/guides/us/tvtv.us.xml"\n')
-              for b in final:
-                  o.write(b[0]+"\n"+b[-1]+"\n")
-          shutil.copy("networks.m3u8","networks.m3u")
-          # blank xml so dcmaster can merge if needed
-          open("networks.xml","w",encoding="utf-8").write('<?xml version="1.0"?><tv></tv>')
-          print(f"DONE: {len(final)} US network feeds -> networks.m3u8")
-          PY
-          python3 /tmp/build.py
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "networks: US East/West ABC/CBS/NBC/FOX/CW/PBS"
-          file_pattern: "networks.m3u8 networks.m3u networks.xml"
+              for l in txt
