@@ -20,20 +20,28 @@ jobs:
           from pathlib import Path
           from collections import Counter
 
-          # Add more here as you spot them in Sparkle
           MERGE = {
-              # ---- NEWS -> all to "News" ----
+              # NEWS -> one bucket
               "news & opinion": "News",
               "news and opinion": "News",
+              "news & weather": "News",
+              "news and weather": "News",
               "local news": "News",
               "national news": "News",
               "business news": "News",
               "global news": "News",
-              "news & weather": "News",
-              "news and weather": "News",
               "live news": "News",
+              "news": "News",
 
-              # ---- CRIME ----
+              # HOME & FOOD - fix & vs + vs and
+              "home & food": "Home & Food",
+              "home + food": "Home & Food",
+              "home and food": "Home & Food",
+              "home food": "Home & Food",
+              "good eats": "Home & Food",
+              "lifestyle": "Home & Food",
+
+              # CRIME
               "true crime": "Crime",
               "crime": "Crime",
               "crime scenes": "Crime",
@@ -44,74 +52,73 @@ jobs:
               "a&e crime 360": "Crime",
               "crime & mystery": "Crime",
 
-              # ---- COMEDY ----
+              # COMEDY
               "always funny": "Comedy",
               "comedy dynamics": "Comedy",
-              "comedy": "Comedy",
 
-              # ---- SCI-FI / DRAMA ----
+              # DRAMA & SCI-FI
               "sci-fi & supernatural": "Drama & Sci-Fi",
+              "sci-fi + supernatural": "Drama & Sci-Fi",
               "sci-fi and supernatural": "Drama & Sci-Fi",
               "classic doctor who": "Drama & Sci-Fi",
               "alien nation by dust": "Drama & Sci-Fi",
               "dust": "Drama & Sci-Fi",
-              "drama & sci-fi": "Drama & Sci-Fi",
-              "drama and sci-fi": "Drama & Sci-Fi",
 
-              # ---- MOVIES ----
+              # MOVIES
               "movie channels": "Movies",
               "classic cinema": "Movies",
               "at the movies": "Movies",
               "cinevault": "Movies",
-              "movies": "Movies",
 
-              # ---- SPORTS ----
+              # SPORTS
               "sports on now": "Sports",
               "games & competition": "Sports",
-              "sports": "Sports",
+              "games + competition": "Sports",
+              "games and competition": "Sports",
 
-              # ---- REALITY ----
+              # ENTERTAINMENT
               "pop culture": "Entertainment",
               "reality": "Entertainment",
               "black entertainment": "Entertainment",
               "entertainment & reality": "Entertainment",
+              "entertainment + reality": "Entertainment",
               "entertainment and reality": "Entertainment",
-              "entertainment": "Entertainment",
 
-              # ---- HOME / FOOD ----
-              "good eats": "Home & Food",
-              "lifestyle": "Home & Food",
-              "home & food": "Home & Food",
-
-              # ---- DOCS / NATURE ----
+              # NATURE
               "science & nature": "Nature",
+              "science + nature": "Nature",
+              "science and nature": "Nature",
               "documentaries": "Nature",
               "nature & science": "Nature",
-              "nature": "Nature",
-              "science": "Nature",
-              "documentary": "Nature",
-
-              # ---- KIDS ----
-              "kids": "Kids",
-              "family": "Kids",
-
-              # ---- SPANISH ----
-              "español": "Español",
-              "spanish": "Español",
-
-              # ---- MUSIC ----
-              "music": "Music",
+              "nature + science": "Nature",
+              "nature and science": "Nature",
           }
 
           def clean_cat(g):
               if not g: return "Other"
+              # normalize: + -> &, " and " -> " & ", extra spaces
               gl = g.lower().strip()
+              gl = gl.replace("+", "&")
+              gl = gl.replace(" and ", " & ")
+              gl = re.sub(r'\s+', ' ', gl)
               if gl in MERGE:
                   return MERGE[gl]
               for k,v in MERGE.items():
                   if k in gl:
                       return v
               return g.strip().title()
+
+          # Custom order - News/Sports top, Ambiance/Anime bottom
+          TOP = ["News", "Sports"]
+          BOTTOM = ["Ambiance", "Anime & Gaming", "Anime", "Ambiance & Anime"]
+
+          def sort_key(item):
+              cat = item[0]
+              if cat in TOP:
+                  return (0, TOP.index(cat), item[1])
+              if cat in BOTTOM or "ambiance" in cat.lower() or "anime" in cat.lower():
+                  return (2, cat.lower(), item[1])
+              return (1, cat.lower(), item[1])
 
           src=Path("dcmaster.m3u8")
           lines=src.read_text(encoding='utf-8', errors='ignore').splitlines()
@@ -124,25 +131,21 @@ jobs:
               if not url.startswith("http"): continue
               name=l.rsplit(",",1)[-1].strip()
               if "welcome" in name.lower() and "motel" in name.lower(): continue
-
               m=re.search(r'group-title="([^"]+)"',l)
               orig=m.group(1) if m else "Other"
               if orig.lower() in ("tubi","roku"): orig="Other"
-
               cat = clean_cat(orig)
-
               if url in seen_urls: continue
               seen_urls.add(url)
               entries.append((cat, name.lower(), l, url))
 
-          entries.sort(key=lambda x:(x[0].lower(), x[1]))
+          entries.sort(key=sort_key)
 
           out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
           for cat,_,ext,url in entries:
               ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
               if 'group-title=' not in ext:
                   ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
-              # KEEP ORIGINAL tvg-chno
               out.append(ext)
               out.append(url)
 
@@ -153,8 +156,9 @@ jobs:
           Path("DCcatalog.m3u").write_text(text, encoding='utf-8')
 
           c=Counter([cat for cat,_,_,_ in entries])
-          for k,v in sorted(c.items()):
-              print(f"{k}: {v}")
+          for k in TOP + sorted([x for x in c if x not in TOP and x not in BOTTOM and "ambiance" not in x.lower() and "anime" not in x.lower()]) + sorted([x for x in c if x in BOTTOM or "ambiance" in x.lower() or "anime" in x.lower()]):
+              if k in c:
+                  print(f"{k}: {c[k]}")
           print(f"\nBuilt {len(entries)} channels, {len(c)} categories")
 
           if Path("dcmaster.xml").exists():
@@ -172,5 +176,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add DCcatalog.m3u8 DCcatalog.m3u DCcatalog.xml DCcatalog.xml.gz dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "DCcatalog: keep chno + merge duplicate categories"
+          git commit -m "DCcatalog: fix & vs + dupes + top/bottom sort"
           git push
