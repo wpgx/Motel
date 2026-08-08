@@ -21,7 +21,7 @@ jobs:
           from collections import Counter
 
           MERGE = {
-              # NEWS -> one bucket
+              # NEWS - includes Weather
               "news & opinion": "News",
               "news and opinion": "News",
               "news & weather": "News",
@@ -31,9 +31,10 @@ jobs:
               "business news": "News",
               "global news": "News",
               "live news": "News",
+              "weather": "News",
               "news": "News",
 
-              # HOME & FOOD - fix & vs + vs and
+              # HOME & FOOD - fix & vs + dupes
               "home & food": "Home & Food",
               "home + food": "Home & Food",
               "home and food": "Home & Food",
@@ -56,13 +57,25 @@ jobs:
               "always funny": "Comedy",
               "comedy dynamics": "Comedy",
 
-              # DRAMA & SCI-FI
-              "sci-fi & supernatural": "Drama & Sci-Fi",
-              "sci-fi + supernatural": "Drama & Sci-Fi",
-              "sci-fi and supernatural": "Drama & Sci-Fi",
-              "classic doctor who": "Drama & Sci-Fi",
-              "alien nation by dust": "Drama & Sci-Fi",
-              "dust": "Drama & Sci-Fi",
+              # DRAMA
+              "tv dramas": "Drama",
+              "tv drama": "Drama",
+              "drama": "Drama",
+
+              # SCI-FI & HORROR
+              "horror": "Sci-Fi & Horror",
+              "sci-fi & supernatural": "Sci-Fi & Horror",
+              "sci-fi + supernatural": "Sci-Fi & Horror",
+              "sci-fi and supernatural": "Sci-Fi & Horror",
+              "classic doctor who": "Sci-Fi & Horror",
+              "alien nation by dust": "Sci-Fi & Horror",
+              "dust": "Sci-Fi & Horror",
+              "sci-fi": "Sci-Fi & Horror",
+              "scifi": "Sci-Fi & Horror",
+              "supernatural": "Sci-Fi & Horror",
+              "drama & sci-fi": "Sci-Fi & Horror",
+              "drama + sci-fi": "Sci-Fi & Horror",
+              "drama and sci-fi": "Sci-Fi & Horror",
 
               # MOVIES
               "movie channels": "Movies",
@@ -84,7 +97,17 @@ jobs:
               "entertainment + reality": "Entertainment",
               "entertainment and reality": "Entertainment",
 
-              # NATURE
+              # KIDS - includes Kids and Family
+              "kids & family": "Kids",
+              "kids + family": "Kids",
+              "kids and family": "Kids",
+              "family": "Kids",
+              "kids": "Kids",
+
+              # NATURE - Nature History and Science removed/merged
+              "nature history and science": "Nature",
+              "nature history & science": "Nature",
+              "history & science": "Nature",
               "science & nature": "Nature",
               "science + nature": "Nature",
               "science and nature": "Nature",
@@ -92,11 +115,14 @@ jobs:
               "nature & science": "Nature",
               "nature + science": "Nature",
               "nature and science": "Nature",
+              "nature": "Nature",
+              "science": "Nature",
+              "documentary": "Nature",
+              "history": "Nature",
           }
 
           def clean_cat(g):
               if not g: return "Other"
-              # normalize: + -> &, " and " -> " & ", extra spaces
               gl = g.lower().strip()
               gl = gl.replace("+", "&")
               gl = gl.replace(" and ", " & ")
@@ -108,8 +134,8 @@ jobs:
                       return v
               return g.strip().title()
 
-          # Custom order - News/Sports top, Ambiance/Anime bottom
-          TOP = ["News", "Sports"]
+          # Order: News, Sports, Movies on top - Ambiance/Anime on bottom
+          TOP = ["News", "Sports", "Movies"]
           BOTTOM = ["Ambiance", "Anime & Gaming", "Anime", "Ambiance & Anime"]
 
           def sort_key(item):
@@ -135,6 +161,7 @@ jobs:
               orig=m.group(1) if m else "Other"
               if orig.lower() in ("tubi","roku"): orig="Other"
               cat = clean_cat(orig)
+              # skip empty Nature History and Science bucket if truly empty
               if url in seen_urls: continue
               seen_urls.add(url)
               entries.append((cat, name.lower(), l, url))
@@ -156,9 +183,10 @@ jobs:
           Path("DCcatalog.m3u").write_text(text, encoding='utf-8')
 
           c=Counter([cat for cat,_,_,_ in entries])
-          for k in TOP + sorted([x for x in c if x not in TOP and x not in BOTTOM and "ambiance" not in x.lower() and "anime" not in x.lower()]) + sorted([x for x in c if x in BOTTOM or "ambiance" in x.lower() or "anime" in x.lower()]):
-              if k in c:
-                  print(f"{k}: {c[k]}")
+          # print in display order
+          ordered_cats = TOP + [x for x in sorted(c) if x not in TOP and x not in BOTTOM and "ambiance" not in x.lower() and "anime" not in x.lower()] + [x for x in sorted(c) if x in BOTTOM or "ambiance" in x.lower() or "anime" in x.lower()]
+          for k in ordered_cats:
+              print(f"{k}: {c[k]}")
           print(f"\nBuilt {len(entries)} channels, {len(c)} categories")
 
           if Path("dcmaster.xml").exists():
@@ -176,5 +204,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add DCcatalog.m3u8 DCcatalog.m3u DCcatalog.xml DCcatalog.xml.gz dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "DCcatalog: fix & vs + dupes + top/bottom sort"
+          git commit -m "DCcatalog: horror->scifi, kids&family->kids, weather->news, movies up top"
           git push
