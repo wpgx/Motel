@@ -79,8 +79,12 @@ jobs:
               if url in seen: continue
               seen.add(url)
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
-              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
+              # KEEP ORIGINAL CATEGORY - don't strip group-title
+              if 'group-title=' not in b[0].lower():
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
+              else:
+                  # ensure chno is added but keep the real category like "True Crime"
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
           chno=6000
@@ -95,8 +99,11 @@ jobs:
                   b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
                   b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
               b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              b[0]=re.sub(r'group-title="[^"]*"','',b[0])
-              b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
+              # KEEP ROKU CATEGORIES TOO
+              if 'group-title=' not in b[0].lower():
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
+              else:
+                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               final.append(b); chno+=1
 
           with open("dcmaster.m3u8","w",encoding="utf-8") as o:
@@ -120,5 +127,5 @@ jobs:
           python3 /tmp/build.py
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: dcfull + tubi + roku deduped"
+          commit_message: "dcmaster: dcfull + tubi + roku deduped (keep categories)"
           file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
