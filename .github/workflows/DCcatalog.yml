@@ -19,83 +19,119 @@ jobs:
           import re, shutil, gzip
           from pathlib import Path
 
-          OVERRIDES = {
-            "andy griffith": "Classic", "bonanza": "Classic", "bewitched": "Classic",
-            "i love lucy": "Classic", "gilligan": "Classic", "mash": "Classic",
-            "twilight zone": "Classic", "rifleman": "Classic", "lone ranger": "Classic",
-            "little house": "Classic", "happy days": "Classic", "baywatch": "Classic",
-            "gunsmoke": "Classic", "wagon train": "Classic", "perry mason": "Classic",
-            "matlock": "Classic", "rockford files": "Classic", "knight rider": "Classic",
-            "columbo": "Crime & Mystery", "forensic files": "Crime & Mystery",
-            "unsolved mysteries": "Crime & Mystery", "cold case": "Crime & Mystery",
-            "cheddar": "News & Weather", "newsy": "News & Weather", "haystack": "News & Weather",
-            "local now": "News & Weather", "newsmax": "News & Weather", "bloomberg": "News & Weather",
-            "weather nation": "News & Weather", "accuweather": "News & Weather", "reuters": "News & Weather",
-            "abc news": "News & Weather", "nbc news": "News & Weather", "cbs news": "News & Weather",
-            "court tv": "News & Weather", "law&crime": "News & Weather", "fox weather": "News & Weather",
+          # Just rename categories here - add more as you see them
+          MERGE = {
+              # News
+              "news & opinion": "News",
+              "local news": "News",
+              "national news": "News",
+              "business news": "News",
+              "global news": "News",
+              "news & weather": "News",
+
+              # Crime
+              "true crime": "Crime & Mystery",
+              "crime": "Crime & Mystery",
+              "crime scenes": "Crime & Mystery",
+              "crime thrillher": "Crime & Mystery",
+              "crime cults killers": "Crime & Mystery",
+              "chasing criminals": "Crime & Mystery",
+              "cold case files": "Crime & Mystery",
+              "a&e crime 360": "Crime & Mystery",
+
+              # Comedy
+              "always funny": "Comedy",
+              "comedy dynamics": "Comedy",
+
+              # Sci-Fi / Drama
+              "sci-fi & supernatural": "Drama & Sci-Fi",
+              "classic doctor who": "Drama & Sci-Fi",
+              "alien nation by dust": "Drama & Sci-Fi",
+              "dust": "Drama & Sci-Fi",
+
+              # Movies
+              "movie channels": "Movies",
+              "classic cinema": "Movies",
+              "at the movies": "Movies",
+              "cinevault": "Movies",
+
+              # Sports
+              "sports on now": "Sports",
+              "games & competition": "Sports",
+
+              # Reality / Entertainment
+              "pop culture": "Entertainment & Reality",
+              "reality": "Entertainment & Reality",
+              "black entertainment": "Entertainment & Reality",
+
+              # Home / Food
+              "good eats": "Home & Food",
+              "lifestyle": "Home & Food",
+
+              # Docs
+              "science & nature": "Nature & Science",
+              "documentaries": "Nature & Science",
+
+              # Spanish
+              "español": "Español",
           }
 
-          def guess_cat(name):
-              n=name.lower().strip()
-              for k,v in OVERRIDES.items():
-                  if k in n: return v
-              if any(k in n for k in ["news","cheddar","bloomberg","weather","reuters","haystack","local now","newsmax","newsy","court tv","law&crime","abc news","nbc news","cbs news"]): return "News & Weather"
-              if any(k in n for k in ["sports","espn","nfl","nba","nhl","mlb","pga","nascar","racing","fishing","wrestling","wwe","bein","accdn","stadium","golf"]): return "Sports"
-              if any(k in n for k in ["kids","cartoon","nick","disney","paw patrol","spongebob","pokemon","junior","peppa"]): return "Kids"
-              if any(k in n for k in ["anime","minecraft","mario","gaming"]): return "Anime & Gaming"
-              if any(k in n for k in ["classic","retro","western","vault","metv","antenna","cozi","laff","grit","me-tv","decades","reelz","tv land"]): return "Classic"
-              if any(k in n for k in ["comedy","sitcom","laugh","south park","afv","impractical"]): return "Comedy"
-              if any(k in n for k in ["crime","investigation","mystery","detective","forensic","dateline","48 hours"]): return "Crime & Mystery"
-              if any(k in n for k in ["drama","sci-fi","scifi","horror","thriller","dust","x-files","star trek"]): return "Drama & Sci-Fi"
-              if any(k in n for k in ["cooking","food","kitchen","hgtv","house","garden","renovation"]): return "Home & Food"
-              if any(k in n for k in ["reality","housewives","bachelor","love island","survivor","bravo","judge"]): return "Entertainment & Reality"
-              if any(k in n for k in ["music","mtv","vevo","concert"]): return "Music"
-              if any(k in n for k in ["nature","science","wild","history","documentary","animal","planet","nova","smithsonian"]): return "Nature & Science"
-              if any(k in n for k in ["ambiance","fireplace","yule"]): return "Ambiance"
-              return "Movies"
+          def clean_cat(g):
+              gl = g.lower().strip()
+              # direct match
+              if gl in MERGE:
+                  return MERGE[gl]
+              # contains match (so "News & Opinion" still hits)
+              for k,v in MERGE.items():
+                  if k in gl:
+                      return v
+              return g.strip()
 
           src=Path("dcmaster.m3u8")
           lines=src.read_text(encoding='utf-8', errors='ignore').splitlines()
-          order=["News & Weather","Sports","Movies","Classic","Ambiance","Anime & Gaming","Comedy","Crime & Mystery","Drama & Sci-Fi","Entertainment & Reality","Home & Food","Kids","Music","Nature & Science"]
-          idx={c:i for i,c in enumerate(order)}
-          known_cats={}
-          for i,l in enumerate(lines):
-              if not l.startswith("#EXTINF"): continue
-              m=re.search(r'group-title="([^"]+)"',l)
-              if not m or m.group(1) in ("Tubi","Roku"): continue
-              known_cats[l.rsplit(",",1)[-1].strip().lower()]=m.group(1)
 
-          seen=set(); entries=[]
+          seen=set()
+          entries=[]
           for i,l in enumerate(lines):
               if not l.startswith("#EXTINF"): continue
               url=lines[i+1].strip() if i+1 < len(lines) else ""
               if not url.startswith("http"): continue
               name=l.rsplit(",",1)[-1].strip()
               if "welcome" in name.lower() and "motel" in name.lower(): continue
-              m=re.search(r'group-title="([^"]+)"',l); orig=m.group(1) if m else "Other"
-              cat = known_cats.get(name.lower()) if orig in ("Tubi","Roku") and name.lower() in known_cats else (guess_cat(name) if orig in ("Tubi","Roku") else orig)
-              key=(name.lower(), cat)
+
+              m=re.search(r'group-title="([^"]+)"',l)
+              orig=m.group(1) if m else "Other"
+              if orig in ("Tubi","Roku"): orig="Other"
+
+              cat = clean_cat(orig)
+
+              key=(url) # dedupe by URL only
               if key in seen: continue
               seen.add(key)
               entries.append((cat, name.lower(), l, url))
 
-          entries.sort(key=lambda x:(idx.get(x[0],999), x[1]))
+          # sort by category then name
+          entries.sort(key=lambda x:(x[0].lower(), x[1]))
+
           out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
           for cnum,(cat,_,ext,url) in enumerate(entries,1):
               ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
-              if 'group-title=' not in ext: ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
+              if 'group-title=' not in ext:
+                  ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
               ext=re.sub(r'tvg-chno="[^"]+"',f'tvg-chno="{cnum}"',ext) if 'tvg-chno=' in ext else ext.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{cnum}"',1)
-              out.append(ext); out.append(url)
+              out.append(ext)
+              out.append(url)
 
-          # write both cases so you don't have to worry
           text="\n".join(out)
           Path("dccatalog.m3u8").write_text(text, encoding='utf-8')
           Path("DCcatalog.m3u8").write_text(text, encoding='utf-8')
           Path("dccatalog.m3u").write_text(text, encoding='utf-8')
           Path("DCcatalog.m3u").write_text(text, encoding='utf-8')
           print(f"Built {len(entries)} channels")
+          # show final categories
+          from collections import Counter
+          print(Counter([c for c,_,_,_ in entries]))
 
-          # EPG - both cases + gz
           if Path("dcmaster.xml").exists():
               shutil.copy("dcmaster.xml","dccatalog.xml")
               shutil.copy("dcmaster.xml","DCcatalog.xml")
@@ -104,7 +140,6 @@ jobs:
                       with gzip.open(gz_name,"wb") as f_out:
                           shutil.copyfileobj(f_in, f_out)
           PY
-          ls -lh *.m3u8 *.xml.gz 2>/dev/null | head -20
 
       - name: Push
         run: |
@@ -112,5 +147,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add DCcatalog.m3u8 DCcatalog.m3u DCcatalog.xml DCcatalog.xml.gz dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "DCcatalog: news locked, classics fixed, no welcome"
+          git commit -m "DCcatalog: simple category merge by renaming"
           git push
