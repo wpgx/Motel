@@ -33,14 +33,18 @@ jobs:
 
           MERGE = {
 
-              # ---------------- HOME & FOOD ----------------
+              # --------------------------------------------------------
+              # HOME & FOOD
+              # --------------------------------------------------------
               "home & food": "Home & Food",
               "home + food": "Home & Food",
               "home and food": "Home & Food",
               "good eats": "Home & Food",
               "lifestyle": "Home & Food",
 
-              # ---------------- CRIME ----------------
+              # --------------------------------------------------------
+              # CRIME
+              # --------------------------------------------------------
               "true crime": "Crime",
               "crime": "Crime",
               "crime scenes": "Crime",
@@ -51,16 +55,22 @@ jobs:
               "a&e crime 360": "Crime",
               "crime & mystery": "Crime",
 
-              # ---------------- COMEDY ----------------
+              # --------------------------------------------------------
+              # COMEDY
+              # --------------------------------------------------------
               "always funny": "Comedy",
               "comedy dynamics": "Comedy",
 
-              # ---------------- DRAMA ----------------
+              # --------------------------------------------------------
+              # DRAMA
+              # --------------------------------------------------------
               "tv dramas": "Drama",
               "tv drama": "Drama",
               "drama": "Drama",
 
-              # ---------------- SCI-FI & HORROR ----------------
+              # --------------------------------------------------------
+              # SCI-FI & HORROR
+              # --------------------------------------------------------
               "horror": "Sci-Fi & Horror",
               "sci-fi": "Sci-Fi & Horror",
               "scifi": "Sci-Fi & Horror",
@@ -75,7 +85,9 @@ jobs:
               "paranormal": "Sci-Fi & Horror",
               "out of this world": "Sci-Fi & Horror",
 
-              # ---------------- MOVIES ----------------
+              # --------------------------------------------------------
+              # MOVIES
+              # --------------------------------------------------------
               "movies": "Movies",
               "movie channels": "Movies",
               "classic cinema": "Movies",
@@ -83,7 +95,9 @@ jobs:
               "cinevault": "Movies",
               "tv & movies": "Movies",
 
-              # ---------------- SPORTS ----------------
+              # --------------------------------------------------------
+              # SPORTS
+              # --------------------------------------------------------
               "sports": "Sports",
               "sports on now": "Sports",
               "sports & outdoors": "Sports",
@@ -91,27 +105,35 @@ jobs:
               "games & competition": "Sports",
               "games + competition": "Sports",
 
-              # ---------------- ENTERTAINMENT ----------------
+              # --------------------------------------------------------
+              # ENTERTAINMENT
+              # --------------------------------------------------------
               "pop culture": "Entertainment",
               "reality": "Entertainment",
               "black entertainment": "Entertainment",
               "entertainment & reality": "Entertainment",
               "entertainment + reality": "Entertainment",
 
-              # ---------------- KIDS ----------------
+              # --------------------------------------------------------
+              # KIDS
+              # --------------------------------------------------------
               "kids": "Kids",
               "kids & family": "Kids",
               "kids + family": "Kids",
               "kids and family": "Kids",
               "family": "Kids",
 
-              # ---------------- DOCUMENTARY ----------------
+              # --------------------------------------------------------
+              # DOCUMENTARY
+              # --------------------------------------------------------
               "documentary": "Documentary",
               "documentaries": "Documentary",
               "documentary & science": "Documentary",
               "documentary and science": "Documentary",
 
-              # ---------------- NATURE & SCIENCE ----------------
+              # --------------------------------------------------------
+              # NATURE & SCIENCE
+              # --------------------------------------------------------
               "nature": "Nature & Science",
               "nature history": "Nature & Science",
               "nature & history": "Nature & Science",
@@ -124,36 +146,7 @@ jobs:
           }
 
           # ============================================================
-          # NEWS & WEATHER
-          # EVERYTHING NEWS/WEATHER GOES INTO ONE CATEGORY
-          # ============================================================
-
-          NEWS_CATEGORIES = {
-              "news",
-              "news & opinion",
-              "news and opinion",
-              "news & weather",
-              "news and weather",
-              "local news",
-              "national news",
-              "business news",
-              "global news",
-              "live news",
-              "weather",
-              "global weather",
-              "international",
-              "international news",
-              "international weather",
-              "world news",
-              "world weather",
-              "news network",
-              "news networks",
-              "news & business",
-              "business & news",
-          }
-
-          # ============================================================
-          # SPANISH CATEGORIES TO REMOVE
+          # SPANISH / LATIN CATEGORIES TO REMOVE
           # ============================================================
 
           REMOVE_CATEGORIES = {
@@ -176,7 +169,8 @@ jobs:
 
               g = raw.strip()
 
-              # Fix HTML entities, including TV &Amp; Movies.
+              # Decode HTML entities such as:
+              # TV &Amp; Movies
               g = re.sub(
                   r'&amp;',
                   '&',
@@ -193,24 +187,22 @@ jobs:
               gl = g.lower()
 
               # --------------------------------------------------------
-              # ALL NEWS AND WEATHER
-              # --------------------------------------------------------
-
-              if gl in NEWS_CATEGORIES:
-                  return "News & Weather"
-
-              # Catch variations such as:
-              # News & Opinion
-              # News & Weather
-              # National News
-              # Business News
+              # ALL NEWS + WEATHER -> ONE CATEGORY
+              #
+              # Anything containing "news" or "weather" goes here.
+              # This catches:
               # Global News
               # Local News
+              # National News
+              # News & Opinion
+              # News & Weather
+              # Business News
+              # International News
               # Weather
-              if (
-                  "news" in gl
-                  or "weather" in gl
-              ):
+              # etc.
+              # --------------------------------------------------------
+
+              if "news" in gl or "weather" in gl:
                   return "News & Weather"
 
               # --------------------------------------------------------
@@ -239,7 +231,7 @@ jobs:
               if lookup in MERGE:
                   return MERGE[lookup]
 
-              # Also handle partial matches.
+              # Partial category matches
               for key, value in MERGE.items():
                   if key in lookup:
                       return value
@@ -247,7 +239,7 @@ jobs:
               return g.title()
 
           # ============================================================
-          # EPG DATA
+          # FIND CHANNELS WITH REAL EPG DATA
           # ============================================================
 
           good_ids = set()
@@ -347,7 +339,7 @@ jobs:
           ).splitlines()
 
           # ============================================================
-          # GROUP CHANNELS
+          # GROUP CHANNELS BY NAME
           # ============================================================
 
           by_name = defaultdict(list)
@@ -378,7 +370,10 @@ jobs:
                   1
               )[-1].strip()
 
-              # Remove motel welcome channel.
+              # --------------------------------------------------------
+              # REMOVE MOTEL WELCOME CHANNEL
+              # --------------------------------------------------------
+
               if (
                   "welcome" in name.lower()
                   and "motel" in name.lower()
@@ -389,6 +384,10 @@ jobs:
                   )
 
                   continue
+
+              # --------------------------------------------------------
+              # GET ORIGINAL CATEGORY
+              # --------------------------------------------------------
 
               match = re.search(
                   r'group-title="([^"]+)"',
@@ -409,7 +408,7 @@ jobs:
               )
 
               # --------------------------------------------------------
-              # REMOVE SPANISH / LATIN CATEGORIES
+              # REMOVE SPANISH / LATIN
               # --------------------------------------------------------
 
               if original_lower in (
@@ -426,7 +425,11 @@ jobs:
 
                   continue
 
-              # Tubi/Roku remain available but are Other.
+              # --------------------------------------------------------
+              # TUBI / ROKU
+              # Keep them but put them in Other.
+              # --------------------------------------------------------
+
               if original_lower in (
                   "tubi",
                   "roku"
@@ -434,9 +437,17 @@ jobs:
 
                   original_category = "Other"
 
+              # --------------------------------------------------------
+              # NORMALIZE CATEGORY
+              # --------------------------------------------------------
+
               category = normalize_category(
                   original_category
               )
+
+              # --------------------------------------------------------
+              # TVG ID
+              # --------------------------------------------------------
 
               tvg_match = re.search(
                   r'tvg-id="([^"]+)"',
@@ -463,7 +474,7 @@ jobs:
               )
 
           # ============================================================
-          # DEDUPE
+          # REMOVE DUPLICATES
           # ============================================================
 
           entries = []
@@ -490,7 +501,7 @@ jobs:
 
               else:
 
-                  # Prefer copy with real EPG data.
+                  # Prefer the copy with real EPG data.
                   channels_sorted = sorted(
                       channels,
                       key=lambda x: (
@@ -525,7 +536,7 @@ jobs:
           )
 
           # ============================================================
-          # WRITE PLAYLISTS
+          # BUILD OUTPUT
           # ============================================================
 
           out = [
@@ -536,6 +547,7 @@ jobs:
               entries
           ):
 
+              # Replace existing group-title.
               ext = re.sub(
                   r'group-title="[^"]+"',
                   f'group-title="{category}"',
@@ -543,6 +555,7 @@ jobs:
                   flags=re.IGNORECASE
               )
 
+              # Add group-title if missing.
               if (
                   "group-title=" not in
                   ext.lower()
@@ -559,6 +572,10 @@ jobs:
 
           text = "\n".join(out)
 
+          # ============================================================
+          # WRITE ALL DCcatalog VARIANTS
+          # ============================================================
+
           for filename in [
               "dccatalog.m3u8",
               "DCcatalog.m3u8",
@@ -572,7 +589,7 @@ jobs:
               )
 
           # ============================================================
-          # REPORT
+          # CATEGORY REPORT
           # ============================================================
 
           counts = Counter(
@@ -660,6 +677,19 @@ jobs:
 
                   print(
                       f"  {category}: {count}"
+                  )
+
+          if removed_channels:
+
+              print()
+              print(
+                  "OTHER REMOVED CHANNELS:"
+              )
+
+              for channel in removed_channels:
+
+                  print(
+                      f"  {channel}"
                   )
 
           # ============================================================
