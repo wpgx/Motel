@@ -1,156 +1,486 @@
 name: Sort DCcatalog
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '50 2,5,8,11,14,17,20,23 * * *'
+
 concurrency:
   group: dccatalog
   cancel-in-progress: true
+
 jobs:
   sort:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Build DCcatalog
         run: |
           python3 - << 'PY'
-          import re, shutil, gzip
+          import re, gzip
           from pathlib import Path
           from collections import Counter, defaultdict
           import xml.etree.ElementTree as ET
 
           MERGE = {
-              "news & opinion": "News", "news and opinion": "News",
-              "news & weather": "News", "news and weather": "News",
-              "local news": "News", "national news": "News",
-              "business news": "News", "global news": "News",
-              "live news": "News", "weather": "News", "news": "News",
-              "home & food": "Home & Food", "home + food": "Home & Food",
-              "home and food": "Home & Food", "good eats": "Home & Food",
+              # NEWS
+              "news & opinion": "News",
+              "news and opinion": "News",
+              "news & weather": "News",
+              "news and weather": "News",
+              "local news": "News",
+              "national news": "News",
+              "business news": "News",
+              "global news": "News",
+              "live news": "News",
+              "weather": "News",
+              "news": "News",
+
+              # HOME / FOOD
+              "home & food": "Home & Food",
+              "home + food": "Home & Food",
+              "home and food": "Home & Food",
+              "good eats": "Home & Food",
               "lifestyle": "Home & Food",
-              "true crime": "Crime", "crime": "Crime", "crime scenes": "Crime",
-              "crime thrillher": "Crime", "crime cults killers": "Crime",
-              "chasing criminals": "Crime", "cold case files": "Crime",
-              "a&e crime 360": "Crime", "crime & mystery": "Crime",
-              "always funny": "Comedy", "comedy dynamics": "Comedy",
-              "tv dramas": "Drama", "tv drama": "Drama", "drama": "Drama",
-              "horror": "Sci-Fi & Horror", "sci-fi & supernatural": "Sci-Fi & Horror",
-              "sci-fi + supernatural": "Sci-Fi & Horror", "sci-fi and supernatural": "Sci-Fi & Horror",
-              "classic doctor who": "Sci-Fi & Horror", "alien nation by dust": "Sci-Fi & Horror",
-              "dust": "Sci-Fi & Horror", "sci-fi": "Sci-Fi & Horror", "scifi": "Sci-Fi & Horror",
-              "supernatural": "Sci-Fi & Horror", "drama & sci-fi": "Sci-Fi & Horror",
-              "movie channels": "Movies", "classic cinema": "Movies", "at the movies": "Movies", "cinevault": "Movies",
-              "sports on now": "Sports", "games & competition": "Sports", "games + competition": "Sports",
-              "pop culture": "Entertainment", "reality": "Entertainment", "black entertainment": "Entertainment",
-              "entertainment & reality": "Entertainment", "entertainment + reality": "Entertainment",
-              "kids & family": "Kids", "kids + family": "Kids", "kids and family": "Kids", "family": "Kids", "kids": "Kids",
-              "nature history and science": "Nature", "nature history & science": "Nature",
-              "science & nature": "Nature", "documentaries": "Nature", "nature & science": "Nature",
+
+              # CRIME
+              "true crime": "Crime",
+              "crime": "Crime",
+              "crime scenes": "Crime",
+              "crime thrillher": "Crime",
+              "crime cults killers": "Crime",
+              "chasing criminals": "Crime",
+              "cold case files": "Crime",
+              "a&e crime 360": "Crime",
+              "crime & mystery": "Crime",
+
+              # COMEDY
+              "always funny": "Comedy",
+              "comedy dynamics": "Comedy",
+
+              # DRAMA
+              "tv dramas": "Drama",
+              "tv drama": "Drama",
+              "drama": "Drama",
+
+              # SCI-FI / HORROR
+              "horror": "Sci-Fi & Horror",
+              "sci-fi & supernatural": "Sci-Fi & Horror",
+              "sci-fi + supernatural": "Sci-Fi & Horror",
+              "sci-fi and supernatural": "Sci-Fi & Horror",
+              "classic doctor who": "Sci-Fi & Horror",
+              "alien nation by dust": "Sci-Fi & Horror",
+              "dust": "Sci-Fi & Horror",
+              "sci-fi": "Sci-Fi & Horror",
+              "scifi": "Sci-Fi & Horror",
+              "supernatural": "Sci-Fi & Horror",
+              "drama & sci-fi": "Sci-Fi & Horror",
+              "paranormal": "Sci-Fi & Horror",
+              "out of this world": "Sci-Fi & Horror",
+
+              # MOVIES
+              "movie channels": "Movies",
+              "classic cinema": "Movies",
+              "at the movies": "Movies",
+              "cinevault": "Movies",
+
+              # SPORTS
+              "sports on now": "Sports",
+              "games & competition": "Sports",
+              "games + competition": "Sports",
+              "sports & outdoors": "Sports",
+              "sports and outdoors": "Sports",
+
+              # ENTERTAINMENT
+              "pop culture": "Entertainment",
+              "reality": "Entertainment",
+              "black entertainment": "Entertainment",
+              "entertainment & reality": "Entertainment",
+              "entertainment + reality": "Entertainment",
+
+              # KIDS
+              "kids & family": "Kids",
+              "kids + family": "Kids",
+              "kids and family": "Kids",
+              "family": "Kids",
+              "kids": "Kids",
+
+              # DOCUMENTARY
+              "documentary": "Documentary",
+              "documentaries": "Documentary",
+              "documentary & science": "Documentary",
+              "documentary and science": "Documentary",
+
+              # NATURE / SCIENCE
+              "nature": "Nature & Science",
+              "nature history": "Nature & Science",
+              "nature & history": "Nature & Science",
+              "nature history and science": "Nature & Science",
+              "nature history & science": "Nature & Science",
+              "science": "Nature & Science",
+              "science & nature": "Nature & Science",
+              "nature & science": "Nature & Science",
+              "nature and science": "Nature & Science",
+          }
+
+          REMOVE_CATEGORIES = {
+              "espanol",
+              "español",
+              "latin",
+              "spanish language",
+              "spanish-language",
+              "spanish",
           }
 
           def clean_cat(g):
-              if not g: return "Other"
-              gl = g.lower().strip().replace("+","&").replace(" and "," & ")
-              gl = re.sub(r'\s+',' ',gl)
-              if gl in MERGE: return MERGE[gl]
-              for k,v in MERGE.items():
-                  if k in gl: return v
+              if not g:
+                  return "Other"
+
+              gl = g.lower().strip()
+              gl = gl.replace("+", "&").replace(" and ", " & ")
+              gl = re.sub(r'\s+', ' ', gl)
+
+              if gl in MERGE:
+                  return MERGE[gl]
+
+              for k, v in MERGE.items():
+                  if k in gl:
+                      return v
+
               return g.strip().title()
 
           # Find which channels actually have guide data
-          good_ids=set()
+          good_ids = set()
+
           if Path("dcmaster.xml").exists():
               try:
-                  tree=ET.parse("dcmaster.xml")
-                  root=tree.getroot()
+                  tree = ET.parse("dcmaster.xml")
+                  root = tree.getroot()
+
                   for prog in root.findall("programme"):
-                      title=prog.findtext("title","").lower()
-                      if title and "no information" not in title and "to be announced" not in title:
-                          good_ids.add(prog.get("channel",""))
+                      title = prog.findtext("title", "").lower()
+
+                      if title and \
+                         "no information" not in title and \
+                         "to be announced" not in title:
+
+                          good_ids.add(prog.get("channel", ""))
+
               except Exception as e:
                   print(f"EPG parse warning: {e}")
 
           TOP = ["News", "Sports", "Movies"]
-          BOTTOM = ["Ambiance", "Anime & Gaming", "Anime"]
+
+          BOTTOM = [
+              "Ambiance",
+              "Anime & Gaming",
+              "Anime"
+          ]
 
           def sort_key(item):
-              cat=item[0]
-              if cat in TOP: return (0, TOP.index(cat), item[1])
-              if cat in BOTTOM or "ambiance" in cat.lower() or "anime" in cat.lower():
+              cat = item[0]
+
+              if cat in TOP:
+                  return (0, TOP.index(cat), item[1])
+
+              if cat in BOTTOM or \
+                 "ambiance" in cat.lower() or \
+                 "anime" in cat.lower():
+
                   return (2, cat.lower(), item[1])
+
               return (1, cat.lower(), item[1])
 
-          src=Path("dcmaster.m3u8")
-          lines=src.read_text(encoding='utf-8', errors='ignore').splitlines()
+          src = Path("dcmaster.m3u8")
 
-          # Group by normalized name to find dupes
-          by_name=defaultdict(list)
-          for i,l in enumerate(lines):
-              if not l.startswith("#EXTINF"): continue
-              url=lines[i+1].strip() if i+1 < len(lines) else ""
-              if not url.startswith("http"): continue
-              name=l.rsplit(",",1)[-1].strip()
-              if "welcome" in name.lower() and "motel" in name.lower(): continue
-              m=re.search(r'group-title="([^"]+)"',l)
-              orig=m.group(1) if m else "Other"
-              if orig.lower() in ("tubi","roku"): orig="Other"
-              cat=clean_cat(orig)
-              tvg_id=re.search(r'tvg-id="([^"]+)"',l)
-              tid=tvg_id.group(1) if tvg_id else ""
-              by_name[name.lower()].append((cat, name, l, url, tid))
+          lines = src.read_text(
+              encoding="utf-8",
+              errors="ignore"
+          ).splitlines()
 
-          entries=[]
-          dupes_removed=0
+          # Group by normalized channel name to find duplicates
+          by_name = defaultdict(list)
+
+          removed_categories = Counter()
+          removed_channels = []
+
+          for i, l in enumerate(lines):
+
+              if not l.startswith("#EXTINF"):
+                  continue
+
+              url = lines[i + 1].strip() if i + 1 < len(lines) else ""
+
+              if not url.startswith("http"):
+                  continue
+
+              name = l.rsplit(",", 1)[-1].strip()
+
+              # Remove motel welcome channels
+              if "welcome" in name.lower() and \
+                 "motel" in name.lower():
+
+                  removed_channels.append(name)
+                  continue
+
+              # Remove Channel 1
+              if name.lower().strip() in {
+                  "channel 1",
+                  "channel1"
+              }:
+
+                  removed_channels.append(name)
+                  continue
+
+              m = re.search(
+                  r'group-title="([^"]+)"',
+                  l
+              )
+
+              orig = m.group(1) if m else "Other"
+
+              orig_low = orig.lower().strip()
+
+              # Remove unwanted Spanish categories
+              if orig_low in REMOVE_CATEGORIES:
+
+                  removed_categories[orig] += 1
+                  removed_channels.append(name)
+                  continue
+
+              # Tubi/Roku remain available but stay in Other
+              if orig_low in ("tubi", "roku"):
+                  orig = "Other"
+
+              cat = clean_cat(orig)
+
+              tvg_id_match = re.search(
+                  r'tvg-id="([^"]+)"',
+                  l
+              )
+
+              tid = (
+                  tvg_id_match.group(1)
+                  if tvg_id_match
+                  else ""
+              )
+
+              by_name[name.lower()].append(
+                  (
+                      cat,
+                      name,
+                      l,
+                      url,
+                      tid
+                  )
+              )
+
+          entries = []
+          dupes_removed = 0
+
           for name_low, lst in by_name.items():
-              if len(lst)==1:
-                  cat,_,ext,url,_=lst[0]
-                  entries.append((cat, name_low, ext, url))
-              else:
-                  # pick the one with real guide data if possible
-                  lst_sorted=sorted(lst, key=lambda x: (x[4] not in good_ids, x[0]))
-                  # keep first, drop rest
-                  cat,_,ext,url,_=lst_sorted[0]
-                  entries.append((cat, name_low, ext, url))
-                  dupes_removed+=len(lst)-1
 
+              if len(lst) == 1:
+
+                  cat, _, ext, url, _ = lst[0]
+
+                  entries.append(
+                      (
+                          cat,
+                          name_low,
+                          ext,
+                          url
+                      )
+                  )
+
+              else:
+
+                  # Prefer the copy with real guide data
+                  lst_sorted = sorted(
+                      lst,
+                      key=lambda x: (
+                          x[4] not in good_ids,
+                          x[0]
+                      )
+                  )
+
+                  cat, _, ext, url, _ = lst_sorted[0]
+
+                  entries.append(
+                      (
+                          cat,
+                          name_low,
+                          ext,
+                          url
+                      )
+                  )
+
+                  dupes_removed += len(lst) - 1
+
+          # Sort only by category/name.
+          # No channel numbers or stream IDs are changed here.
           entries.sort(key=sort_key)
 
-          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
-          for cat,_,ext,url in entries:
-              ext=re.sub(r'group-title="[^"]+"',f'group-title="{cat}"',ext)
+          out = [
+              '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
+          ]
+
+          for cat, _, ext, url in entries:
+
+              ext = re.sub(
+                  r'group-title="[^"]+"',
+                  f'group-title="{cat}"',
+                  ext
+              )
+
               if 'group-title=' not in ext:
-                  ext=ext.replace('#EXTINF:-1', f'#EXTINF:-1 group-title="{cat}"',1)
-              out.append(ext); out.append(url)
 
-          text="\n".join(out)
-          Path("dccatalog.m3u8").write_text(text, encoding='utf-8')
-          Path("DCcatalog.m3u8").write_text(text, encoding='utf-8')
-          Path("dccatalog.m3u").write_text(text, encoding='utf-8')
-          Path("DCcatalog.m3u").write_text(text, encoding='utf-8')
+                  ext = ext.replace(
+                      '#EXTINF:-1',
+                      f'#EXTINF:-1 group-title="{cat}"',
+                      1
+                  )
 
-          c=Counter([cat for cat,_,_,_ in entries])
-          ordered_cats = TOP + [x for x in sorted(c) if x not in TOP and x not in BOTTOM and "ambiance" not in x.lower() and "anime" not in x.lower()] + [x for x in sorted(c) if x in BOTTOM or "ambiance" in x.lower() or "anime" in x.lower()]
+              out.append(ext)
+              out.append(url)
+
+          text = "\n".join(out)
+
+          # Write all catalog variants
+          Path("dccatalog.m3u8").write_text(
+              text,
+              encoding="utf-8"
+          )
+
+          Path("DCcatalog.m3u8").write_text(
+              text,
+              encoding="utf-8"
+          )
+
+          Path("dccatalog.m3u").write_text(
+              text,
+              encoding="utf-8"
+          )
+
+          Path("DCcatalog.m3u").write_text(
+              text,
+              encoding="utf-8"
+          )
+
+          # Category report
+          c = Counter(
+              cat
+              for cat, _, _, _ in entries
+          )
+
+          ordered_cats = (
+              TOP
+              +
+              [
+                  x for x in sorted(c)
+                  if x not in TOP
+                  and x not in BOTTOM
+                  and "ambiance" not in x.lower()
+                  and "anime" not in x.lower()
+              ]
+              +
+              [
+                  x for x in sorted(c)
+                  if x in BOTTOM
+                  or "ambiance" in x.lower()
+                  or "anime" in x.lower()
+              ]
+          )
+
+          print("\n===== DCcatalog categories =====")
+
           for k in ordered_cats:
               print(f"{k}: {c[k]}")
-          print(f"\nBuilt {len(entries)} channels, removed {dupes_removed} dupes, {len(c)} categories")
+
+          print(
+              f"\nBuilt {len(entries)} channels, "
+              f"removed {dupes_removed} dupes, "
+              f"{len(c)} categories"
+          )
+
+          if removed_categories:
+              print("\n===== Removed Spanish categories =====")
+
+              for k, v in removed_categories.items():
+                  print(f"{k}: {v}")
+
+          if removed_channels:
+              print(
+                  f"\nRemoved {len(removed_channels)} "
+                  f"unwanted channels"
+              )
 
           # EPG with To Be Announced fix
           if Path("dcmaster.xml").exists():
-              xml_text = Path("dcmaster.xml").read_text(encoding='utf-8', errors='ignore')
-              xml_text = xml_text.replace("No Information", "To Be Announced").replace("No information", "To Be Announced")
-              Path("dccatalog.xml").write_text(xml_text, encoding='utf-8')
-              Path("DCcatalog.xml").write_text(xml_text, encoding='utf-8')
-              for gz_name in ["dccatalog.xml.gz","DCcatalog.xml.gz"]:
-                  Path(gz_name).write_bytes(gzip.compress(xml_text.encode('utf-8')))
+
+              xml_text = Path(
+                  "dcmaster.xml"
+              ).read_text(
+                  encoding="utf-8",
+                  errors="ignore"
+              )
+
+              xml_text = xml_text.replace(
+                  "No Information",
+                  "To Be Announced"
+              )
+
+              xml_text = xml_text.replace(
+                  "No information",
+                  "To Be Announced"
+              )
+
+              Path("dccatalog.xml").write_text(
+                  xml_text,
+                  encoding="utf-8"
+              )
+
+              Path("DCcatalog.xml").write_text(
+                  xml_text,
+                  encoding="utf-8"
+              )
+
+              for gz_name in [
+                  "dccatalog.xml.gz",
+                  "DCcatalog.xml.gz"
+              ]:
+
+                  Path(gz_name).write_bytes(
+                      gzip.compress(
+                          xml_text.encode("utf-8")
+                      )
+                  )
+
           PY
 
       - name: Push
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
-          git add DCcatalog.m3u8 DCcatalog.m3u DCcatalog.xml DCcatalog.xml.gz dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "DCcatalog: dedupe keep good guide + TBA fix"
+
+          git add \
+            DCcatalog.m3u8 \
+            DCcatalog.m3u \
+            DCcatalog.xml \
+            DCcatalog.xml.gz \
+            dccatalog.m3u8 \
+            dccatalog.m3u \
+            dccatalog.xml \
+            dccatalog.xml.gz \
+            -f
+
+          git diff --cached --quiet && \
+            echo "No change" && \
+            exit 0
+
+          git commit -m "DCcatalog: clean categories and remove unwanted channels"
           git push
