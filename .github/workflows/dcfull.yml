@@ -1,70 +1,292 @@
 name: Build DCFULL
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '25 2,5,8,11,14,17,20,23 * * *'
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Build DCFULL
         run: |
           python3 << 'PY'
           import os, re
 
           def load(f):
-              lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
+              if not os.path.exists(f):
+                  return []
+
+              lines = open(
+                  f,
+                  encoding='utf-8',
+                  errors='ignore'
+              ).read().splitlines()
+
               pairs = []
-              for i,l in enumerate(lines):
+
+              for i, l in enumerate(lines):
                   if l.startswith('#EXTINF'):
                       nxt = lines[i+1] if i+1 < len(lines) else ""
                       if nxt.startswith('http'):
-                          pairs.append((l,nxt))
+                          pairs.append((l, nxt))
+
               return pairs
 
-          pluto = load('pluto.m3u8') if os.path.exists('pluto.m3u8') else []
-          samsung = load('samsung-ca.m3u8') if os.path.exists('samsung-ca.m3u8') else []
+          def channel_name(inf):
+              # Everything after the final comma is the channel name
+              if ',' in inf:
+                  return inf.rsplit(',', 1)[1].strip().lower()
+              return inf.strip().lower()
 
-          # force favorites first, everything else after, keep original chno
+          def normalize_name(name):
+              name = name.lower()
+              name = re.sub(r'[^a-z0-9]+', '', name)
+              return name
+
+          pluto = load('pluto.m3u8')
+          samsung = load('samsung-ca.m3u8')
+          lg = load('lg.m3u8')
+
+          # Pluto favorites first
           favs = [p for p in pluto if 'favor' in p[0].lower()]
           rest = [p for p in pluto if p not in favs]
           pluto_sorted = favs + rest
-          print(f"Pluto: {len(favs)} favs top + {len(rest)} rest = {len(pluto_sorted)}")
-          print(f"Samsung: {len(samsung)}")
 
-          out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"']
-          for inf, url in pluto_sorted + samsung:
+          print(f"Pluto:   {len(pluto_sorted)}")
+          print(f"Samsung: {len(samsung)}")
+          print(f"LG:      {len(lg)}")
+
+          # --------------------------------------------------
+          # MERGE
+          # Priority:
+          #   1. Pluto
+          #   2. Samsung
+          #   3. LG
+          #
+          # First occurrence wins.
+          # --------------------------------------------------
+
+          merged = []
+          seen_names = set()
+
+          duplicate_pluto = 0
+          duplicate_samsung = 0
+          duplicate_lg = 0
+
+          for source, playlist in [
+              ('Pluto', pluto_sorted),
+              ('Samsung', samsung),
+              ('LG', lg)
+          ]:
+
+              for inf, url in playlist:
+
+                  name = channel_name(inf)
+                  key = normalize_name(name)
+
+                  if not key:
+                      continue
+
+                  if key in seen_names:
+                      if source == 'Pluto':
+                          duplicate_pluto += 1
+                      elif source == 'Samsung':
+                          duplicate_samsung += 1
+                      else:
+                          duplicate_lg += 1
+                      continue
+
+                  seen_names.add(key)
+                  merged.append((inf, url))
+
+          print()
+          print("========== DCFULL MERGE ==========")
+          print(f"Final channels:       {len(merged)}")
+          print(f"Samsung duplicates:   {duplicate_samsung}")
+          print(f"LG duplicates:        {duplicate_lg}")
+          print(f"Pluto duplicates:     {duplicate_pluto}")
+          print("===================================")
+
+          # --------------------------------------------------
+          # M3U
+          # --------------------------------------------------
+
+          out = [
+              '#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"'
+          ]
+
+          for inf, url in merged:
               out.append(inf)
               out.append(url)
 
-          open('dcfull.m3u8','w',encoding='utf-8').write("\n".join(out)+"\n")
-          open('dcfull.m3u','w',encoding='utf-8').write("\n".join(out)+"\n")
-          print(f"DCFULL TOTAL: {len(pluto_sorted)+len(samsung)} ch")
+          content = "\n".join(out) + "\n"
 
-          # xml
+          open(
+              'dcfull.m3u8',
+              'w',
+              encoding='utf-8'
+          ).write(content)
+
+          open(
+              'dcfull.m3u',
+              'w',
+              encoding='utf-8'
+          ).write(content)
+
+          # --------------------------------------------------
+          # XML
+          # --------------------------------------------------
+
           channels = {}
           progs = []
-          for xf in ['pluto.xml','samsung-ca.xml']:
-              if not os.path.exists(xf): continue
-              txt = open(xf, encoding='utf-8', errors='ignore').read()
-              for m in re.finditer(r'<channel id="([^"]+)".*?</channel>', txt, re.DOTALL):
-                  channels[m.group(1)] = m.group(0)
-              for m in re.finditer(r'<programme.*?</programme>', txt, re.DOTALL):
-                  progs.append(m.group(0))
-          with open('dcfull.xml','w',encoding='utf-8') as o:
-              o.write('<?xml version="1.0"?>\n<tv>\n')
-              for c in channels.values(): o.write(c+"\n")
-              for p in progs: o.write(p+"\n")
+
+          # Keep track of which channel IDs survived the
+          # same name-based dedupe.
+          winning_ids = set()
+
+          # Build a name -> channel ID map from the M3U.
+          # Prefer the first source, matching the M3U merge.
+          winning_names = {}
+
+          for inf, url in merged:
+
+              name = channel_name(inf)
+              key = normalize_name(name)
+
+              m = re.search(
+                  r'tvg-id="([^"]+)"',
+                  inf,
+                  re.IGNORECASE
+              )
+
+              if m:
+                  cid = m.group(1).strip()
+
+                  if key not in winning_names:
+                      winning_names[key] = cid
+                      winning_ids.add(cid)
+
+          # Read XML sources.
+          for xf in [
+              'pluto.xml',
+              'samsung-ca.xml',
+              'lg.xml'
+          ]:
+
+              if not os.path.exists(xf):
+                  print(f"XML missing: {xf}")
+                  continue
+
+              txt = open(
+                  xf,
+                  encoding='utf-8',
+                  errors='ignore'
+              ).read()
+
+              # Channels
+              for m in re.finditer(
+                  r'<channel id="([^"]+)".*?</channel>',
+                  txt,
+                  re.DOTALL
+              ):
+
+                  cid = m.group(1)
+                  block = m.group(0)
+
+                  dm = re.search(
+                      r'<display-name[^>]*>(.*?)</display-name>',
+                      block,
+                      re.DOTALL
+                  )
+
+                  if dm:
+                      display = re.sub(
+                          r'<[^>]+>',
+                          '',
+                          dm.group(1)
+                      ).strip()
+
+                      key = normalize_name(display)
+
+                      # Only retain XML for channels that
+                      # survived the M3U merge.
+                      if cid in winning_ids and key not in channels:
+                          channels[key] = block
+
+              # Programs
+              for m in re.finditer(
+                  r'<programme.*?</programme>',
+                  txt,
+                  re.DOTALL
+              ):
+                  block = m.group(0)
+
+                  cm = re.search(
+                      r'channel="([^"]+)"',
+                      block
+                  )
+
+                  if cm and cm.group(1) in winning_ids:
+                      progs.append(block)
+
+          # Remove duplicate programme blocks
+          # while preserving order.
+          unique_progs = []
+          seen_prog = set()
+
+          for p in progs:
+              key = re.sub(r'\s+', ' ', p).strip()
+
+              if key in seen_prog:
+                  continue
+
+              seen_prog.add(key)
+              unique_progs.append(p)
+
+          with open(
+              'dcfull.xml',
+              'w',
+              encoding='utf-8'
+          ) as o:
+
+              o.write('<?xml version="1.0"?>\n')
+              o.write('<tv>\n')
+
+              for c in channels.values():
+                  o.write(c + "\n")
+
+              for p in unique_progs:
+                  o.write(p + "\n")
+
               o.write('</tv>\n')
+
+          print(f"XML channels: {len(channels)}")
+          print(f"XML programs: {len(unique_progs)}")
+
           PY
+
+      - name: Show results
+        run: |
+          echo "===== DCFULL ====="
+          grep -c '^#EXTINF:' dcfull.m3u8 || true
+          ls -lh dcfull.m3u8 dcfull.m3u dcfull.xml
+
       - name: Push
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
+
           git add dcfull.m3u8 dcfull.m3u dcfull.xml -f
+
           git diff --cached --quiet && exit 0
-          git commit -m "dcfull: pluto+samsung no dupes favs top"
+
+          git commit -m "dcfull: pluto+samsung+LG"
+
           git push
