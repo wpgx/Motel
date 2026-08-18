@@ -33,14 +33,84 @@ jobs:
 
           MERGE = {
 
-              # ---------------- HOME & FOOD ----------------
+              # --------------------------------------------------------
+              # CANADA
+              # --------------------------------------------------------
+              "canada": "Canada",
+              "canadian": "Canada",
+              "canadian news": "Canada",
+              "canadian news & opinion": "Canada",
+              "canadian news and opinion": "Canada",
+              "canadian news & weather": "Canada",
+              "canadian news and weather": "Canada",
+              "canadian weather": "Canada",
+              "canada news": "Canada",
+              "canada weather": "Canada",
+              "local canadian news": "Canada",
+
+              # --------------------------------------------------------
+              # USA
+              # --------------------------------------------------------
+              "usa": "USA",
+              "u.s.": "USA",
+              "us": "USA",
+              "u.s.a.": "USA",
+              "american": "USA",
+              "american news": "USA",
+              "usa news": "USA",
+              "us news": "USA",
+              "u.s. news": "USA",
+              "american news & opinion": "USA",
+              "american news and opinion": "USA",
+              "usa news & weather": "USA",
+              "usa news and weather": "USA",
+              "us news & weather": "USA",
+              "us news and weather": "USA",
+              "american weather": "USA",
+              "usa weather": "USA",
+              "us weather": "USA",
+
+              # --------------------------------------------------------
+              # GLOBAL NEWS
+              # --------------------------------------------------------
+              "news": "Global News",
+              "news & opinion": "Global News",
+              "news and opinion": "Global News",
+              "news & weather": "Global News",
+              "news and weather": "Global News",
+              "global news": "Global News",
+              "global news & opinion": "Global News",
+              "global news and opinion": "Global News",
+              "global news & weather": "Global News",
+              "global news and weather": "Global News",
+              "global": "Global News",
+              "international": "Global News",
+              "international news": "Global News",
+              "international weather": "Global News",
+              "world news": "Global News",
+              "world news & opinion": "Global News",
+              "world news and opinion": "Global News",
+              "world news & weather": "Global News",
+              "world news and weather": "Global News",
+              "business news": "Global News",
+              "global business": "Global News",
+              "national news": "Global News",
+              "live news": "Global News",
+              "weather": "Global News",
+              "world weather": "Global News",
+
+              # --------------------------------------------------------
+              # HOME & FOOD
+              # --------------------------------------------------------
               "home & food": "Home & Food",
               "home + food": "Home & Food",
               "home and food": "Home & Food",
               "good eats": "Home & Food",
               "lifestyle": "Home & Food",
 
-              # ---------------- CRIME ----------------
+              # --------------------------------------------------------
+              # CRIME
+              # --------------------------------------------------------
               "true crime": "Crime",
               "crime": "Crime",
               "crime scenes": "Crime",
@@ -51,16 +121,22 @@ jobs:
               "a&e crime 360": "Crime",
               "crime & mystery": "Crime",
 
-              # ---------------- COMEDY ----------------
+              # --------------------------------------------------------
+              # COMEDY
+              # --------------------------------------------------------
               "always funny": "Comedy",
               "comedy dynamics": "Comedy",
 
-              # ---------------- DRAMA ----------------
+              # --------------------------------------------------------
+              # DRAMA
+              # --------------------------------------------------------
               "tv dramas": "Drama",
               "tv drama": "Drama",
               "drama": "Drama",
 
-              # ---------------- SCI-FI & HORROR ----------------
+              # --------------------------------------------------------
+              # SCI-FI & HORROR
+              # --------------------------------------------------------
               "horror": "Sci-Fi & Horror",
               "sci-fi": "Sci-Fi & Horror",
               "scifi": "Sci-Fi & Horror",
@@ -75,7 +151,9 @@ jobs:
               "paranormal": "Sci-Fi & Horror",
               "out of this world": "Sci-Fi & Horror",
 
-              # ---------------- MOVIES ----------------
+              # --------------------------------------------------------
+              # MOVIES
+              # --------------------------------------------------------
               "movies": "Movies",
               "movie channels": "Movies",
               "classic cinema": "Movies",
@@ -83,7 +161,9 @@ jobs:
               "cinevault": "Movies",
               "tv & movies": "Movies",
 
-              # ---------------- SPORTS ----------------
+              # --------------------------------------------------------
+              # SPORTS
+              # --------------------------------------------------------
               "sports": "Sports",
               "sports on now": "Sports",
               "sports & outdoors": "Sports",
@@ -91,27 +171,35 @@ jobs:
               "games & competition": "Sports",
               "games + competition": "Sports",
 
-              # ---------------- ENTERTAINMENT ----------------
+              # --------------------------------------------------------
+              # ENTERTAINMENT
+              # --------------------------------------------------------
               "pop culture": "Entertainment",
               "reality": "Entertainment",
               "black entertainment": "Entertainment",
               "entertainment & reality": "Entertainment",
               "entertainment + reality": "Entertainment",
 
-              # ---------------- KIDS ----------------
+              # --------------------------------------------------------
+              # KIDS
+              # --------------------------------------------------------
               "kids": "Kids",
               "kids & family": "Kids",
               "kids + family": "Kids",
               "kids and family": "Kids",
               "family": "Kids",
 
-              # ---------------- DOCUMENTARY ----------------
+              # --------------------------------------------------------
+              # DOCUMENTARY
+              # --------------------------------------------------------
               "documentary": "Documentary",
               "documentaries": "Documentary",
               "documentary & science": "Documentary",
               "documentary and science": "Documentary",
 
-              # ---------------- NATURE & SCIENCE ----------------
+              # --------------------------------------------------------
+              # NATURE & SCIENCE
+              # --------------------------------------------------------
               "nature": "Nature & Science",
               "nature history": "Nature & Science",
               "nature & history": "Nature & Science",
@@ -123,7 +211,10 @@ jobs:
               "nature and science": "Nature & Science",
           }
 
-          # Categories to remove completely.
+          # ============================================================
+          # CATEGORIES TO REMOVE
+          # ============================================================
+
           REMOVE_CATEGORIES = {
               "espanol",
               "español",
@@ -134,63 +225,18 @@ jobs:
           }
 
           # ============================================================
-          # CANADA / USA NEWS CLASSIFICATION
+          # CATEGORY NORMALIZATION
           # ============================================================
 
-          CANADA_NEWS = (
-              "cbc",
-              "cbc news",
-              "cbc news network",
-              "ctv",
-              "ctv news",
-              "ctv news channel",
-              "global news",
-              "global national",
-              "cp24",
-              "bnn bloomberg",
-              "bnn",
-              "citynews",
-              "city news",
-              "chek news",
-              "canada news",
-              "canadian news",
-              "manitoba news",
-              "ontario news",
-              "alberta news",
-              "saskatchewan news",
-              "british columbia news",
-              "atlantic news",
-          )
-
-          USA_NEWS = (
-              "cnn",
-              "cnn news",
-              "cnn us",
-              "fox news",
-              "fox news channel",
-              "msnbc",
-              "newsmax",
-              "newsmax tv",
-              "newsnation",
-              "abc news",
-              "cbs news",
-              "nbc news",
-              "nbc news now",
-              "newsnow from fox",
-              "one america news",
-              "oan",
-              "american news",
-              "america's news",
-          )
-
           def normalize_category(raw):
+
               if not raw:
                   return "Other"
 
               g = raw.strip()
 
-              # Fix HTML entities and the exact source spelling
-              # "TV &Amp; Movies".
+              # Handle HTML entities, including the source's
+              # "TV &Amp; Movies" spelling.
               g = re.sub(
                   r'&amp;',
                   '&',
@@ -206,11 +252,9 @@ jobs:
 
               gl = g.lower()
 
-              # Explicitly catch TV & Movies.
               if gl == "tv & movies":
                   return "Movies"
 
-              # Normalize + and "and".
               lookup = (
                   gl
                   .replace("+", "&")
@@ -226,39 +270,7 @@ jobs:
               if lookup in MERGE:
                   return MERGE[lookup]
 
-              for key, value in MERGE.items():
-                  if key in lookup:
-                      return value
-
               return g.title()
-
-          def classify_news(name, category):
-              """
-              Split generic News into Canada / USA / International.
-              International is the safe fallback.
-              """
-
-              if category not in (
-                  "News",
-                  "International"
-              ):
-                  return category
-
-              n = name.lower().strip()
-
-              # Canadian news
-              for item in CANADA_NEWS:
-                  if n == item or n.startswith(item + " "):
-                      return "Canada"
-
-              # U.S. news
-              for item in USA_NEWS:
-                  if n == item or n.startswith(item + " "):
-                      return "USA"
-
-              # Everything else formerly considered News
-              # becomes International.
-              return "International"
 
           # ============================================================
           # EPG DATA
@@ -267,11 +279,19 @@ jobs:
           good_ids = set()
 
           if Path("dcmaster.xml").exists():
+
               try:
-                  tree = ET.parse("dcmaster.xml")
+
+                  tree = ET.parse(
+                      "dcmaster.xml"
+                  )
+
                   root = tree.getroot()
 
-                  for prog in root.findall("programme"):
+                  for prog in root.findall(
+                      "programme"
+                  ):
+
                       title = prog.findtext(
                           "title",
                           ""
@@ -282,12 +302,15 @@ jobs:
                           and "no information" not in title
                           and "to be announced" not in title
                       ):
+
                           good_ids.add(
                               prog.get("channel", "")
                           )
 
               except Exception as e:
-                  print(f"EPG parse warning: {e}")
+                  print(
+                      f"EPG parse warning: {e}"
+                  )
 
           # ============================================================
           # CATEGORY ORDER
@@ -296,7 +319,7 @@ jobs:
           TOP = [
               "Canada",
               "USA",
-              "International",
+              "Global News",
               "Sports",
               "Movies"
           ]
@@ -308,9 +331,11 @@ jobs:
           ]
 
           def sort_key(item):
+
               category = item[0]
 
               if category in TOP:
+
                   return (
                       0,
                       TOP.index(category),
@@ -322,6 +347,7 @@ jobs:
                   or "ambiance" in category.lower()
                   or "anime" in category.lower()
               ):
+
                   return (
                       2,
                       category.lower(),
@@ -335,10 +361,12 @@ jobs:
               )
 
           # ============================================================
-          # READ MASTER PLAYLIST
+          # READ MASTER
           # ============================================================
 
-          src = Path("dcmaster.m3u8")
+          src = Path(
+              "dcmaster.m3u8"
+          )
 
           lines = src.read_text(
               encoding="utf-8",
@@ -346,7 +374,7 @@ jobs:
           ).splitlines()
 
           # ============================================================
-          # GROUP CHANNELS
+          # BUILD CHANNEL LIST
           # ============================================================
 
           by_name = defaultdict(list)
@@ -356,7 +384,9 @@ jobs:
 
           for i, line in enumerate(lines):
 
-              if not line.startswith("#EXTINF"):
+              if not line.startswith(
+                  "#EXTINF"
+              ):
                   continue
 
               url = (
@@ -365,7 +395,9 @@ jobs:
                   else ""
               )
 
-              if not url.startswith("http"):
+              if not url.startswith(
+                  "http"
+              ):
                   continue
 
               name = line.rsplit(
@@ -378,18 +410,15 @@ jobs:
                   "welcome" in name.lower()
                   and "motel" in name.lower()
               ):
+
                   removed_channels.append(
                       f"{name} [welcome]"
                   )
+
                   continue
 
-              # --------------------------------------------------------
-              # DO NOT REMOVE THE MYSTERY CHANNEL 1 YET.
-              #
-              # Its display name changes, so we don't want to delete a
-              # legitimate channel accidentally. We will identify the
-              # actual 500/slot field separately.
-              # --------------------------------------------------------
+              # Do NOT remove the mystery channel 1 yet.
+              # Its display name changes.
 
               match = re.search(
                   r'group-title="([^"]+)"',
@@ -409,8 +438,10 @@ jobs:
                   .lower()
               )
 
-              # Remove Spanish categories entirely.
-              if original_lower in REMOVE_CATEGORIES:
+              # Remove unwanted Spanish categories.
+              if original_lower in (
+                  REMOVE_CATEGORIES
+              ):
 
                   removed_categories[
                       original_category
@@ -422,22 +453,18 @@ jobs:
 
                   continue
 
-              # Tubi/Roku stay available but remain Other.
+              # Tubi and Roku stay in Other.
               if original_lower in (
                   "tubi",
                   "roku"
               ):
-                  original_category = "Other"
+
+                  original_category = (
+                      "Other"
+                  )
 
               category = normalize_category(
                   original_category
-              )
-
-              # All News gets split into Canada / USA /
-              # International.
-              category = classify_news(
-                  name,
-                  category
               )
 
               tvg_match = re.search(
@@ -471,11 +498,15 @@ jobs:
           entries = []
           dupes_removed = 0
 
-          for name_low, channels in by_name.items():
+          for name_low, channels in (
+              by_name.items()
+          ):
 
               if len(channels) == 1:
 
-                  category, _, ext, url, _ = channels[0]
+                  category, _, ext, url, _ = (
+                      channels[0]
+                  )
 
                   entries.append(
                       (
@@ -488,7 +519,6 @@ jobs:
 
               else:
 
-                  # Prefer the copy with actual guide data.
                   channels_sorted = sorted(
                       channels,
                       key=lambda x: (
@@ -523,14 +553,16 @@ jobs:
           )
 
           # ============================================================
-          # WRITE CATALOG
+          # WRITE DCcatalog
           # ============================================================
 
           out = [
               '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
           ]
 
-          for category, _, ext, url in entries:
+          for category, _, ext, url in (
+              entries
+          ):
 
               ext = re.sub(
                   r'group-title="[^"]+"',
@@ -539,7 +571,9 @@ jobs:
                   flags=re.IGNORECASE
               )
 
-              if "group-title=" not in ext.lower():
+              if "group-title=" not in (
+                  ext.lower()
+              ):
 
                   ext = ext.replace(
                       "#EXTINF:-1",
@@ -558,6 +592,7 @@ jobs:
               "dccatalog.m3u",
               "DCcatalog.m3u"
           ]:
+
               Path(filename).write_text(
                   text,
                   encoding="utf-8"
@@ -569,7 +604,8 @@ jobs:
 
           counts = Counter(
               category
-              for category, _, _, _ in entries
+              for category, _, _, _
+              in entries
           )
 
           ordered_categories = (
@@ -578,10 +614,12 @@ jobs:
               [
                   x
                   for x in sorted(counts)
-                  if x not in TOP
-                  and x not in BOTTOM
-                  and "ambiance" not in x.lower()
-                  and "anime" not in x.lower()
+                  if (
+                      x not in TOP
+                      and x not in BOTTOM
+                      and "ambiance" not in x.lower()
+                      and "anime" not in x.lower()
+                  )
               ]
               +
               [
@@ -596,26 +634,45 @@ jobs:
           )
 
           print()
-          print("========================================")
-          print("        DCcatalog CATEGORY REPORT")
-          print("========================================")
+          print(
+              "========================================"
+          )
+          print(
+              "        DCcatalog CATEGORY REPORT"
+          )
+          print(
+              "========================================"
+          )
 
           for category in ordered_categories:
+
               print(
-                  f"{category:<25} {counts[category]:>4}"
+                  f"{category:<25} "
+                  f"{counts[category]:>4}"
               )
 
-          print("----------------------------------------")
           print(
-              f"TOTAL CHANNELS:          {len(entries)}"
+              "----------------------------------------"
           )
+
           print(
-              f"DUPLICATES REMOVED:      {dupes_removed}"
+              f"TOTAL CHANNELS:          "
+              f"{len(entries)}"
           )
+
           print(
-              f"CATEGORIES:              {len(counts)}"
+              f"DUPLICATES REMOVED:      "
+              f"{dupes_removed}"
           )
-          print("========================================")
+
+          print(
+              f"CATEGORIES:              "
+              f"{len(counts)}"
+          )
+
+          print(
+              "========================================"
+          )
 
           if removed_categories:
 
@@ -627,6 +684,7 @@ jobs:
               for category, count in (
                   removed_categories.items()
               ):
+
                   print(
                       f"  {category}: {count}"
                   )
@@ -639,6 +697,7 @@ jobs:
               )
 
               for channel in removed_channels:
+
                   print(
                       f"  {channel}"
                   )
@@ -647,7 +706,9 @@ jobs:
           # EPG
           # ============================================================
 
-          if Path("dcmaster.xml").exists():
+          if Path(
+              "dcmaster.xml"
+          ).exists():
 
               xml_text = Path(
                   "dcmaster.xml"
@@ -714,6 +775,6 @@ jobs:
             exit 0
 
           git commit \
-            -m "DCcatalog: organize categories"
+            -m "DCcatalog: organize news and channel categories"
 
           git push
