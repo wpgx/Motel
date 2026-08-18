@@ -1,0 +1,393 @@
+```yaml
+name: Build DCFULL
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 2,5,8,11,14,17,20,23 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build DCFULL
+        run: |
+          python3 << 'PY'
+          import os
+          import re
+
+          # ==================================================
+          # LOAD M3U
+          # ==================================================
+
+          def load(f):
+              if not os.path.exists(f):
+                  print(f"M3U missing: {f}")
+                  return []
+
+              lines = open(
+                  f,
+                  encoding='utf-8',
+                  errors='ignore'
+              ).read().splitlines()
+
+              pairs = []
+
+              for i, line in enumerate(lines):
+                  if line.startswith('#EXTINF'):
+                      url = lines[i + 1] if i + 1 < len(lines) else ""
+
+                      if url.startswith('http'):
+                          pairs.append((line, url))
+
+              return pairs
+
+          def channel_name(inf):
+              if ',' in inf:
+                  return inf.rsplit(',', 1)[1].strip().lower()
+
+              return inf.strip().lower()
+
+          def normalize_name(name):
+              return re.sub(
+                  r'[^a-z0-9]+',
+                  '',
+                  name.lower()
+              )
+
+          # ==================================================
+          # LOAD SOURCE PLAYLISTS
+          # ==================================================
+
+          pluto = load('pluto.m3u8')
+          samsung = load('samsung-ca.m3u8')
+          lg = load('lg.m3u8')
+
+          # ==================================================
+          # PLUTO FAVORITES FIRST
+          # ==================================================
+
+          favs = [
+              p for p in pluto
+              if 'favor' in p[0].lower()
+          ]
+
+          rest = [
+              p for p in pluto
+              if p not in favs
+          ]
+
+          pluto_sorted = favs + rest
+
+          print()
+          print("========== SOURCE PLAYLISTS ==========")
+          print(f"Pluto:   {len(pluto_sorted)}")
+          print(f"Samsung: {len(samsung)}")
+          print(f"LG:      {len(lg)}")
+          print("======================================")
+          print()
+
+          # ==================================================
+          # MERGE M3U
+          #
+          # Pluto first
+          # Samsung second
+          # LG third
+          #
+          # First channel name wins.
+          # ==================================================
+
+          merged = []
+          seen_names = set()
+
+          duplicate_pluto = 0
+          duplicate_samsung = 0
+          duplicate_lg = 0
+
+          for source, playlist in [
+              ('Pluto', pluto_sorted),
+              ('Samsung', samsung),
+              ('LG', lg)
+          ]:
+
+              for inf, url in playlist:
+
+                  name = channel_name(inf)
+                  key = normalize_name(name)
+
+                  if not key:
+                      continue
+
+                  if key in seen_names:
+
+                      if source == 'Pluto':
+                          duplicate_pluto += 1
+                      elif source == 'Samsung':
+                          duplicate_samsung += 1
+                      else:
+                          duplicate_lg += 1
+
+                      continue
+
+                  seen_names.add(key)
+                  merged.append((inf, url))
+
+          print("========== DCFULL MERGE ==========")
+          print(f"Final channels:       {len(merged)}")
+          print(f"Pluto duplicates:     {duplicate_pluto}")
+          print(f"Samsung duplicates:   {duplicate_samsung}")
+          print(f"LG duplicates:        {duplicate_lg}")
+          print("===================================")
+          print()
+
+          # ==================================================
+          # WRITE M3U
+          # ==================================================
+
+          out = [
+              '#EXTM3U url-tvg="https://motel.deecee.ca/dcfull.xml"'
+          ]
+
+          for inf, url in merged:
+              out.append(inf)
+              out.append(url)
+
+          content = "\n".join(out) + "\n"
+
+          open(
+              'dcfull.m3u8',
+              'w',
+              encoding='utf-8'
+          ).write(content)
+
+          open(
+              'dcfull.m3u',
+              'w',
+              encoding='utf-8'
+          ).write(content)
+
+          print(
+              f"DCFULL M3U written: {len(merged)} channels"
+          )
+
+          # ==================================================
+          # BUILD ONE COMBINED XML
+          #
+          # IMPORTANT:
+          #
+          # Do NOT filter XML against the M3U.
+          #
+          # The previous version did this and that is what
+          # caused Samsung/LG guide information to disappear.
+          #
+          # Simply combine the three complete guide files.
+          # ==================================================
+
+          xml_sources = [
+              ('pluto.xml', 'PLUTO'),
+              ('samsung-ca.xml', 'SAMSUNG'),
+              ('lg.xml', 'LG')
+          ]
+
+          channels = {}
+          programmes = []
+
+          seen_programmes = set()
+
+          # Diagnostics
+          total_xml_channels = 0
+          total_xml_programmes = 0
+
+          # ==================================================
+          # READ ALL XML FILES
+          # ==================================================
+
+          for filename, source in xml_sources:
+
+              if not os.path.exists(filename):
+                  print(f"XML missing: {filename}")
+                  continue
+
+              txt = open(
+                  filename,
+                  encoding='utf-8',
+                  errors='ignore'
+              ).read()
+
+              print(
+                  f"Reading {filename}: "
+                  f"{len(txt):,} bytes"
+              )
+
+              # ------------------------------------------------
+              # CHANNELS
+              # ------------------------------------------------
+
+              source_channels = 0
+
+              for m in re.finditer(
+                  r'<channel\b[^>]*\bid="([^"]+)"[^>]*>.*?</channel>',
+                  txt,
+                  re.DOTALL
+              ):
+
+                  cid = m.group(1).strip()
+                  block = m.group(0).strip()
+
+                  source_channels += 1
+                  total_xml_channels += 1
+
+                  # Keep first copy if an ID happens to occur
+                  # in more than one source.
+                  if cid not in channels:
+                      channels[cid] = block
+
+              print(
+                  f"{source} XML channels: {source_channels}"
+              )
+
+              # ------------------------------------------------
+              # PROGRAMMES
+              # ------------------------------------------------
+
+              source_programmes = 0
+
+              for m in re.finditer(
+                  r'<programme\b[^>]*>.*?</programme>',
+                  txt,
+                  re.DOTALL
+              ):
+
+                  block = m.group(0).strip()
+
+                  source_programmes += 1
+                  total_xml_programmes += 1
+
+                  # Exact duplicate protection only.
+                  #
+                  # We do NOT filter by M3U tvg-id.
+                  key = re.sub(
+                      r'\s+',
+                      ' ',
+                      block
+                  ).strip()
+
+                  if key in seen_programmes:
+                      continue
+
+                  seen_programmes.add(key)
+                  programmes.append(block)
+
+              print(
+                  f"{source} XML programmes: "
+                  f"{source_programmes}"
+              )
+
+              print()
+
+          # ==================================================
+          # WRITE COMBINED XML
+          # ==================================================
+
+          with open(
+              'dcfull.xml',
+              'w',
+              encoding='utf-8'
+          ) as o:
+
+              o.write(
+                  '<?xml version="1.0" encoding="UTF-8"?>\n'
+              )
+
+              o.write('<tv>\n')
+
+              for block in channels.values():
+                  o.write(block + '\n')
+
+              for block in programmes:
+                  o.write(block + '\n')
+
+              o.write('</tv>\n')
+
+          # ==================================================
+          # FINAL RESULTS
+          # ==================================================
+
+          print()
+          print("======================================")
+          print("           DCFULL RESULT")
+          print("======================================")
+          print(
+              f"M3U channels:          {len(merged)}"
+          )
+          print(
+              f"XML channels:          {len(channels)}"
+          )
+          print(
+              f"XML programmes:        {len(programmes)}"
+          )
+          print(
+              f"Raw XML channels:      {total_xml_channels}"
+          )
+          print(
+              f"Raw XML programmes:    {total_xml_programmes}"
+          )
+          print("======================================")
+
+          PY
+
+      # ========================================================
+      # SHOW RESULTS
+      # ========================================================
+
+      - name: Show results
+        run: |
+          echo "======================================"
+          echo "              DCFULL"
+          echo "======================================"
+
+          echo
+          echo "M3U channels:"
+          grep -c '^#EXTINF:' dcfull.m3u8 || true
+
+          echo
+          echo "XML channels:"
+          grep -c '<channel ' dcfull.xml || true
+
+          echo
+          echo "XML programmes:"
+          grep -c '<programme ' dcfull.xml || true
+
+          echo
+          echo "Files:"
+          ls -lh dcfull.m3u8 dcfull.m3u dcfull.xml
+
+          echo
+          echo "M3U HEADER:"
+          head -1 dcfull.m3u8
+
+          echo
+          echo "======================================"
+
+      # ========================================================
+      # PUSH
+      # ========================================================
+
+      - name: Push
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+
+          git add dcfull.m3u8 dcfull.m3u dcfull.xml -f
+
+          git diff --cached --quiet && exit 0
+
+          git commit -m "dcfull: pluto+samsung+LG guide"
+
+          git push
+```
