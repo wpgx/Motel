@@ -1,1 +1,33 @@
-#EXTM3U url-tvg="https://motel.deecee.ca/iptvorg_usa.xml"
+#EXTM3U x-tvg-url="https://raw.githubusercontent.com/StrangeDrVN/epg/public/guide.xml.gz"
+#EXTINF:-1 group-title="USA" tvg-id="AE.us@East",A&E
+http://23.239.31.26:8989/aande/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="ABC.us@West",ABC West
+http://stream.cammonitorplus.net/1797/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="AMC.us@EastHD",AMC
+http://23.239.31.26:8989/amc/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="AMC.us@East",AMC East
+http://190.11.225.124:5000/live/amc_hd/playlist.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="CBS.us@East",CBS
+http://stream.cammonitorplus.net/1783/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="Fox.us@East",FOX
+https://messi.damitv.st/papi/ts/fox-usa/playlist.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="FX.us@East",FX
+http://23.237.104.106:8080/USA_FX/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="IONPlus.us@East",ION PLUS
+https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-ionplus-tablo/playlist.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="IONTV.us@East",ION
+http://23.237.104.106:8080/USA_ION/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="NationalGeographic.us@East",National Geographic
+http://212.5.144.156:8080/natgeo/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="NBC.us@East",NBC
+http://190.11.225.124:5000/live/nbc_hd/playlist.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="WMAQTV51.us@HD",NBC 5 Chicago
+https://d368vp0qqzvkid.cloudfront.net/11603/88889704/hls/master.m3u8?ads.xumo_channelId=88889704a&ads.xumo_ifaType=&ads.xumo_providerId=3818&ads.xumo_providerName=NBCNCHI
+#EXTINF:-1 group-title="USA" tvg-id="WFXT662.us@SD",WFXT-DT2
+https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-ionmystery-tablo/playlist.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="WGNDT1.us@SD",WGN-DT1
+http://23.237.104.106:8080/USA_WGN/index.m3u8
+#EXTINF:-1 group-title="USA" tvg-id="WNBC471.us@HD",WNBC-DT1
+https://d368vp0qqzvkid.cloudfront.net/11603/88889709/hls/master.m3u8?ads.xumo_channelId=88889709a&ads.xumo_ifaType=&ads.xumo_providerId=3816&ads.xumo_providerName=NBCNNY
+#EXTINF:-1 group-title="USA" tvg-id="FXMovieChannel.us@HD",FX Movie Channel
+https://sra72yz.s.gy/FX_MOVIE_CHANNEL_US.m3u8
