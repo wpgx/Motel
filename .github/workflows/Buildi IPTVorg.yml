@@ -16,22 +16,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download IPTVORG USA source
+      - name: Download IPTVORG USA playlist
         run: |
           curl -L --fail --retry 3 \
             -o source_us.m3u \
             "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us.m3u"
 
-      - name: Build selected USA M3U
+      - name: Build selected USA playlist
         run: |
           python3 << 'PY'
           import re
 
-          SOURCE = "source_us.m3u"
-          OUTPUT = "iptvorg_usa.m3u"
-
-          # EXACT 16 channels selected from the working test M3U.
-          WANTED = {
+          wanted = {
               "ABC.us@West": "ABC West",
               "AMC.us@EastHD": "AMC",
               "AMC.us@East": "AMC East",
@@ -47,120 +43,119 @@ jobs:
               "WGNDT1.us@SD": "WGN-DT1",
               "WNBC471.us@HD": "WNBC-DT1",
               "FXMovieChannel.us@HD": "FX Movie Channel",
-              "AE.us@East": "A&E",
+              "AE.us@East": "A&E"
           }
 
-          with open(SOURCE, "r", encoding="utf-8", errors="ignore") as f:
-              lines = [x.rstrip("\n\r") for x in f]
+          with open("source_us.m3u", "r", encoding="utf-8", errors="ignore") as f:
+              lines = f.readlines()
 
           output = [
-              '#EXTM3U x-tvg-url="https://raw.githubusercontent.com/StrangeDrVN/epg/public/output/guide.xml.gz"'
+              '#EXTM3U x-tvg-url="https://raw.githubusercontent.com/StrangeDrVN/epg/public/guide.xml.gz"'
           ]
 
           found = set()
-          i = 0
 
-          while i < len(lines):
-              line = lines[i]
+          for i, line in enumerate(lines):
+              if not line.startswith("#EXTINF:"):
+                  continue
 
-              if line.startswith("#EXTINF:"):
-                  match = re.search(r'tvg-id="([^"]*)"', line)
+              match = re.search(r'tvg-id="([^"]*)"', line)
 
-                  if match:
-                      tvg_id = match.group(1)
+              if not match:
+                  continue
 
-                      if tvg_id in WANTED and tvg_id not in found:
-                          j = i + 1
-                          url = None
+              tvg_id = match.group(1)
 
-                          while j < len(lines):
-                              candidate = lines[j].strip()
+              if tvg_id not in wanted:
+                  continue
 
-                              if candidate.startswith("http://") or candidate.startswith("https://"):
-                                  url = candidate
-                                  break
+              # Keep only ONE stream for each selected channel.
+              if tvg_id in found:
+                  continue
 
-                              if candidate.startswith("#EXTINF:"):
-                                  break
+              if i + 1 >= len(lines):
+                  continue
 
-                              j += 1
+              url = lines[i + 1].strip()
 
-                          if url:
-                              name = WANTED[tvg_id]
+              if not (url.startswith("http://") or url.startswith("https://")):
+                  continue
 
-                              # Force every selected channel into USA category.
-                              ext = re.sub(
-                                  r'group-title="[^"]*"',
-                                  'group-title="USA"',
-                                  line,
-                                  flags=re.IGNORECASE
-                              )
+              name = wanted[tvg_id]
 
-                              if "group-title=" not in ext.lower():
-                                  ext = ext.replace(
-                                      "#EXTINF:-1",
-                                      '#EXTINF:-1 group-title="USA"',
-                                      1
-                                  )
+              # Force category to USA.
+              ext = re.sub(
+                  r'group-title="[^"]*"',
+                  'group-title="USA"',
+                  line.strip(),
+                  flags=re.IGNORECASE
+              )
 
-                              # Use our clean channel name.
-                              ext = ext.rsplit(",", 1)[0] + "," + name
+              if "group-title=" not in ext.lower():
+                  ext = ext.replace(
+                      "#EXTINF:-1",
+                      '#EXTINF:-1 group-title="USA"',
+                      1
+                  )
 
-                              output.append(ext)
-                              output.append(url)
+              # Use our clean channel name.
+              ext = ext.rsplit(",", 1)[0] + "," + name
 
-                              found.add(tvg_id)
+              output.append(ext)
+              output.append(url)
 
-              i += 1
+              found.add(tvg_id)
 
-          with open(OUTPUT, "w", encoding="utf-8") as f:
+          if len(found) != len(wanted):
+              print("ERROR: Not all selected channels were found.")
+              print()
+              print("Found:")
+              for tvg_id in found:
+                  print("  " + wanted[tvg_id])
+              print()
+              print("Missing:")
+              for tvg_id, name in wanted.items():
+                  if tvg_id not in found:
+                      print("  " + name + " [" + tvg_id + "]")
+              raise SystemExit(1)
+
+          with open("iptvorg_usa.m3u", "w", encoding="utf-8") as f:
               f.write("\n".join(output) + "\n")
 
           print()
-          print("======================================")
-          print(" SELECTED IPTVORG USA CHANNELS")
-          print("======================================")
-          print(f"Requested : {len(WANTED)}")
-          print(f"Found     : {len(found)}")
+          print("================================")
+          print(" IPTVORG USA")
+          print("================================")
+          print("Channels created:", len(found))
           print()
 
-          for tvg_id, name in WANTED.items():
-              if tvg_id in found:
-                  print(f"OK       {name} [{tvg_id}]")
-              else:
-                  print(f"MISSING  {name} [{tvg_id}]")
+          for tvg_id, name in wanted.items():
+              print("OK:", name)
 
           print()
-          print(f"M3U entries created: {len(found)}")
-          print("======================================")
-
-          if len(found) != len(WANTED):
-              raise SystemExit("ERROR: One or more selected channels were not found.")
-
+          print("Created: iptvorg_usa.m3u")
+          print("================================")
           PY
 
       - name: Download EPG
         run: |
           curl -L --fail --retry 3 \
             -o guide.xml.gz \
-            "https://raw.githubusercontent.com/StrangeDrVN/epg/public/output/guide.xml.gz"
+            "https://raw.githubusercontent.com/StrangeDrVN/epg/public/guide.xml.gz"
 
           gzip -dc guide.xml.gz > guide.xml
 
           test -s guide.xml
 
-          echo "Full EPG downloaded:"
+          echo "EPG downloaded successfully:"
           ls -lh guide.xml
 
-      - name: Filter EPG to selected channels
+      - name: Filter EPG
         run: |
           python3 << 'PY'
           import xml.etree.ElementTree as ET
 
-          INPUT = "guide.xml"
-          OUTPUT = "iptvorg_usa.xml"
-
-          WANTED = {
+          wanted = {
               "ABC.us@West",
               "AMC.us@EastHD",
               "AMC.us@East",
@@ -176,52 +171,47 @@ jobs:
               "WGNDT1.us@SD",
               "WNBC471.us@HD",
               "FXMovieChannel.us@HD",
-              "AE.us@East",
+              "AE.us@East"
           }
 
-          print("Parsing EPG...")
-
-          tree = ET.parse(INPUT)
+          tree = ET.parse("guide.xml")
           root = tree.getroot()
 
-          # Keep only selected channels.
           for channel in list(root.findall("channel")):
-              if channel.get("id", "") not in WANTED:
+              if channel.get("id") not in wanted:
                   root.remove(channel)
 
-          # Keep only programs belonging to selected channels.
-          for programme in list(root.findall("programme")):
-              if programme.get("channel", "") not in WANTED:
-                  root.remove(programme)
+          for program in list(root.findall("programme")):
+              if program.get("channel") not in wanted:
+                  root.remove(program)
 
           tree.write(
-              OUTPUT,
+              "iptvorg_usa.xml",
               encoding="utf-8",
               xml_declaration=True
           )
 
-          print("Filtered EPG created:")
-          print(OUTPUT)
+          print("Filtered EPG created.")
           PY
 
           test -s iptvorg_usa.xml
 
-          echo
-          echo "Filtered EPG size:"
+          echo "Filtered XML:"
           ls -lh iptvorg_usa.xml
 
-      - name: Verify output
+      - name: Verify files
         run: |
-          echo "======================================"
-          echo " FINAL OUTPUT"
-          echo "======================================"
+          echo
+          echo "=============================="
+          echo " FINAL FILES"
+          echo "=============================="
 
           echo
           echo "M3U channel count:"
           grep -c '^#EXTINF:' iptvorg_usa.m3u
 
           echo
-          echo "USA category check:"
+          echo "M3U contents:"
           grep '^#EXTINF:' iptvorg_usa.m3u
 
           echo
@@ -229,9 +219,9 @@ jobs:
           ls -lh iptvorg_usa.m3u iptvorg_usa.xml
 
           echo
-          echo "======================================"
+          echo "=============================="
 
-      - name: Commit updated files
+      - name: Commit files to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -241,6 +231,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update IPTVORG USA channels and EPG"
+            git commit -m "Update IPTVORG USA"
             git push
           fi
