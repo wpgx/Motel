@@ -45,7 +45,7 @@ jobs:
 
           wanted = {name.lower(): name for name in WANTED}
 
-          print("Downloading current iptv-org US playlist...")
+          print("Downloading current IPTVORG US playlist...")
 
           r = requests.get(
               SOURCE,
@@ -90,7 +90,6 @@ jobs:
 
               ext = line
 
-              # Force category to USA
               ext = re.sub(
                   r'group-title="[^"]*"',
                   'group-title="USA"',
@@ -105,7 +104,6 @@ jobs:
                       1
                   )
 
-              # Clean resolution from display name
               ext = re.sub(
                   r'\s*\(?[0-9]{3,4}p\)?\s*$',
                   '',
@@ -113,7 +111,6 @@ jobs:
                   flags=re.IGNORECASE
               )
 
-              # Force our clean display name
               ext = ext.rsplit(",", 1)[0] + "," + clean_name
 
               output.append(ext)
@@ -147,17 +144,24 @@ jobs:
             -o iptvorg_usa.xml.gz \
             "https://raw.githubusercontent.com/StrangeDrVN/epg/public/guide.xml.gz"
 
-          gunzip -f iptvorg_usa.xml.gz
-          mv guide.xml iptvorg_usa.xml
+          gzip -dc iptvorg_usa.xml.gz > iptvorg_usa.xml
+
+          test -s iptvorg_usa.xml
+
+          echo "XML created successfully:"
+          ls -lh iptvorg_usa.xml
 
       - name: Show results
         run: |
           echo "===== IPTVORG USA ====="
+          echo "M3U channels:"
           grep -c '^#EXTINF:' iptvorg_usa.m3u || true
           echo
-          cat iptvorg_usa.m3u
-          echo
+          echo "Files:"
           ls -lh iptvorg_usa.m3u iptvorg_usa.xml
+          echo
+          echo "M3U:"
+          cat iptvorg_usa.m3u
 
       - name: Push
         run: |
@@ -166,10 +170,10 @@ jobs:
 
           git add iptvorg_usa.m3u iptvorg_usa.xml -f
 
-          git diff --cached --quiet && \
-          echo "No change" && \
-          exit 0
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
 
           git commit -m "iptvorg: update USA channels"
-
           git push
