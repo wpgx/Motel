@@ -69,7 +69,6 @@ jobs:
               if tvg_id not in wanted:
                   continue
 
-              # Keep only ONE stream for each selected channel.
               if tvg_id in found:
                   continue
 
@@ -78,12 +77,14 @@ jobs:
 
               url = lines[i + 1].strip()
 
-              if not (url.startswith("http://") or url.startswith("https://")):
+              if not (
+                  url.startswith("http://")
+                  or url.startswith("https://")
+              ):
                   continue
 
               name = wanted[tvg_id]
 
-              # Force category to USA.
               ext = re.sub(
                   r'group-title="[^"]*"',
                   'group-title="USA"',
@@ -98,7 +99,6 @@ jobs:
                       1
                   )
 
-              # Use our clean channel name.
               ext = ext.rsplit(",", 1)[0] + "," + name
 
               output.append(ext)
@@ -112,11 +112,13 @@ jobs:
               print("Found:")
               for tvg_id in found:
                   print("  " + wanted[tvg_id])
+
               print()
               print("Missing:")
               for tvg_id, name in wanted.items():
                   if tvg_id not in found:
                       print("  " + name + " [" + tvg_id + "]")
+
               raise SystemExit(1)
 
           with open("iptvorg_usa.m3u", "w", encoding="utf-8") as f:
@@ -132,8 +134,6 @@ jobs:
           for tvg_id, name in wanted.items():
               print("OK:", name)
 
-          print()
-          print("Created: iptvorg_usa.m3u")
           print("================================")
           PY
 
@@ -150,40 +150,260 @@ jobs:
           echo "EPG downloaded successfully:"
           ls -lh guide.xml
 
-      - name: Filter EPG
+      - name: Match and filter EPG
         run: |
           python3 << 'PY'
+          import re
           import xml.etree.ElementTree as ET
 
-          wanted = {
-              "ABC.us@West",
-              "AMC.us@EastHD",
-              "AMC.us@East",
-              "CBS.us@East",
-              "NBC.us@East",
-              "WMAQTV51.us@HD",
-              "Fox.us@East",
-              "FX.us@East",
-              "IONPlus.us@East",
-              "IONTV.us@East",
-              "NationalGeographic.us@East",
-              "WFXT662.us@SD",
-              "WGNDT1.us@SD",
-              "WNBC471.us@HD",
-              "FXMovieChannel.us@HD",
-              "AE.us@East"
-          }
+          print("======================================")
+          print(" READING SELECTED M3U CHANNELS")
+          print("======================================")
+
+          selected = {}
+
+          with open("iptvorg_usa.m3u", "r", encoding="utf-8") as f:
+              for line in f:
+                  if not line.startswith("#EXTINF:"):
+                      continue
+
+                  id_match = re.search(r'tvg-id="([^"]*)"', line)
+
+                  if not id_match:
+                      continue
+
+                  tvg_id = id_match.group(1)
+
+                  name = line.rsplit(",", 1)[-1].strip()
+
+                  selected[tvg_id] = name
+
+          print("Selected channels:", len(selected))
+
+          for tvg_id, name in selected.items():
+              print(" ", name, "=>", tvg_id)
+
+          print()
+          print("======================================")
+          print(" READING EPG")
+          print("======================================")
 
           tree = ET.parse("guide.xml")
           root = tree.getroot()
 
+          epg_channels = {}
+
+          for channel in root.findall("channel"):
+              cid = channel.get("id")
+
+              if cid:
+                  epg_channels[cid] = channel
+
+          print("Total EPG channels:", len(epg_channels))
+
+          # -------------------------------------------------
+          # First try exact tvg-id matches.
+          # -------------------------------------------------
+
+          matches = {}
+
+          for tvg_id, name in selected.items():
+
+              if tvg_id in epg_channels:
+                  matches[tvg_id] = tvg_id
+
+          print()
+          print("Exact matches:", len(matches))
+
+          # -------------------------------------------------
+          # Try matching by base ID.
+          #
+          # Example:
+          # ABC.us@West -> ABC.us
+          # -------------------------------------------------
+
+          if len(matches) < len(selected):
+
+              print()
+              print("Searching unmatched channels by base ID...")
+
+              for tvg_id, name in selected.items():
+
+                  if tvg_id in matches:
+                      continue
+
+                  base = tvg_id.split("@")[0].lower()
+
+                  candidates = []
+
+                  for epg_id in epg_channels:
+                      epg_base = epg_id.split("@")[0].lower()
+
+                      if epg_base == base:
+                          candidates.append(epg_id)
+
+                  if len(candidates) == 1:
+                      matches[tvg_id] = candidates[0]
+
+                      print(
+                          "MATCH:",
+                          name,
+                          "=>",
+                          candidates[0]
+                      )
+
+          # -------------------------------------------------
+          # Try matching the actual channel name.
+          # -------------------------------------------------
+
+          if len(matches) < len(selected):
+
+              print()
+              print("Searching remaining channels by display name...")
+
+              epg_names = {}
+
+              for channel in epg_channels.values():
+
+                  cid = channel.get("id")
+
+                  display = ""
+
+                  for child in channel:
+                      if child.tag == "display-name":
+                          if child.text:
+                              display = child.text.strip()
+                              break
+
+                  if display:
+                      epg_names[cid] = display.lower()
+
+              for tvg_id, name in selected.items():
+
+                  if tvg_id in matches:
+                      continue
+
+                  wanted_name = name.lower()
+
+                  candidates = []
+
+                  for epg_id, display in epg_names.items():
+
+                      if wanted_name == display:
+                          candidates.append(epg_id)
+
+                  if len(candidates) == 1:
+                      matches[tvg_id] = candidates[0]
+
+                      print(
+                          "NAME MATCH:",
+                          name,
+                          "=>",
+                          candidates[0]
+                      )
+
+          # -------------------------------------------------
+          # Report anything still unmatched.
+          # -------------------------------------------------
+
+          unmatched = [
+              (tvg_id, name)
+              for tvg_id, name in selected.items()
+              if tvg_id not in matches
+          ]
+
+          if unmatched:
+
+              print()
+              print("======================================")
+              print(" UNMATCHED CHANNELS")
+              print("======================================")
+
+              for tvg_id, name in unmatched:
+                  print(name, "=>", tvg_id)
+
+              print()
+              print("The EPG IDs containing related names are:")
+
+              for tvg_id, name in unmatched:
+
+                  base = tvg_id.split("@")[0].lower()
+
+                  print()
+                  print(name, "[" + tvg_id + "]")
+
+                  shown = 0
+
+                  for epg_id, channel in epg_channels.items():
+
+                      display = ""
+
+                      for child in channel:
+                          if child.tag == "display-name":
+                              if child.text:
+                                  display = child.text.strip()
+                                  break
+
+                      if (
+                          base in epg_id.lower()
+                          or name.lower() in display.lower()
+                          or display.lower() in name.lower()
+                      ):
+                          print(
+                              "  EPG:",
+                              epg_id,
+                              "|",
+                              display
+                          )
+
+                          shown += 1
+
+                          if shown >= 10:
+                              break
+
+              print()
+              print("======================================")
+              print("EPG matching is incomplete.")
+              print("Stopping instead of creating an empty guide.")
+              print("======================================")
+
+              raise SystemExit(1)
+
+          # -------------------------------------------------
+          # Build the final set of EPG IDs.
+          # -------------------------------------------------
+
+          matched_epg_ids = set(matches.values())
+
+          print()
+          print("======================================")
+          print(" FINAL EPG MATCHES")
+          print("======================================")
+
+          for tvg_id, name in selected.items():
+              print(
+                  name,
+                  "=>",
+                  matches[tvg_id]
+              )
+
+          # -------------------------------------------------
+          # Remove unwanted channels.
+          # -------------------------------------------------
+
           for channel in list(root.findall("channel")):
-              if channel.get("id") not in wanted:
+
+              if channel.get("id") not in matched_epg_ids:
                   root.remove(channel)
 
-          for program in list(root.findall("programme")):
-              if program.get("channel") not in wanted:
-                  root.remove(program)
+          # -------------------------------------------------
+          # Remove unwanted programmes.
+          # -------------------------------------------------
+
+          for programme in list(root.findall("programme")):
+
+              if programme.get("channel") not in matched_epg_ids:
+                  root.remove(programme)
 
           tree.write(
               "iptvorg_usa.xml",
@@ -191,37 +411,48 @@ jobs:
               xml_declaration=True
           )
 
-          print("Filtered EPG created.")
+          print()
+          print("Filtered EPG created successfully.")
+
           PY
 
           test -s iptvorg_usa.xml
 
+          echo
           echo "Filtered XML:"
           ls -lh iptvorg_usa.xml
 
-      - name: Verify files
+      - name: Verify output
         run: |
           echo
-          echo "=============================="
-          echo " FINAL FILES"
-          echo "=============================="
+          echo "======================================"
+          echo " FINAL OUTPUT"
+          echo "======================================"
 
           echo
           echo "M3U channel count:"
           grep -c '^#EXTINF:' iptvorg_usa.m3u
 
           echo
-          echo "M3U contents:"
+          echo "M3U channels:"
           grep '^#EXTINF:' iptvorg_usa.m3u
 
           echo
-          echo "Files:"
-          ls -lh iptvorg_usa.m3u iptvorg_usa.xml
+          echo "XML size:"
+          ls -lh iptvorg_usa.xml
 
           echo
-          echo "=============================="
+          echo "XML channels:"
+          grep -c '<channel ' iptvorg_usa.xml || true
 
-      - name: Commit files to main
+          echo
+          echo "XML programmes:"
+          grep -c '<programme ' iptvorg_usa.xml || true
+
+          echo
+          echo "======================================"
+
+      - name: Commit updated files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -231,6 +462,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update IPTVORG USA"
+            git commit -m "Update IPTVORG USA channels and EPG"
             git push
           fi
