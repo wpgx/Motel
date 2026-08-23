@@ -31,7 +31,7 @@ jobs:
         run: |
           curl -L --fail --retry 3 \
             -o source_us_pluto.m3u \
-            "https://iptv-org.github.io/iptv/streams/us_pluto.m3u"
+            "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_pluto.m3u"
 
           test -s source_us_pluto.m3u
 
@@ -90,9 +90,9 @@ jobs:
 
           found = set()
 
-          # ----------------------------------------
-          # ADD SELECTED IPTVORG USA CHANNELS
-          # ----------------------------------------
+          # ========================================
+          # ADD SELECTED USA NETWORK CHANNELS
+          # ========================================
 
           for i, line in enumerate(lines):
 
@@ -172,9 +172,12 @@ jobs:
               print("channels were not found.")
               raise SystemExit(1)
 
-          # ----------------------------------------
-          # ADD ALL IPTVORG USA PLUTO CHANNELS
-          # ----------------------------------------
+          # ========================================
+          # ADD IPTVORG USA PLUTO
+          #
+          # This playlist is already the Pluto source.
+          # Keep its original group-title/category.
+          # ========================================
 
           print()
           print("======================================")
@@ -221,13 +224,13 @@ jobs:
               if match:
                   tvg_id = match.group(1)
 
-              # Prevent duplicate IDs.
+              # Do not duplicate a selected USA channel.
               if tvg_id and tvg_id in found:
                   print("SKIP duplicate:", tvg_id)
                   continue
 
-              # Keep Pluto's existing group-title.
-              # If it has none, give it a generic Pluto category.
+              # Keep Pluto's existing group-title/category.
+              # If IPTVORG supplied none, use Pluto TV.
 
               if not re.search(
                   r'group-title="[^"]*"',
@@ -245,7 +248,6 @@ jobs:
 
               if tvg_id:
                   pluto_ids.add(tvg_id)
-                  found.add(tvg_id)
 
               pluto_count += 1
 
@@ -253,9 +255,9 @@ jobs:
           print("Pluto channels added:", pluto_count)
           print("Unique Pluto tvg-ids:", len(pluto_ids))
 
-          # ----------------------------------------
+          # ========================================
           # WRITE FINAL M3U
-          # ----------------------------------------
+          # ========================================
 
           with open(
               "iptvorg_usa.m3u",
@@ -327,9 +329,9 @@ jobs:
               "FXMovieChannel.us@HD": "FX Movie Channel"
           }
 
-          # ----------------------------------------
+          # ========================================
           # READ FINAL M3U
-          # ----------------------------------------
+          # ========================================
 
           with open(
               "iptvorg_usa.m3u",
@@ -368,9 +370,9 @@ jobs:
               len(playlist_ids)
           )
 
-          # ----------------------------------------
+          # ========================================
           # READ EPG
-          # ----------------------------------------
+          # ========================================
 
           print()
           print("======================================")
@@ -386,9 +388,9 @@ jobs:
           print("Total EPG channels:", len(channels))
           print("Total EPG programmes:", len(programmes))
 
-          # ----------------------------------------
+          # ========================================
           # HELPERS
-          # ----------------------------------------
+          # ========================================
 
           def clean_text(value):
 
@@ -433,9 +435,9 @@ jobs:
 
               return value
 
-          # ----------------------------------------
+          # ========================================
           # BUILD EPG INDEXES
-          # ----------------------------------------
+          # ========================================
 
           epg_by_id = {}
           epg_by_base = {}
@@ -470,9 +472,9 @@ jobs:
                           []
                       ).append(channel)
 
-          # ----------------------------------------
-          # MATCH REQUIRED 16
-          # ----------------------------------------
+          # ========================================
+          # MATCH REQUIRED 16 USA CHANNELS
+          # ========================================
 
           matches = {}
 
@@ -486,11 +488,13 @@ jobs:
               match = None
               method = None
 
+              # Exact ID
               if wanted_id in epg_by_id:
 
                   match = epg_by_id[wanted_id]
                   method = "EXACT ID"
 
+              # Case-insensitive ID
               if match is None:
 
                   wanted_lower = wanted_id.lower()
@@ -503,6 +507,7 @@ jobs:
                           method = "CASE ID"
                           break
 
+              # Base ID
               if match is None:
 
                   base = id_base(wanted_id)
@@ -517,6 +522,7 @@ jobs:
                       match = candidates[0]
                       method = "BASE ID"
 
+              # Display name
               if match is None:
 
                   name_key = clean_text(wanted_name)
@@ -564,9 +570,9 @@ jobs:
                       wanted_id
                   )
 
-          # ----------------------------------------
+          # ========================================
           # REQUIRED CHANNEL CHECK
-          # ----------------------------------------
+          # ========================================
 
           missing = [
               (cid, name)
@@ -598,11 +604,11 @@ jobs:
 
               raise SystemExit(1)
 
-          # ----------------------------------------
+          # ========================================
           # MATCH PLUTO EPG
           #
           # Pluto EPG is OPTIONAL.
-          # ----------------------------------------
+          # ========================================
 
           matched_pluto = 0
           unmatched_pluto = 0
@@ -618,12 +624,14 @@ jobs:
               if playlist_id in wanted:
                   continue
 
+              # Exact ID
               if playlist_id in epg_by_id:
 
                   pluto_matches[playlist_id] = playlist_id
                   matched_pluto += 1
                   continue
 
+              # Case-insensitive ID
               found = None
 
               for cid in epg_by_id:
@@ -639,6 +647,7 @@ jobs:
                   matched_pluto += 1
                   continue
 
+              # Base ID
               base = id_base(playlist_id)
 
               candidates = epg_by_base.get(
@@ -661,9 +670,9 @@ jobs:
           print("Pluto EPG matched:", matched_pluto)
           print("Pluto EPG unmatched:", unmatched_pluto)
 
-          # ----------------------------------------
+          # ========================================
           # KEEP REQUIRED + MATCHED PLUTO EPG
-          # ----------------------------------------
+          # ========================================
 
           matched_epg_ids = set(matches.values())
 
@@ -695,9 +704,9 @@ jobs:
           print()
           print("Programmes retained:", kept_programmes)
 
-          # ----------------------------------------
+          # ========================================
           # WRITE FINAL XML
-          # ----------------------------------------
+          # ========================================
 
           tree.write(
               "iptvorg_usa.xml",
