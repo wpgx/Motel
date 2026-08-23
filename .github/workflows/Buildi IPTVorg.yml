@@ -1,4 +1,3 @@
-```yaml
 name: Update IPTVORG USA
 
 on:
@@ -14,18 +13,8 @@ jobs:
       contents: write
 
     steps:
-
-      # ============================================================
-      # CHECKOUT
-      # ============================================================
-
       - name: Checkout repository
         uses: actions/checkout@v4
-
-
-      # ============================================================
-      # DOWNLOAD IPTVORG USA
-      # ============================================================
 
       - name: Download IPTVORG USA playlist
         run: |
@@ -37,11 +26,6 @@ jobs:
 
           echo "Downloaded IPTVORG USA playlist:"
           ls -lh source_us.m3u
-
-
-      # ============================================================
-      # DOWNLOAD IPTVORG USA PLUTO
-      # ============================================================
 
       - name: Download IPTVORG USA Pluto playlist
         run: |
@@ -59,19 +43,10 @@ jobs:
           echo "Pluto channel count:"
           grep -c '^#EXTINF:' source_us_pluto.m3u || true
 
-
-      # ============================================================
-      # BUILD SELECTED USA + PLUTO PLAYLIST
-      # ============================================================
-
       - name: Build selected USA playlist
         run: |
           python3 << 'PY'
           import re
-
-          # ============================================================
-          # SELECTED IPTVORG USA CHANNELS
-          # ============================================================
 
           wanted = {
               "AE.us@East": "A&E",
@@ -115,9 +90,9 @@ jobs:
 
           found = set()
 
-          # ============================================================
-          # ADD SELECTED IPTVORG CHANNELS
-          # ============================================================
+          # ----------------------------------------
+          # ADD SELECTED IPTVORG USA CHANNELS
+          # ----------------------------------------
 
           for i, line in enumerate(lines):
 
@@ -151,9 +126,6 @@ jobs:
                   or url.startswith("https://")
               ):
                   continue
-
-              # Keep original EXTINF.
-              # Only force group-title to USA.
 
               extinf = line.strip()
 
@@ -196,19 +168,13 @@ jobs:
 
           if len(found) != len(wanted):
               print()
-              print("ERROR: One or more selected IPTVORG channels")
-              print("were not found.")
+              print("ERROR: One or more selected IPTVORG")
+              print("channels were not found.")
               raise SystemExit(1)
 
-
-          # ============================================================
+          # ----------------------------------------
           # ADD ALL IPTVORG USA PLUTO CHANNELS
-          #
-          # IMPORTANT:
-          # Keep Pluto's original group-title.
-          # Do not rename the channels.
-          # Do not strip resolutions.
-          # ============================================================
+          # ----------------------------------------
 
           print()
           print("======================================")
@@ -244,7 +210,6 @@ jobs:
 
               extinf = line.strip()
 
-              # Get tvg-id if present.
               match = re.search(
                   r'tvg-id="([^"]*)"',
                   extinf,
@@ -256,15 +221,13 @@ jobs:
               if match:
                   tvg_id = match.group(1)
 
-              # Prevent duplicate IPTVORG/Pluto entries.
+              # Prevent duplicate IDs.
               if tvg_id and tvg_id in found:
                   print("SKIP duplicate:", tvg_id)
                   continue
 
-              # --------------------------------------------------------
-              # Pluto keeps its ORIGINAL group-title.
-              # If Pluto doesn't have one, use Pluto TV.
-              # --------------------------------------------------------
+              # Keep Pluto's existing group-title.
+              # If it has none, give it a generic Pluto category.
 
               if not re.search(
                   r'group-title="[^"]*"',
@@ -290,9 +253,9 @@ jobs:
           print("Pluto channels added:", pluto_count)
           print("Unique Pluto tvg-ids:", len(pluto_ids))
 
-          # ============================================================
+          # ----------------------------------------
           # WRITE FINAL M3U
-          # ============================================================
+          # ----------------------------------------
 
           with open(
               "iptvorg_usa.m3u",
@@ -314,11 +277,6 @@ jobs:
           echo
           echo "Final M3U channel count:"
           grep -c '^#EXTINF:' iptvorg_usa.m3u
-
-
-      # ============================================================
-      # DOWNLOAD EPG
-      # ============================================================
 
       - name: Download EPG
         run: |
@@ -344,20 +302,11 @@ jobs:
           echo "Uncompressed EPG:"
           ls -lh guide.xml
 
-
-      # ============================================================
-      # MATCH CHANNELS AND CREATE EPG
-      # ============================================================
-
       - name: Match channels and create EPG
         run: |
           python3 << 'PY'
           import re
           import xml.etree.ElementTree as ET
-
-          # ============================================================
-          # ORIGINAL IPTVORG USA CHANNELS
-          # ============================================================
 
           wanted = {
               "AE.us@East": "A&E",
@@ -378,10 +327,9 @@ jobs:
               "FXMovieChannel.us@HD": "FX Movie Channel"
           }
 
-
-          # ============================================================
-          # READ THE FINAL M3U
-          # ============================================================
+          # ----------------------------------------
+          # READ FINAL M3U
+          # ----------------------------------------
 
           with open(
               "iptvorg_usa.m3u",
@@ -391,8 +339,6 @@ jobs:
           ) as f:
               m3u_lines = f.readlines()
 
-
-          # Get every tvg-id from the final playlist.
           playlist_ids = []
 
           for line in m3u_lines:
@@ -412,7 +358,6 @@ jobs:
                   if cid not in playlist_ids:
                       playlist_ids.append(cid)
 
-
           print()
           print("======================================")
           print(" FINAL PLAYLIST CHANNELS")
@@ -423,10 +368,9 @@ jobs:
               len(playlist_ids)
           )
 
-
-          # ============================================================
+          # ----------------------------------------
           # READ EPG
-          # ============================================================
+          # ----------------------------------------
 
           print()
           print("======================================")
@@ -442,10 +386,9 @@ jobs:
           print("Total EPG channels:", len(channels))
           print("Total EPG programmes:", len(programmes))
 
-
-          # ============================================================
+          # ----------------------------------------
           # HELPERS
-          # ============================================================
+          # ----------------------------------------
 
           def clean_text(value):
 
@@ -475,7 +418,6 @@ jobs:
 
               return value
 
-
           def id_base(value):
 
               if not value:
@@ -491,10 +433,9 @@ jobs:
 
               return value
 
-
-          # ============================================================
+          # ----------------------------------------
           # BUILD EPG INDEXES
-          # ============================================================
+          # ----------------------------------------
 
           epg_by_id = {}
           epg_by_base = {}
@@ -529,12 +470,9 @@ jobs:
                           []
                       ).append(channel)
 
-
-          # ============================================================
-          # MATCH ORIGINAL 16 CHANNELS
-          #
-          # These MUST match.
-          # ============================================================
+          # ----------------------------------------
+          # MATCH REQUIRED 16
+          # ----------------------------------------
 
           matches = {}
 
@@ -626,10 +564,9 @@ jobs:
                       wanted_id
                   )
 
-
-          # ============================================================
+          # ----------------------------------------
           # REQUIRED CHANNEL CHECK
-          # ============================================================
+          # ----------------------------------------
 
           missing = [
               (cid, name)
@@ -655,22 +592,17 @@ jobs:
 
               print()
               print(
-                  "Stopping because a required IPTVORG channel "
-                  "could not be matched."
+                  "Stopping because a required IPTVORG "
+                  "channel could not be matched."
               )
 
               raise SystemExit(1)
 
-
-          # ============================================================
-          # ALSO MATCH PLUTO CHANNELS
+          # ----------------------------------------
+          # MATCH PLUTO EPG
           #
-          # Pluto channels are OPTIONAL for EPG.
-          #
-          # If IPTV-org has a Pluto stream but the EPG does not contain
-          # that channel, the Pluto stream is still kept in the M3U.
-          # We simply don't add an EPG entry for that channel.
-          # ============================================================
+          # Pluto EPG is OPTIONAL.
+          # ----------------------------------------
 
           matched_pluto = 0
           unmatched_pluto = 0
@@ -683,19 +615,15 @@ jobs:
 
           for playlist_id in playlist_ids:
 
-              # Already handled above.
               if playlist_id in wanted:
                   continue
 
-              # Exact ID.
               if playlist_id in epg_by_id:
 
                   pluto_matches[playlist_id] = playlist_id
                   matched_pluto += 1
                   continue
 
-
-              # Case-insensitive ID.
               found = None
 
               for cid in epg_by_id:
@@ -711,8 +639,6 @@ jobs:
                   matched_pluto += 1
                   continue
 
-
-              # Base ID.
               base = id_base(playlist_id)
 
               candidates = epg_by_base.get(
@@ -722,25 +648,22 @@ jobs:
 
               if len(candidates) == 1:
 
-                  pluto_matches[playlist_id] = candidates[0].get("id")
+                  pluto_matches[playlist_id] = (
+                      candidates[0].get("id")
+                  )
+
                   matched_pluto += 1
                   continue
 
-
               unmatched_pluto += 1
-
 
           print()
           print("Pluto EPG matched:", matched_pluto)
           print("Pluto EPG unmatched:", unmatched_pluto)
 
-
-          # ============================================================
-          # KEEP EPG CHANNELS FOR:
-          #
-          # 1. Required IPTVORG channels
-          # 2. Successfully matched Pluto channels
-          # ============================================================
+          # ----------------------------------------
+          # KEEP REQUIRED + MATCHED PLUTO EPG
+          # ----------------------------------------
 
           matched_epg_ids = set(matches.values())
 
@@ -748,23 +671,12 @@ jobs:
               pluto_matches.values()
           )
 
-
-          # ============================================================
-          # REMOVE UNMATCHED EPG CHANNELS
-          # ============================================================
-
           for channel in list(
               root.findall("channel")
           ):
 
               if channel.get("id") not in matched_epg_ids:
-
                   root.remove(channel)
-
-
-          # ============================================================
-          # REMOVE PROGRAMMES NOT BELONGING TO KEPT CHANNELS
-          # ============================================================
 
           kept_programmes = 0
 
@@ -780,21 +692,18 @@ jobs:
 
                   root.remove(programme)
 
-
           print()
           print("Programmes retained:", kept_programmes)
 
-
-          # ============================================================
+          # ----------------------------------------
           # WRITE FINAL XML
-          # ============================================================
+          # ----------------------------------------
 
           tree.write(
               "iptvorg_usa.xml",
               encoding="utf-8",
               xml_declaration=True
           )
-
 
           print()
           print("======================================")
@@ -811,15 +720,9 @@ jobs:
               matched_pluto
           )
 
-
           PY
 
           test -s iptvorg_usa.xml
-
-
-      # ============================================================
-      # VERIFY FINAL FILES
-      # ============================================================
 
       - name: Verify final files
         run: |
@@ -851,11 +754,6 @@ jobs:
           echo
           echo "======================================"
 
-
-      # ============================================================
-      # COMMIT
-      # ============================================================
-
       - name: Commit updated files
         run: |
           git config user.name "github-actions[bot]"
@@ -869,4 +767,3 @@ jobs:
             git commit -m "Update USA IPTVORG and Pluto channels"
             git push
           fi
-```
