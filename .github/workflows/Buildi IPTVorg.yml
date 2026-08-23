@@ -33,7 +33,102 @@ jobs:
           ls -lh iptvorg_usa.m3u
 
           echo
-          echo "Pluto channel count:"
+          echo "Original Pluto channel count:"
+          grep -c '^#EXTINF:' iptvorg_usa.m3u || true
+
+      - name: Remove duplicate channels
+        run: |
+          echo
+          echo "======================================"
+          echo " REMOVING DUPLICATE CHANNELS"
+          echo "======================================"
+
+          python3 <<'PY'
+          import re
+
+          infile = "iptvorg_usa.m3u"
+          outfile = "iptvorg_usa_clean.m3u"
+
+          with open(infile, "r", encoding="utf-8", errors="replace") as f:
+              lines = f.readlines()
+
+          output = []
+          seen = set()
+          duplicates = 0
+          entries = 0
+
+          i = 0
+
+          while i < len(lines):
+              line = lines[i]
+
+              if line.startswith("#EXTINF:"):
+                  entries += 1
+
+                  # Normally the URL is the next non-empty line.
+                  url = ""
+                  j = i + 1
+
+                  while j < len(lines):
+                      if lines[j].strip() and not lines[j].startswith("#"):
+                          url = lines[j].strip()
+                          break
+                      j += 1
+
+                  # Prefer tvg-id as the unique channel identity.
+                  match = re.search(r'tvg-id="([^"]*)"', line)
+                  tvg_id = match.group(1).strip() if match else ""
+
+                  if tvg_id:
+                      key = "tvg:" + tvg_id.lower()
+                  else:
+                      # Fall back to the channel name after the final comma.
+                      name = line.split(",", 1)[1].strip() if "," in line else line
+                      key = "name:" + name.lower()
+
+                  if key in seen:
+                      duplicates += 1
+
+                      # Skip the complete M3U entry.
+                      i = j + 1
+                      continue
+
+                  seen.add(key)
+
+                  # Keep the complete entry exactly as supplied.
+                  output.append(line)
+
+                  k = i + 1
+                  while k <= j:
+                      output.append(lines[k])
+                      k += 1
+
+                  i = j + 1
+                  continue
+
+              # Preserve headers and any other lines.
+              output.append(line)
+              i += 1
+
+          with open(outfile, "w", encoding="utf-8") as f:
+              f.writelines(output)
+
+          print(f"Original entries : {entries}")
+          print(f"Duplicates removed: {duplicates}")
+          print(f"Final entries    : {entries - duplicates}")
+
+          if entries == 0:
+              raise SystemExit("ERROR: No M3U channels found.")
+
+          if entries - duplicates == 0:
+              raise SystemExit("ERROR: Duplicate filtering removed everything.")
+
+          PY
+
+          mv iptvorg_usa_clean.m3u iptvorg_usa.m3u
+
+          echo
+          echo "Cleaned Pluto channel count:"
           grep -c '^#EXTINF:' iptvorg_usa.m3u || true
 
       - name: Verify Pluto playlist
