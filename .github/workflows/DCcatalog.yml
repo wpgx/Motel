@@ -1,4 +1,5 @@
-```yaml
+</> YAML
+
 name: Sort DCcatalog
 
 on:
@@ -130,7 +131,6 @@ jobs:
 
               return g.title()
 
-          # EPG good ids
           good_ids = set()
 
           if Path("dcmaster.xml").exists():
@@ -147,42 +147,22 @@ jobs:
               except Exception as e:
                   print(f"EPG parse warning: {e}")
 
-          TOP = [
-              "News & Weather",
-              "Sports",
-              "Movies"
-          ]
-
-          BOTTOM = [
-              "Ambiance",
-              "Anime & Gaming",
-              "Anime"
-          ]
+          TOP = ["News & Weather", "Sports", "Movies"]
+          BOTTOM = ["Ambiance", "Anime & Gaming", "Anime"]
 
           def sort_key(item):
               category = item[0]
 
               if category in TOP:
-                  return (
-                      0,
-                      TOP.index(category),
-                      item[1]
-                  )
+                  return (0, TOP.index(category), item[1])
 
               if category in BOTTOM or "ambiance" in category.lower() or "anime" in category.lower():
-                  return (
-                      2,
-                      category.lower(),
-                      item[1]
-                  )
+                  return (2, category.lower(), item[1])
 
-              return (
-                  1,
-                  category.lower(),
-                  item[1]
-              )
+              return (1, category.lower(), item[1])
 
           src = Path("dcmaster.m3u8")
+
           lines = src.read_text(
               encoding="utf-8",
               errors="ignore"
@@ -236,13 +216,7 @@ jobs:
               tvg_id = tvg_match.group(1) if tvg_match else ""
 
               by_name[name.lower()].append(
-                  (
-                      category,
-                      name,
-                      line,
-                      url,
-                      tvg_id
-                  )
+                  (category, name, line, url, tvg_id)
               )
 
           entries = []
@@ -252,43 +226,23 @@ jobs:
 
               if len(channels) == 1:
                   category, _, ext, url, _ = channels[0]
-
-                  entries.append(
-                      (
-                          category,
-                          name_low,
-                          ext,
-                          url
-                      )
-                  )
+                  entries.append((category, name_low, ext, url))
 
               else:
                   channels_sorted = sorted(
                       channels,
-                      key=lambda x: (
-                          x[4] not in good_ids,
-                          x[0]
-                      )
+                      key=lambda x: (x[4] not in good_ids, x[0])
                   )
 
                   category, _, ext, url, _ = channels_sorted[0]
 
                   entries.append(
-                      (
-                          category,
-                          name_low,
-                          ext,
-                          url
-                      )
+                      (category, name_low, ext, url)
                   )
 
                   dupes_removed += len(channels) - 1
 
           entries.sort(key=sort_key)
-
-          # ============================================================
-          # FIX DUPLICATE TVG-CHNO - KEEP PROVIDERS TOGETHER
-          # ============================================================
 
           def extract_chno(ext):
               m = re.search(
@@ -301,11 +255,8 @@ jobs:
 
           def replace_chno(ext, new_chno):
 
-              if re.search(
-                  r'tvg-chno="[^"]+"',
-                  ext,
-                  re.I
-              ):
+              if re.search(r'tvg-chno="[^"]+"', ext, re.I):
+
                   return re.sub(
                       r'tvg-chno="[^"]+"',
                       f'tvg-chno="{new_chno}"',
@@ -328,38 +279,28 @@ jobs:
 
               if not ch:
                   fixed_entries.append(
-                      (
-                          category,
-                          name_low,
-                          ext,
-                          url
-                      )
+                      (category, name_low, ext, url)
                   )
                   continue
 
-              already_used = set(
+              already_used = {
                   extract_chno(e)
                   for _, _, e, _ in fixed_entries
                   if extract_chno(e)
-              )
+              }
 
               if ch not in already_used:
 
                   fixed_entries.append(
-                      (
-                          category,
-                          name_low,
-                          ext,
-                          url
-                      )
+                      (category, name_low, ext, url)
                   )
 
                   used_chno.add(ch)
                   continue
 
               print(
-                  f"COLLISION: {ch} already used, fixing "
-                  f"{name_low} [{category}]"
+                  f"COLLISION: {ch} already used, "
+                  f"fixing {name_low} [{category}]"
               )
 
               try:
@@ -373,44 +314,25 @@ jobs:
 
                   for block_size in [100, 1000]:
 
-                      block_start = (
-                          orig // block_size
-                      ) * block_size
+                      block_start = (orig // block_size) * block_size
+                      block_end = block_start + block_size - 1
 
-                      block_end = (
-                          block_start +
-                          block_size -
-                          1
-                      )
-
-                      for cand in range(
-                          orig + 1,
-                          block_end + 1
-                      ):
+                      for cand in range(orig + 1, block_end + 1):
 
                           sc = str(cand)
 
-                          if (
-                              sc not in already_used
-                              and sc not in used_chno
-                          ):
+                          if sc not in already_used and sc not in used_chno:
                               new_ch = sc
                               break
 
                       if new_ch:
                           break
 
-                      for cand in range(
-                          block_start,
-                          orig
-                      ):
+                      for cand in range(block_start, orig):
 
                           sc = str(cand)
 
-                          if (
-                              sc not in already_used
-                              and sc not in used_chno
-                          ):
+                          if sc not in already_used and sc not in used_chno:
                               new_ch = sc
                               break
 
@@ -421,33 +343,21 @@ jobs:
 
                   cand = 9000
 
-                  while (
-                      str(cand) in used_chno
-                      or str(cand) in already_used
-                  ):
+                  while str(cand) in used_chno or str(cand) in already_used:
                       cand += 1
 
                   new_ch = str(cand)
 
               print(
-                  f" -> {ch} => {new_ch} "
-                  f"for {name_low}"
+                  f" -> {ch} => {new_ch} for {name_low}"
               )
 
-              ext = replace_chno(
-                  ext,
-                  new_ch
-              )
+              ext = replace_chno(ext, new_ch)
 
               used_chno.add(new_ch)
 
               fixed_entries.append(
-                  (
-                      category,
-                      name_low,
-                      ext,
-                      url
-                  )
+                  (category, name_low, ext, url)
               )
 
           entries = fixed_entries
@@ -496,16 +406,14 @@ jobs:
 
           ordered_categories = (
               TOP
-              +
-              [
+              + [
                   x for x in sorted(counts)
                   if x not in TOP
                   and x not in BOTTOM
                   and "ambiance" not in x.lower()
                   and "anime" not in x.lower()
               ]
-              +
-              [
+              + [
                   x for x in sorted(counts)
                   if x in BOTTOM
                   or "ambiance" in x.lower()
@@ -513,46 +421,28 @@ jobs:
               ]
           )
 
-          print("\n========================================")
+          print()
+          print("========================================")
           print("       DCcatalog CATEGORY REPORT")
           print("========================================")
 
           for category in ordered_categories:
               print(
-                  f"{category:<25} "
-                  f"{counts[category]:>4}"
+                  f"{category:<25} {counts[category]:>4}"
               )
 
           print("----------------------------------------")
-          print(
-              f"TOTAL CHANNELS:          "
-              f"{len(entries)}"
-          )
-
-          print(
-              f"DUPLICATES REMOVED:      "
-              f"{dupes_removed}"
-          )
-
-          print(
-              "CHNO COLLISIONS FIXED:   "
-              f"{len(used_chno) - len(set(used_chno))} "
-              "checked, see log above"
-          )
-
-          print(
-              f"CATEGORIES:              "
-              f"{len(counts)}"
-          )
-
+          print(f"TOTAL CHANNELS:          {len(entries)}")
+          print(f"DUPLICATES REMOVED:      {dupes_removed}")
+          print(f"CATEGORIES:              {len(counts)}")
           print("========================================")
 
           if removed_categories:
 
-              print("\nREMOVED SPANISH CATEGORIES:")
+              print()
+              print("REMOVED SPANISH CATEGORIES:")
 
               for category, count in removed_categories.items():
-
                   print(
                       f"  {category}: {count}"
                   )
@@ -568,14 +458,8 @@ jobs:
 
               xml_text = (
                   xml_text
-                  .replace(
-                      "No Information",
-                      "To Be Announced"
-                  )
-                  .replace(
-                      "No information",
-                      "To Be Announced"
-                  )
+                  .replace("No Information", "To Be Announced")
+                  .replace("No information", "To Be Announced")
               )
 
               Path(
@@ -596,7 +480,6 @@ jobs:
                   "dccatalog.xml.gz",
                   "DCcatalog.xml.gz"
               ]:
-
                   Path(filename).write_bytes(
                       gzip.compress(
                           xml_text.encode("utf-8")
@@ -626,4 +509,3 @@ jobs:
           git commit -m "DCcatalog: fix duplicate chno collisions"
 
           git push
-```
