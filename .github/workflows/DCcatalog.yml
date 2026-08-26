@@ -1,0 +1,509 @@
+name: Sort DCcatalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '50 2,5,8,11,14,17,20,23 * * *'
+
+concurrency:
+  group: motel-pipeline
+  cancel-in-progress: false
+
+jobs:
+  sort:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build DCcatalog
+        run: |
+          python3 - << 'PY'
+          import re
+          import gzip
+          from pathlib import Path
+          from collections import Counter, defaultdict
+          import xml.etree.ElementTree as ET
+
+          MERGE = {
+              "home & food": "Home & Food",
+              "home + food": "Home & Food",
+              "home and food": "Home & Food",
+              "good eats": "Home & Food",
+              "lifestyle": "Home & Food",
+              "true crime": "Crime",
+              "crime": "Crime",
+              "crime scenes": "Crime",
+              "crime thrillher": "Crime",
+              "crime cults killers": "Crime",
+              "chasing criminals": "Crime",
+              "cold case files": "Crime",
+              "a&e crime 360": "Crime",
+              "crime & mystery": "Crime",
+              "always funny": "Comedy",
+              "comedy dynamics": "Comedy",
+              "tv dramas": "Drama",
+              "tv drama": "Drama",
+              "drama": "Drama",
+              "horror": "Sci-Fi & Horror",
+              "sci-fi": "Sci-Fi & Horror",
+              "scifi": "Sci-Fi & Horror",
+              "sci-fi & supernatural": "Sci-Fi & Horror",
+              "sci-fi + supernatural": "Sci-Fi & Horror",
+              "sci-fi and supernatural": "Sci-Fi & Horror",
+              "classic doctor who": "Sci-Fi & Horror",
+              "alien nation by dust": "Sci-Fi & Horror",
+              "dust": "Sci-Fi & Horror",
+              "supernatural": "Sci-Fi & Horror",
+              "drama & sci-fi": "Sci-Fi & Horror",
+              "paranormal": "Sci-Fi & Horror",
+              "out of this world": "Sci-Fi & Horror",
+              "movies": "Movies",
+              "movie channels": "Movies",
+              "classic cinema": "Movies",
+              "at the movies": "Movies",
+              "cinevault": "Movies",
+              "tv & movies": "Movies",
+              "sports": "Sports",
+              "sports on now": "Sports",
+              "sports & outdoors": "Sports",
+              "sports and outdoors": "Sports",
+              "games & competition": "Sports",
+              "games + competition": "Sports",
+              "pop culture": "Entertainment",
+              "reality": "Entertainment",
+              "black entertainment": "Entertainment",
+              "entertainment & reality": "Entertainment",
+              "entertainment + reality": "Entertainment",
+              "kids": "Kids",
+              "kids & family": "Kids",
+              "kids + family": "Kids",
+              "kids and family": "Kids",
+              "family": "Kids",
+              "documentary": "Documentary",
+              "documentaries": "Documentary",
+              "documentary & science": "Documentary",
+              "documentary and science": "Documentary",
+              "nature": "Nature & Science",
+              "nature history": "Nature & Science",
+              "nature & history": "Nature & Science",
+              "nature history and science": "Nature & Science",
+              "nature history & science": "Nature & Science",
+              "science": "Nature & Science",
+              "science & nature": "Nature & Science",
+              "nature & science": "Nature & Science",
+              "nature and science": "Nature & Science",
+          }
+
+          REMOVE_CATEGORIES = {
+              "espanol", "español", "latin", "spanish",
+              "spanish language", "spanish-language",
+          }
+
+          def normalize_category(raw):
+              if not raw:
+                  return "Other"
+
+              g = raw.strip()
+              g = re.sub(r'&amp;', '&', g, flags=re.IGNORECASE)
+              g = re.sub(r'\s+', ' ', g).strip()
+              gl = g.lower()
+
+              if "news" in gl or "weather" in gl:
+                  return "News & Weather"
+
+              if gl == "tv & movies":
+                  return "Movies"
+
+              lookup = gl.replace("+", "&").replace(" and ", " & ")
+              lookup = re.sub(r'\s+', ' ', lookup).strip()
+
+              if lookup in MERGE:
+                  return MERGE[lookup]
+
+              for key, value in MERGE.items():
+                  if key in lookup:
+                      return value
+
+              return g.title()
+
+          good_ids = set()
+
+          if Path("dcmaster.xml").exists():
+              try:
+                  tree = ET.parse("dcmaster.xml")
+                  root = tree.getroot()
+
+                  for prog in root.findall("programme"):
+                      title = prog.findtext("title", "").lower()
+
+                      if title and "no information" not in title and "to be announced" not in title:
+                          good_ids.add(prog.get("channel", ""))
+
+              except Exception as e:
+                  print(f"EPG parse warning: {e}")
+
+          TOP = ["News & Weather", "Sports", "Movies"]
+          BOTTOM = ["Ambiance", "Anime & Gaming", "Anime"]
+
+          def sort_key(item):
+              category = item[0]
+
+              if category in TOP:
+                  return (0, TOP.index(category), item[1])
+
+              if category in BOTTOM or "ambiance" in category.lower() or "anime" in category.lower():
+                  return (2, category.lower(), item[1])
+
+              return (1, category.lower(), item[1])
+
+          src = Path("dcmaster.m3u8")
+
+          lines = src.read_text(
+              encoding="utf-8",
+              errors="ignore"
+          ).splitlines()
+
+          by_name = defaultdict(list)
+          removed_categories = Counter()
+          removed_channels = []
+
+          for i, line in enumerate(lines):
+
+              if not line.startswith("#EXTINF"):
+                  continue
+
+              url = lines[i + 1].strip() if i + 1 < len(lines) else ""
+
+              if not url.startswith("http"):
+                  continue
+
+              name = line.rsplit(",", 1)[-1].strip()
+
+              if "welcome" in name.lower() and "motel" in name.lower():
+                  removed_channels.append(f"{name} [welcome]")
+                  continue
+
+              match = re.search(
+                  r'group-title="([^"]+)"',
+                  line,
+                  flags=re.IGNORECASE
+              )
+
+              original_category = match.group(1) if match else "Other"
+              original_lower = original_category.strip().lower()
+
+              if original_lower in REMOVE_CATEGORIES:
+                  removed_categories[original_category] += 1
+                  removed_channels.append(name)
+                  continue
+
+              if original_lower in ("tubi", "roku"):
+                  original_category = "Other"
+
+              category = normalize_category(original_category)
+
+              tvg_match = re.search(
+                  r'tvg-id="([^"]+)"',
+                  line,
+                  flags=re.IGNORECASE
+              )
+
+              tvg_id = tvg_match.group(1) if tvg_match else ""
+
+              by_name[name.lower()].append(
+                  (category, name, line, url, tvg_id)
+              )
+
+          entries = []
+          dupes_removed = 0
+
+          for name_low, channels in by_name.items():
+
+              if len(channels) == 1:
+                  category, _, ext, url, _ = channels[0]
+                  entries.append((category, name_low, ext, url))
+
+              else:
+                  channels_sorted = sorted(
+                      channels,
+                      key=lambda x: (x[4] not in good_ids, x[0])
+                  )
+
+                  category, _, ext, url, _ = channels_sorted[0]
+
+                  entries.append(
+                      (category, name_low, ext, url)
+                  )
+
+                  dupes_removed += len(channels) - 1
+
+          entries.sort(key=sort_key)
+
+          def extract_chno(ext):
+              m = re.search(
+                  r'tvg-chno="([^"]+)"',
+                  ext,
+                  re.I
+              )
+
+              return m.group(1) if m else None
+
+          def replace_chno(ext, new_chno):
+
+              if re.search(r'tvg-chno="[^"]+"', ext, re.I):
+
+                  return re.sub(
+                      r'tvg-chno="[^"]+"',
+                      f'tvg-chno="{new_chno}"',
+                      ext,
+                      flags=re.I
+                  )
+
+              return ext.replace(
+                  "#EXTINF:-1",
+                  f'#EXTINF:-1 tvg-chno="{new_chno}"',
+                  1
+              )
+
+          used_chno = set()
+          fixed_entries = []
+
+          for category, name_low, ext, url in entries:
+
+              ch = extract_chno(ext)
+
+              if not ch:
+                  fixed_entries.append(
+                      (category, name_low, ext, url)
+                  )
+                  continue
+
+              already_used = {
+                  extract_chno(e)
+                  for _, _, e, _ in fixed_entries
+                  if extract_chno(e)
+              }
+
+              if ch not in already_used:
+
+                  fixed_entries.append(
+                      (category, name_low, ext, url)
+                  )
+
+                  used_chno.add(ch)
+                  continue
+
+              print(
+                  f"COLLISION: {ch} already used, "
+                  f"fixing {name_low} [{category}]"
+              )
+
+              try:
+                  orig = int(ch)
+              except:
+                  orig = None
+
+              new_ch = None
+
+              if orig is not None:
+
+                  for block_size in [100, 1000]:
+
+                      block_start = (orig // block_size) * block_size
+                      block_end = block_start + block_size - 1
+
+                      for cand in range(orig + 1, block_end + 1):
+
+                          sc = str(cand)
+
+                          if sc not in already_used and sc not in used_chno:
+                              new_ch = sc
+                              break
+
+                      if new_ch:
+                          break
+
+                      for cand in range(block_start, orig):
+
+                          sc = str(cand)
+
+                          if sc not in already_used and sc not in used_chno:
+                              new_ch = sc
+                              break
+
+                      if new_ch:
+                          break
+
+              if not new_ch:
+
+                  cand = 9000
+
+                  while str(cand) in used_chno or str(cand) in already_used:
+                      cand += 1
+
+                  new_ch = str(cand)
+
+              print(
+                  f" -> {ch} => {new_ch} for {name_low}"
+              )
+
+              ext = replace_chno(ext, new_ch)
+
+              used_chno.add(new_ch)
+
+              fixed_entries.append(
+                  (category, name_low, ext, url)
+              )
+
+          entries = fixed_entries
+
+          out = [
+              '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
+          ]
+
+          for category, _, ext, url in entries:
+
+              ext = re.sub(
+                  r'group-title="[^"]+"',
+                  f'group-title="{category}"',
+                  ext,
+                  flags=re.IGNORECASE
+              )
+
+              if "group-title=" not in ext.lower():
+
+                  ext = ext.replace(
+                      "#EXTINF:-1",
+                      f'#EXTINF:-1 group-title="{category}"',
+                      1
+                  )
+
+              out.append(ext)
+              out.append(url)
+
+          text = "\n".join(out)
+
+          for filename in [
+              "dccatalog.m3u8",
+              "DCcatalog.m3u8",
+              "dccatalog.m3u",
+              "DCcatalog.m3u"
+          ]:
+              Path(filename).write_text(
+                  text,
+                  encoding="utf-8"
+              )
+
+          counts = Counter(
+              category
+              for category, _, _, _ in entries
+          )
+
+          ordered_categories = (
+              TOP
+              + [
+                  x for x in sorted(counts)
+                  if x not in TOP
+                  and x not in BOTTOM
+                  and "ambiance" not in x.lower()
+                  and "anime" not in x.lower()
+              ]
+              + [
+                  x for x in sorted(counts)
+                  if x in BOTTOM
+                  or "ambiance" in x.lower()
+                  or "anime" in x.lower()
+              ]
+          )
+
+          print()
+          print("========================================")
+          print("       DCcatalog CATEGORY REPORT")
+          print("========================================")
+
+          for category in ordered_categories:
+              print(
+                  f"{category:<25} {counts[category]:>4}"
+              )
+
+          print("----------------------------------------")
+          print(f"TOTAL CHANNELS:          {len(entries)}")
+          print(f"DUPLICATES REMOVED:      {dupes_removed}")
+          print(f"CATEGORIES:              {len(counts)}")
+          print("========================================")
+
+          if removed_categories:
+
+              print()
+              print("REMOVED SPANISH CATEGORIES:")
+
+              for category, count in removed_categories.items():
+                  print(
+                      f"  {category}: {count}"
+                  )
+
+          if Path("dcmaster.xml").exists():
+
+              xml_text = Path(
+                  "dcmaster.xml"
+              ).read_text(
+                  encoding="utf-8",
+                  errors="ignore"
+              )
+
+              xml_text = (
+                  xml_text
+                  .replace("No Information", "To Be Announced")
+                  .replace("No information", "To Be Announced")
+              )
+
+              Path(
+                  "dccatalog.xml"
+              ).write_text(
+                  xml_text,
+                  encoding="utf-8"
+              )
+
+              Path(
+                  "DCcatalog.xml"
+              ).write_text(
+                  xml_text,
+                  encoding="utf-8"
+              )
+
+              for filename in [
+                  "dccatalog.xml.gz",
+                  "DCcatalog.xml.gz"
+              ]:
+                  Path(filename).write_bytes(
+                      gzip.compress(
+                          xml_text.encode("utf-8")
+                      )
+                  )
+
+          PY
+
+      - name: Push
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+
+          git add \
+            DCcatalog.m3u8 \
+            DCcatalog.m3u \
+            DCcatalog.xml \
+            DCcatalog.xml.gz \
+            dccatalog.m3u8 \
+            dccatalog.m3u \
+            dccatalog.xml \
+            dccatalog.xml.gz \
+            -f
+
+          git diff --cached --quiet && echo "No change" && exit 0
+
+          git commit -m "DCcatalog: fix duplicate chno collisions"
+
+          git push
