@@ -2,8 +2,12 @@ name: Update Pluto CA
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
+
+concurrency:
+  group: motel-pipeline
+  cancel-in-progress: false
 
 jobs:
   update:
