@@ -1,3 +1,4 @@
+```yaml
 name: Sort DCcatalog
 
 on:
@@ -29,6 +30,7 @@ jobs:
               "home and food": "Home & Food",
               "good eats": "Home & Food",
               "lifestyle": "Home & Food",
+
               "true crime": "Crime",
               "crime": "Crime",
               "crime scenes": "Crime",
@@ -38,11 +40,14 @@ jobs:
               "cold case files": "Crime",
               "a&e crime 360": "Crime",
               "crime & mystery": "Crime",
+
               "always funny": "Comedy",
               "comedy dynamics": "Comedy",
+
               "tv dramas": "Drama",
               "tv drama": "Drama",
               "drama": "Drama",
+
               "horror": "Sci-Fi & Horror",
               "sci-fi": "Sci-Fi & Horror",
               "scifi": "Sci-Fi & Horror",
@@ -56,32 +61,38 @@ jobs:
               "drama & sci-fi": "Sci-Fi & Horror",
               "paranormal": "Sci-Fi & Horror",
               "out of this world": "Sci-Fi & Horror",
+
               "movies": "Movies",
               "movie channels": "Movies",
               "classic cinema": "Movies",
               "at the movies": "Movies",
               "cinevault": "Movies",
               "tv & movies": "Movies",
+
               "sports": "Sports",
               "sports on now": "Sports",
               "sports & outdoors": "Sports",
               "sports and outdoors": "Sports",
               "games & competition": "Sports",
               "games + competition": "Sports",
+
               "pop culture": "Entertainment",
               "reality": "Entertainment",
               "black entertainment": "Entertainment",
               "entertainment & reality": "Entertainment",
               "entertainment + reality": "Entertainment",
+
               "kids": "Kids",
               "kids & family": "Kids",
               "kids + family": "Kids",
               "kids and family": "Kids",
               "family": "Kids",
+
               "documentary": "Documentary",
               "documentaries": "Documentary",
               "documentary & science": "Documentary",
               "documentary and science": "Documentary",
+
               "nature": "Nature & Science",
               "nature history": "Nature & Science",
               "nature & history": "Nature & Science",
@@ -94,8 +105,21 @@ jobs:
           }
 
           REMOVE_CATEGORIES = {
-              "espanol", "español", "latin", "spanish",
-              "spanish language", "spanish-language",
+              "espanol",
+              "español",
+              "latin",
+              "spanish",
+              "spanish language",
+              "spanish-language",
+
+              "français",
+              "francais",
+              "french",
+              "french language",
+              "french-language",
+              "français language",
+              "français canadien",
+              "french canadian",
           }
 
           def normalize_category(raw):
@@ -434,7 +458,7 @@ jobs:
           if removed_categories:
 
               print()
-              print("REMOVED SPANISH CATEGORIES:")
+              print("REMOVED NON-ENGLISH CATEGORIES:")
 
               for category, count in removed_categories.items():
                   print(
@@ -500,6 +524,7 @@ jobs:
 
           git diff --cached --quiet && echo "No change" && exit 0
 
-          git commit -m "DCcatalog: fix duplicate chno collisions"
+          git commit -m "DCcatalog: remove non-English channels and fix duplicate chno collisions"
 
           git push
+```
