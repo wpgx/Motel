@@ -1,133 +1,579 @@
-name: dcmaster
-on:
-  schedule:
-    - cron: '35 2,5,8,11,14,17,20,23 * * *'
-  workflow_dispatch:
+name: Sort DCcatalog
 
-  
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '50 2,5,8,11,14,17,20,23 * * *'
+
 jobs:
-  build:
+  sort:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCMASTER
+
+      - name: Build DCcatalog
         run: |
-          cat > /tmp/build.py << 'PY'
-          import re, requests, os, shutil
+          python3 - << 'PY'
+          import re
+          import gzip
+          from pathlib import Path
+          from collections import Counter
+          import xml.etree.ElementTree as ET
 
-          def load_blocks(text):
-              blocks=[]; cur=[]
-              for l in text.replace("\r","").split("\n"):
-                  l=l.strip()
-                  if not l: continue
-                  if l.startswith("#EXTINF"):
-                      if cur: blocks.append(cur)
-                      cur=[l]
-                  elif l.startswith("http"):
-                      cur.append(l); blocks.append(cur); cur=[]
-              return blocks
+          MERGE = {
+              "home & food": "Home & Food",
+              "home + food": "Home & Food",
+              "home and food": "Home & Food",
+              "good eats": "Home & Food",
+              "lifestyle": "Home & Food",
 
-          def load_file(f):
-              if not os.path.exists(f): return []
-              return load_blocks(open(f,encoding='utf-8',errors='ignore').read())
+              "true crime": "Crime",
+              "crime": "Crime",
+              "crime scenes": "Crime",
+              "crime thrillher": "Crime",
+              "crime cults killers": "Crime",
+              "chasing criminals": "Crime",
+              "cold case files": "Crime",
+              "a&e crime 360": "Crime",
+              "crime & mystery": "Crime",
 
-          def get_group(b):
-              m=re.search(r'group-title=["\']([^"\']+)["\']', b[0], re.I)
-              return m.group(1).lower() if m else ""
+              "always funny": "Comedy",
+              "comedy dynamics": "Comedy",
 
-          def get_inner(path):
-              if not os.path.exists(path): return ""
-              txt=open(path,encoding='utf-8',errors='ignore').read()
-              return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
+              "tv dramas": "Drama",
+              "tv drama": "Drama",
+              "drama": "Drama",
 
-          dcfull_blocks = load_file("dcfull.m3u8") or load_file("dcfull.m3u")
-          all_ch = [b for b in dcfull_blocks if 'all channel' in get_group(b)]
-          favs = [b for b in dcfull_blocks if 'favor' in get_group(b)]
-          rest = [b for b in dcfull_blocks if b not in all_ch and b not in favs]
-          dcfull_blocks = all_ch + favs + rest
-          print(f"DCFULL: All {len(all_ch)} + Fav {len(favs)} + Rest {len(rest)} = {len(dcfull_blocks)}")
+              "horror": "Sci-Fi & Horror",
+              "sci-fi": "Sci-Fi & Horror",
+              "scifi": "Sci-Fi & Horror",
+              "sci-fi & supernatural": "Sci-Fi & Horror",
+              "sci-fi + supernatural": "Sci-Fi & Horror",
+              "sci-fi and supernatural": "Sci-Fi & Horror",
+              "classic doctor who": "Sci-Fi & Horror",
+              "alien nation by dust": "Sci-Fi & Horror",
+              "dust": "Sci-Fi & Horror",
+              "supernatural": "Sci-Fi & Horror",
+              "drama & sci-fi": "Sci-Fi & Horror",
+              "paranormal": "Sci-Fi & Horror",
+              "out of this world": "Sci-Fi & Horror",
 
-          tubi_blocks = load_file("tubiroku.m3u") or load_file("tubiroku.m3u8")
-          print(f"TUBI (from tubiroku): {len(tubi_blocks)}")
+              "movies": "Movies",
+              "movie channels": "Movies",
+              "classic cinema": "Movies",
+              "at the movies": "Movies",
+              "cinevault": "Movies",
+              "tv & movies": "Movies",
 
-          roku_blocks=[]
-          sources = [
-              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
-              "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
-          ]
-          for src in sources:
+              "sports": "Sports",
+              "sports on now": "Sports",
+              "sports & outdoors": "Sports",
+              "sports and outdoors": "Sports",
+              "games & competition": "Sports",
+              "games + competition": "Sports",
+
+              "pop culture": "Entertainment",
+              "reality": "Entertainment",
+              "black entertainment": "Entertainment",
+              "entertainment & reality": "Entertainment",
+              "entertainment + reality": "Entertainment",
+
+              "kids": "Kids",
+              "kids & family": "Kids",
+              "kids + family": "Kids",
+              "kids and family": "Kids",
+              "family": "Kids",
+
+              "documentary": "Documentary",
+              "documentaries": "Documentary",
+              "documentary & science": "Documentary",
+              "documentary and science": "Documentary",
+
+              "nature": "Nature & Science",
+              "nature history": "Nature & Science",
+              "nature & history": "Nature & Science",
+              "nature history and science": "Nature & Science",
+              "nature history & science": "Nature & Science",
+              "science": "Nature & Science",
+              "science & nature": "Nature & Science",
+              "nature & science": "Nature & Science",
+              "nature and science": "Nature & Science",
+          }
+
+          REMOVE_CATEGORIES = {
+              "espanol",
+              "español",
+              "latin",
+              "spanish",
+              "spanish language",
+              "spanish-language",
+
+              "français",
+              "francais",
+              "french",
+              "french language",
+              "french-language",
+              "français language",
+              "français canadien",
+              "french canadian",
+          }
+
+          def normalize_category(raw):
+              if not raw:
+                  return "Other"
+
+              g = raw.strip()
+              g = re.sub(r'&amp;', '&', g, flags=re.IGNORECASE)
+              g = re.sub(r'\s+', ' ', g).strip()
+              gl = g.lower()
+
+              if "news" in gl or "weather" in gl:
+                  return "News & Weather"
+
+              if gl == "tv & movies":
+                  return "Movies"
+
+              lookup = gl.replace("+", "&").replace(" and ", " & ")
+              lookup = re.sub(r'\s+', ' ', lookup).strip()
+
+              if lookup in MERGE:
+                  return MERGE[lookup]
+
+              for key, value in MERGE.items():
+                  if key in lookup:
+                      return value
+
+              return g.title()
+
+          def extract_chno(ext):
+              m = re.search(
+                  r'tvg-chno="([^"]+)"',
+                  ext,
+                  re.I
+              )
+
+              return m.group(1) if m else None
+
+          good_ids = set()
+
+          if Path("dcmaster.xml").exists():
               try:
-                  r=requests.get(src, timeout=20, headers={'User-Agent':'Mozilla/5.0'})
-                  if r.ok and "#EXTINF" in r.text:
-                      tmp=load_blocks(r.text)
-                      if len(tmp)>10:
-                          roku_blocks=tmp
-                          print(f"ROKU scraped {len(tmp)} from {src}")
-                          break
+                  tree = ET.parse("dcmaster.xml")
+                  root = tree.getroot()
+
+                  for prog in root.findall("programme"):
+                      title = prog.findtext("title", "").lower()
+
+                      if (
+                          title
+                          and "no information" not in title
+                          and "to be announced" not in title
+                      ):
+                          good_ids.add(prog.get("channel", ""))
+
               except Exception as e:
-                  print(f"ROKU fail {src}: {e}")
+                  print(f"EPG parse warning: {e}")
 
-          final=[]
-          seen=set()
-          for b in dcfull_blocks:
-              url=b[-1]
-              if url not in seen:
-                  seen.add(url)
-                  final.append(b)
+          TOP = [
+              "News & Weather",
+              "Sports",
+              "Movies"
+          ]
 
-          chno=5000
-          for b in tubi_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              # KEEP ORIGINAL CATEGORY - don't strip group-title
-              if 'group-title=' not in b[0].lower():
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
-              else:
-                  # ensure chno is added but keep the real category like "True Crime"
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
+          BOTTOM = [
+              "Ambiance",
+              "Anime & Gaming",
+              "Anime"
+          ]
 
-          chno=6000
-          for b in roku_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              m=re.search(r'tvg-id="([^"]+)"',b[0]); tid=m.group(1) if m else ""
-              if not tid:
-                  name=b[0].split(",")[-1].strip()
-                  tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
-                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              # KEEP ROKU CATEGORIES TOO
-              if 'group-title=' not in b[0].lower():
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
-              else:
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
+          def sort_key(item):
+              category = item[0]
+              name = item[1]
 
-          with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
-              for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
-          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
+              if category in TOP:
+                  return (
+                      0,
+                      TOP.index(category),
+                      name.lower()
+                  )
 
-          dcfull_xml = get_inner("dcfull.xml")
-          tubi_xml = get_inner("tubiroku.xml")
-          roku_extra=""
-          all_so_far = dcfull_xml + tubi_xml
-          for b in roku_blocks:
-              mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""
-              name=b[0].split(",")[-1].strip()
-              if tid and tid not in all_so_far:
-                  roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
+              if (
+                  category in BOTTOM
+                  or "ambiance" in category.lower()
+                  or "anime" in category.lower()
+              ):
+                  return (
+                      2,
+                      category.lower(),
+                      name.lower()
+                  )
 
-          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
-          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)} unique")
+              return (
+                  1,
+                  category.lower(),
+                  name.lower()
+              )
+
+          src = Path("dcmaster.m3u8")
+
+          lines = src.read_text(
+              encoding="utf-8",
+              errors="ignore"
+          ).splitlines()
+
+          entries = []
+          removed_categories = Counter()
+          removed_channels = []
+
+          # IMPORTANT:
+          # We do NOT use channel name as the duplicate key.
+          # Multiple channels with the same name are allowed.
+          # Only duplicate tvg-chno values are removed.
+
+          seen_chno = set()
+          duplicate_ids_removed = 0
+
+          for i, line in enumerate(lines):
+
+              if not line.startswith("#EXTINF"):
+                  continue
+
+              url = (
+                  lines[i + 1].strip()
+                  if i + 1 < len(lines)
+                  else ""
+              )
+
+              if not url.startswith("http"):
+                  continue
+
+              name = line.rsplit(",", 1)[-1].strip()
+
+              if (
+                  "welcome" in name.lower()
+                  and "motel" in name.lower()
+              ):
+                  removed_channels.append(
+                      f"{name} [welcome]"
+                  )
+                  continue
+
+              match = re.search(
+                  r'group-title="([^"]+)"',
+                  line,
+                  flags=re.IGNORECASE
+              )
+
+              original_category = (
+                  match.group(1)
+                  if match
+                  else "Other"
+              )
+
+              original_lower = (
+                  original_category.strip().lower()
+              )
+
+              # Remove only French / Spanish / Latin categories.
+              if original_lower in REMOVE_CATEGORIES:
+                  removed_categories[
+                      original_category
+                  ] += 1
+
+                  removed_channels.append(name)
+                  continue
+
+              # Catch category names such as:
+              # Spanish TV, French Channels, Latin America, etc.
+              if any(
+                  term in original_lower
+                  for term in (
+                      "spanish",
+                      "espanol",
+                      "español",
+                      "latin",
+                      "french",
+                      "français",
+                      "francais"
+                  )
+              ):
+                  removed_categories[
+                      original_category
+                  ] += 1
+
+                  removed_channels.append(name)
+                  continue
+
+              # Tubi and Roku remain part of the normal playlist.
+              if original_lower in (
+                  "tubi",
+                  "roku"
+              ):
+                  original_category = "Other"
+
+              category = normalize_category(
+                  original_category
+              )
+
+              # Read the channel ID.
+              tvg_match = re.search(
+                  r'tvg-id="([^"]+)"',
+                  line,
+                  flags=re.IGNORECASE
+              )
+
+              tvg_id = (
+                  tvg_match.group(1)
+                  if tvg_match
+                  else ""
+              )
+
+              chno = extract_chno(line)
+
+              # Remove ONLY duplicate channel numbers.
+              if chno:
+                  if chno in seen_chno:
+                      duplicate_ids_removed += 1
+
+                      print(
+                          f"DUPLICATE CHANNEL ID REMOVED: "
+                          f"{chno} - {name}"
+                      )
+
+                      continue
+
+                  seen_chno.add(chno)
+
+              entries.append(
+                  (
+                      category,
+                      name.lower(),
+                      name,
+                      line,
+                      url,
+                      tvg_id,
+                      chno
+                  )
+              )
+
+          # ============================================================
+          # CATEGORY SORTING
+          #
+          # These are the existing categories.
+          # No Plex-only categories are created.
+          #
+          # Plex receives an explicit group-title on every channel.
+          # ============================================================
+
+          entries.sort(
+              key=lambda item: sort_key(
+                  (
+                      item[0],
+                      item[1]
+                  )
+              )
+          )
+
+          out = [
+              '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
+          ]
+
+          for (
+              category,
+              _,
+              name,
+              ext,
+              url,
+              _,
+              _
+          ) in entries:
+
+              # Replace the source group-title with our normalized
+              # category so Plex receives the same category structure
+              # used by the rest of the playlist.
+
+              ext = re.sub(
+                  r'group-title="[^"]*"',
+                  f'group-title="{category}"',
+                  ext,
+                  flags=re.IGNORECASE
+              )
+
+              # If the source entry did not have group-title,
+              # explicitly add one.
+              if "group-title=" not in ext.lower():
+
+                  ext = ext.replace(
+                      "#EXTINF:-1",
+                      f'#EXTINF:-1 group-title="{category}"',
+                      1
+                  )
+
+              out.append(ext)
+              out.append(url)
+
+          text = "\n".join(out)
+
+          for filename in [
+              "dccatalog.m3u8",
+              "DCcatalog.m3u8",
+              "dccatalog.m3u",
+              "DCcatalog.m3u"
+          ]:
+
+              Path(filename).write_text(
+                  text,
+                  encoding="utf-8"
+              )
+
+          counts = Counter(
+              category
+              for (
+                  category,
+                  _,
+                  _,
+                  _,
+                  _,
+                  _,
+                  _
+              ) in entries
+          )
+
+          ordered_categories = (
+              TOP
+              + [
+                  x
+                  for x in sorted(
+                      counts,
+                      key=str.lower
+                  )
+                  if x not in TOP
+                  and x not in BOTTOM
+                  and "ambiance" not in x.lower()
+                  and "anime" not in x.lower()
+              ]
+              + [
+                  x
+                  for x in sorted(
+                      counts,
+                      key=str.lower
+                  )
+                  if x in BOTTOM
+                  or "ambiance" in x.lower()
+                  or "anime" in x.lower()
+              ]
+          )
+
+          print()
+          print("========================================")
+          print("       DCcatalog CATEGORY REPORT")
+          print("========================================")
+
+          for category in ordered_categories:
+              print(
+                  f"{category:<25} "
+                  f"{counts[category]:>4}"
+              )
+
+          print("----------------------------------------")
+          print(
+              f"TOTAL CHANNELS:          "
+              f"{len(entries)}"
+          )
+          print(
+              f"DUPLICATE IDS REMOVED:   "
+              f"{duplicate_ids_removed}"
+          )
+          print(
+              f"CATEGORIES:              "
+              f"{len(counts)}"
+          )
+          print("========================================")
+
+          if removed_categories:
+
+              print()
+              print(
+                  "REMOVED FRENCH / SPANISH "
+                  "CATEGORIES:"
+              )
+
+              for category, count in (
+                  removed_categories.items()
+              ):
+                  print(
+                      f"  {category}: {count}"
+                  )
+
+          if Path("dcmaster.xml").exists():
+
+              xml_text = Path(
+                  "dcmaster.xml"
+              ).read_text(
+                  encoding="utf-8",
+                  errors="ignore"
+              )
+
+              xml_text = (
+                  xml_text
+                  .replace(
+                      "No Information",
+                      "To Be Announced"
+                  )
+                  .replace(
+                      "No information",
+                      "To Be Announced"
+                  )
+              )
+
+              Path(
+                  "dccatalog.xml"
+              ).write_text(
+                  xml_text,
+                  encoding="utf-8"
+              )
+
+              Path(
+                  "DCcatalog.xml"
+              ).write_text(
+                  xml_text,
+                  encoding="utf-8"
+              )
+
+              for filename in [
+                  "dccatalog.xml.gz",
+                  "DCcatalog.xml.gz"
+              ]:
+
+                  Path(filename).write_bytes(
+                      gzip.compress(
+                          xml_text.encode("utf-8")
+                      )
+                  )
+
           PY
-          python3 /tmp/build.py
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "dcmaster: dcfull + tubi + roku deduped (keep categories)"
-          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
+
+      - name: Push
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+
+          git add \
+            DCcatalog.m3u8 \
+            DCcatalog.m3u \
+            DCcatalog.xml \
+            DCcatalog.xml.gz \
+            dccatalog.m3u8 \
+            dccatalog.m3u \
+            dccatalog.xml \
+            dccatalog.xml.gz \
+            -f
+
+          git diff --cached --quiet && echo "No change" && exit 0
+
+          git commit -m "DCcatalog: categories and duplicate channel IDs"
+
+          git push
