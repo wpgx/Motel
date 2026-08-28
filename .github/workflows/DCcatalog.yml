@@ -119,6 +119,13 @@ jobs:
               "français language",
               "français canadien",
               "french canadian",
+
+              "canada",
+              "canadian",
+              "canadian channels",
+              "canadian tv",
+              "canadian television",
+              "canadian television channels",
           }
 
           def normalize_category(raw):
@@ -148,6 +155,26 @@ jobs:
 
               return g.title()
 
+          def is_removed_language_or_country(text):
+              if not text:
+                  return False
+
+              value = text.strip().lower()
+
+              blocked_terms = (
+                  "spanish",
+                  "espanol",
+                  "español",
+                  "latin",
+                  "french",
+                  "français",
+                  "francais",
+                  "canada",
+                  "canadian",
+          )
+
+              return any(term in value for term in blocked_terms)
+
           good_ids = set()
 
           if Path("dcmaster.xml").exists():
@@ -158,25 +185,40 @@ jobs:
                   for prog in root.findall("programme"):
                       title = prog.findtext("title", "").lower()
 
-                      if title and "no information" not in title and "to be announced" not in title:
+                      if (
+                          title
+                          and "no information" not in title
+                          and "to be announced" not in title
+                      ):
                           good_ids.add(prog.get("channel", ""))
 
               except Exception as e:
                   print(f"EPG parse warning: {e}")
 
-          TOP = ["News & Weather", "Sports", "Movies"]
-          BOTTOM = ["Ambiance", "Anime & Gaming", "Anime"]
+          TOP = [
+              "News & Weather",
+              "Sports",
+              "Movies",
+          ]
 
-          def sort_key(item):
-              category = item[0]
+          BOTTOM = [
+              "Ambiance",
+              "Anime & Gaming",
+              "Anime",
+          ]
 
+          def category_order(category):
               if category in TOP:
-                  return (0, TOP.index(category), item[1])
+                  return (0, TOP.index(category))
 
-              if category in BOTTOM or "ambiance" in category.lower() or "anime" in category.lower():
-                  return (2, category.lower(), item[1])
+              if (
+                  category in BOTTOM
+                  or "ambiance" in category.lower()
+                  or "anime" in category.lower()
+              ):
+                  return (2, category.lower())
 
-              return (1, category.lower(), item[1])
+              return (1, category.lower())
 
           src = Path("dcmaster.m3u8")
 
@@ -194,15 +236,25 @@ jobs:
               if not line.startswith("#EXTINF"):
                   continue
 
-              url = lines[i + 1].strip() if i + 1 < len(lines) else ""
+              url = (
+                  lines[i + 1].strip()
+                  if i + 1 < len(lines)
+                  else ""
+              )
 
               if not url.startswith("http"):
                   continue
 
               name = line.rsplit(",", 1)[-1].strip()
+              name_lower = name.lower()
 
-              if "welcome" in name.lower() and "motel" in name.lower():
-                  removed_channels.append(f"{name} [welcome]")
+              if (
+                  "welcome" in name_lower
+                  and "motel" in name_lower
+              ):
+                  removed_channels.append(
+                      f"{name} [welcome]"
+                  )
                   continue
 
               match = re.search(
@@ -211,18 +263,47 @@ jobs:
                   flags=re.IGNORECASE
               )
 
-              original_category = match.group(1) if match else "Other"
-              original_lower = original_category.strip().lower()
+              original_category = (
+                  match.group(1)
+                  if match
+                  else "Other"
+              )
 
-              if original_lower in REMOVE_CATEGORIES:
-                  removed_categories[original_category] += 1
+              original_lower = (
+                  original_category.strip().lower()
+              )
+
+              if (
+                  original_lower in REMOVE_CATEGORIES
+                  or is_removed_language_or_country(
+                      original_category
+                  )
+              ):
+                  removed_categories[
+                      original_category
+                  ] += 1
+
                   removed_channels.append(name)
                   continue
 
-              if original_lower in ("tubi", "roku"):
+              if (
+                  original_lower in ("tubi", "roku")
+              ):
                   original_category = "Other"
 
-              category = normalize_category(original_category)
+              category = normalize_category(
+                  original_category
+              )
+
+              if is_removed_language_or_country(
+                  category
+              ):
+                  removed_categories[
+                      original_category
+                  ] += 1
+
+                  removed_channels.append(name)
+                  continue
 
               tvg_match = re.search(
                   r'tvg-id="([^"]+)"',
@@ -230,10 +311,20 @@ jobs:
                   flags=re.IGNORECASE
               )
 
-              tvg_id = tvg_match.group(1) if tvg_match else ""
+              tvg_id = (
+                  tvg_match.group(1)
+                  if tvg_match
+                  else ""
+              )
 
-              by_name[name.lower()].append(
-                  (category, name, line, url, tvg_id)
+              by_name[name_lower].append(
+                  (
+                      category,
+                      name,
+                      line,
+                      url,
+                      tvg_id
+                  )
               )
 
           entries = []
@@ -242,24 +333,60 @@ jobs:
           for name_low, channels in by_name.items():
 
               if len(channels) == 1:
+
                   category, _, ext, url, _ = channels[0]
-                  entries.append((category, name_low, ext, url))
-
-              else:
-                  channels_sorted = sorted(
-                      channels,
-                      key=lambda x: (x[4] not in good_ids, x[0])
-                  )
-
-                  category, _, ext, url, _ = channels_sorted[0]
 
                   entries.append(
-                      (category, name_low, ext, url)
+                      (
+                          category,
+                          name_low,
+                          ext,
+                          url
+                      )
                   )
 
-                  dupes_removed += len(channels) - 1
+              else:
 
-          entries.sort(key=sort_key)
+                  channels_sorted = sorted(
+                      channels,
+                      key=lambda x: (
+                          x[4] not in good_ids,
+                          x[0],
+                          x[1].lower()
+                      )
+                  )
+
+                  category, _, ext, url, _ = (
+                      channels_sorted[0]
+                  )
+
+                  entries.append(
+                      (
+                          category,
+                          name_low,
+                          ext,
+                          url
+                      )
+                  )
+
+                  dupes_removed += (
+                      len(channels) - 1
+                  )
+
+          # ============================================================
+          # PLEX-FRIENDLY SORT
+          #
+          # Plex works much better when the playlist has a predictable
+          # category order and alphabetical channel order within each
+          # category.
+          # ============================================================
+
+          entries.sort(
+              key=lambda item: (
+                  category_order(item[0]),
+                  item[1].lower()
+              )
+          )
 
           def extract_chno(ext):
               m = re.search(
@@ -268,11 +395,19 @@ jobs:
                   re.I
               )
 
-              return m.group(1) if m else None
+              return (
+                  m.group(1)
+                  if m
+                  else None
+              )
 
           def replace_chno(ext, new_chno):
 
-              if re.search(r'tvg-chno="[^"]+"', ext, re.I):
+              if re.search(
+                  r'tvg-chno="[^"]+"',
+                  ext,
+                  re.I
+              ):
 
                   return re.sub(
                       r'tvg-chno="[^"]+"',
@@ -295,9 +430,16 @@ jobs:
               ch = extract_chno(ext)
 
               if not ch:
+
                   fixed_entries.append(
-                      (category, name_low, ext, url)
+                      (
+                          category,
+                          name_low,
+                          ext,
+                          url
+                      )
                   )
+
                   continue
 
               already_used = {
@@ -309,10 +451,16 @@ jobs:
               if ch not in already_used:
 
                   fixed_entries.append(
-                      (category, name_low, ext, url)
+                      (
+                          category,
+                          name_low,
+                          ext,
+                          url
+                      )
                   )
 
                   used_chno.add(ch)
+
                   continue
 
               print(
@@ -331,25 +479,44 @@ jobs:
 
                   for block_size in [100, 1000]:
 
-                      block_start = (orig // block_size) * block_size
-                      block_end = block_start + block_size - 1
+                      block_start = (
+                          orig // block_size
+                      ) * block_size
 
-                      for cand in range(orig + 1, block_end + 1):
+                      block_end = (
+                          block_start
+                          + block_size
+                          - 1
+                      )
+
+                      for cand in range(
+                          orig + 1,
+                          block_end + 1
+                      ):
 
                           sc = str(cand)
 
-                          if sc not in already_used and sc not in used_chno:
+                          if (
+                              sc not in already_used
+                              and sc not in used_chno
+                          ):
                               new_ch = sc
                               break
 
                       if new_ch:
                           break
 
-                      for cand in range(block_start, orig):
+                      for cand in range(
+                          block_start,
+                          orig
+                      ):
 
                           sc = str(cand)
 
-                          if sc not in already_used and sc not in used_chno:
+                          if (
+                              sc not in already_used
+                              and sc not in used_chno
+                          ):
                               new_ch = sc
                               break
 
@@ -360,24 +527,40 @@ jobs:
 
                   cand = 9000
 
-                  while str(cand) in used_chno or str(cand) in already_used:
+                  while (
+                      str(cand) in used_chno
+                      or str(cand) in already_used
+                  ):
                       cand += 1
 
                   new_ch = str(cand)
 
               print(
-                  f" -> {ch} => {new_ch} for {name_low}"
+                  f" -> {ch} => {new_ch} "
+                  f"for {name_low}"
               )
 
-              ext = replace_chno(ext, new_ch)
+              ext = replace_chno(
+                  ext,
+                  new_ch
+              )
 
               used_chno.add(new_ch)
 
               fixed_entries.append(
-                  (category, name_low, ext, url)
+                  (
+                      category,
+                      name_low,
+                      ext,
+                      url
+                  )
               )
 
           entries = fixed_entries
+
+          # ============================================================
+          # BUILD PLAYLIST
+          # ============================================================
 
           out = [
               '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
@@ -411,10 +594,15 @@ jobs:
               "dccatalog.m3u",
               "DCcatalog.m3u"
           ]:
+
               Path(filename).write_text(
                   text,
                   encoding="utf-8"
               )
+
+          # ============================================================
+          # CATEGORY REPORT
+          # ============================================================
 
           counts = Counter(
               category
@@ -424,17 +612,27 @@ jobs:
           ordered_categories = (
               TOP
               + [
-                  x for x in sorted(counts)
+                  x
+                  for x in sorted(
+                      counts,
+                      key=str.lower
+                  )
                   if x not in TOP
                   and x not in BOTTOM
                   and "ambiance" not in x.lower()
                   and "anime" not in x.lower()
               ]
               + [
-                  x for x in sorted(counts)
-                  if x in BOTTOM
-                  or "ambiance" in x.lower()
-                  or "anime" in x.lower()
+                  x
+                  for x in sorted(
+                      counts,
+                      key=str.lower
+                  )
+                  if (
+                      x in BOTTOM
+                      or "ambiance" in x.lower()
+                      or "anime" in x.lower()
+                  )
               ]
           )
 
@@ -444,25 +642,50 @@ jobs:
           print("========================================")
 
           for category in ordered_categories:
+
               print(
-                  f"{category:<25} {counts[category]:>4}"
+                  f"{category:<25} "
+                  f"{counts[category]:>4}"
               )
 
           print("----------------------------------------")
-          print(f"TOTAL CHANNELS:          {len(entries)}")
-          print(f"DUPLICATES REMOVED:      {dupes_removed}")
-          print(f"CATEGORIES:              {len(counts)}")
+
+          print(
+              f"TOTAL CHANNELS:          "
+              f"{len(entries)}"
+          )
+
+          print(
+              f"DUPLICATES REMOVED:      "
+              f"{dupes_removed}"
+          )
+
+          print(
+              f"CATEGORIES:              "
+              f"{len(counts)}"
+          )
+
           print("========================================")
 
           if removed_categories:
 
               print()
-              print("REMOVED NON-ENGLISH CATEGORIES:")
+              print(
+                  "REMOVED CANADIAN / "
+                  "FRENCH / SPANISH CATEGORIES:"
+              )
 
-              for category, count in removed_categories.items():
+              for category, count in (
+                  removed_categories.items()
+              ):
+
                   print(
                       f"  {category}: {count}"
                   )
+
+          # ============================================================
+          # EPG
+          # ============================================================
 
           if Path("dcmaster.xml").exists():
 
@@ -475,8 +698,14 @@ jobs:
 
               xml_text = (
                   xml_text
-                  .replace("No Information", "To Be Announced")
-                  .replace("No information", "To Be Announced")
+                  .replace(
+                      "No Information",
+                      "To Be Announced"
+                  )
+                  .replace(
+                      "No information",
+                      "To Be Announced"
+                  )
               )
 
               Path(
@@ -497,9 +726,12 @@ jobs:
                   "dccatalog.xml.gz",
                   "DCcatalog.xml.gz"
               ]:
+
                   Path(filename).write_bytes(
                       gzip.compress(
-                          xml_text.encode("utf-8")
+                          xml_text.encode(
+                              "utf-8"
+                          )
                       )
                   )
 
@@ -523,6 +755,6 @@ jobs:
 
           git diff --cached --quiet && echo "No change" && exit 0
 
-          git commit -m "DCcatalog: remove non-English channels and fix duplicate chno collisions"
+          git commit -m "DCcatalog: Plex category sorting and remove Canadian French Spanish channels"
 
           git push
