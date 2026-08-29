@@ -57,6 +57,16 @@ jobs:
           echo "LG run: $RUN_ID"
           gh run watch "$RUN_ID" --exit-status
 
+      - name: Run Plex
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run update-plex.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Plex run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
       - name: Run DCFULL
         env:
           GH_TOKEN: ${{ github.token }}
@@ -91,5 +101,5 @@ jobs:
         run: |
           echo "=========================================="
           echo "MASTER IPTV BUILD COMPLETE"
-          echo "Samsung -> Pluto -> Tubi -> LG -> DCFULL -> DCMASTER -> DCCatalog"
+          echo "Samsung -> Pluto -> Tubi -> LG -> Plex -> DCFULL -> DCMASTER -> DCCatalog"
           echo "=========================================="
