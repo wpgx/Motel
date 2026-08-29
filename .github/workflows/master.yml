@@ -1,0 +1,92 @@
+name: Master IPTV Build
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2,5,8,11,14,17,20,23 * * *'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  run-chain:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run Tubi
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run tubiroku-sync.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Tubi run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Run Pluto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pluto.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=pluto.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Pluto run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Run Samsung
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run samsung-render-pull.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Samsung run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Run LG
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run lg_channels.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=lg_channels.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "LG run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Run DCFULL
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run "Build DCfull.yml" --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow="Build DCfull.yml" --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "DCFULL run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Run DCMASTER
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run dcmaster.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=dcmaster.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "DCMASTER run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Run DCCatalog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run DCcatalog.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=DCcatalog.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "DCCatalog run: $RUN_ID"
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Chain complete
+        run: |
+          echo "=========================================="
+          echo "MASTER IPTV BUILD COMPLETE"
+          echo "Tubi -> Pluto -> Samsung -> LG -> DCFULL -> DCMASTER -> DCCatalog"
+          echo "=========================================="
