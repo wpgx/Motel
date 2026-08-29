@@ -21,7 +21,10 @@ jobs:
           import gzip
           from pathlib import Path
           from collections import Counter
-          import xml.etree.ElementTree as ET
+
+          # ============================================================
+          # CATEGORY MERGES
+          # ============================================================
 
           MERGE = {
               "home & food": "Home & Food",
@@ -103,6 +106,10 @@ jobs:
               "nature and science": "Nature & Science",
           }
 
+          # ============================================================
+          # CATEGORIES WE NEVER WANT
+          # ============================================================
+
           REMOVE_CATEGORIES = {
               "espanol",
               "español",
@@ -120,22 +127,225 @@ jobs:
               "french canadian",
           }
 
-          def normalize_category(raw):
+          # ============================================================
+          # CATEGORY DETECTION
+          # ============================================================
+
+          def normalize_category(raw, name=""):
               if not raw:
-                  return "Other"
+                  raw = ""
 
               g = raw.strip()
               g = re.sub(r'&amp;', '&', g, flags=re.IGNORECASE)
               g = re.sub(r'\s+', ' ', g).strip()
               gl = g.lower()
 
+              name_l = name.lower()
+
+              # --------------------------------------------------------
+              # NEVER create a Canada category.
+              # Plex puts everything in "Canada".
+              # We classify Plex by channel name instead.
+              # --------------------------------------------------------
+
+              if gl == "canada":
+                  gl = ""
+
+              # --------------------------------------------------------
+              # NEWS / WEATHER
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "news",
+                  "weather",
+                  "cbs news",
+                  "abc news",
+                  "nbc news",
+                  "fox weather"
+              )):
+                  return "News & Weather"
+
               if "news" in gl or "weather" in gl:
                   return "News & Weather"
+
+              # --------------------------------------------------------
+              # MOVIES
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "movie",
+                  "movies",
+                  "cinema",
+                  "filmrise",
+                  "moviesphere",
+                  "cinevault",
+                  "hollywood"
+              )):
+                  return "Movies"
 
               if gl == "tv & movies":
                   return "Movies"
 
-              lookup = gl.replace("+", "&").replace(" and ", " & ")
+              # --------------------------------------------------------
+              # SPORTS
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "sport",
+                  "sports",
+                  "ufc",
+                  "nfl",
+                  "nba",
+                  "nhl",
+                  "mlb",
+                  "nascar",
+                  "formula 1",
+                  "f1",
+                  "golf",
+                  "cornhole",
+                  "billiard",
+                  "billiards",
+                  "dp world tour",
+                  "fantasy life"
+              )):
+                  return "Sports"
+
+              # --------------------------------------------------------
+              # KIDS
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "kids",
+                  "kid ",
+                  "family",
+                  "yu-gi-oh",
+                  "yugi"
+              )):
+                  return "Kids"
+
+              # --------------------------------------------------------
+              # COMEDY
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "comedy",
+                  "funny",
+                  "conners",
+                  "south park"
+              )):
+                  return "Comedy"
+
+              # --------------------------------------------------------
+              # CRIME
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "crime",
+                  "criminal",
+                  "killer",
+                  "killers",
+                  "murder",
+                  "cold case",
+                  "forensic",
+                  "law & order"
+              )):
+                  return "Crime"
+
+              # --------------------------------------------------------
+              # DOCUMENTARY
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "documentary",
+                  "documentaries"
+              )):
+                  return "Documentary"
+
+              # --------------------------------------------------------
+              # NATURE / SCIENCE
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "nature",
+                  "science",
+                  "earth",
+                  "curiosity",
+                  "history"
+              )):
+                  return "Nature & Science"
+
+              # --------------------------------------------------------
+              # SCI-FI / HORROR
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "horror",
+                  "sci-fi",
+                  "scifi",
+                  "supernatural",
+                  "paranormal",
+                  "doctor who",
+                  "alien nation"
+              )):
+                  return "Sci-Fi & Horror"
+
+              # --------------------------------------------------------
+              # HOME & FOOD
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "food",
+                  "cooking",
+                  "cooking channel",
+                  "good eats",
+                  "home & garden",
+                  "lifestyle"
+              )):
+                  return "Home & Food"
+
+              # --------------------------------------------------------
+              # ENTERTAINMENT
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "reality",
+                  "entertainment",
+                  "celebrity",
+                  "pop culture",
+                  "dance moms",
+                  "osbournes",
+                  "fear factor",
+                  "price is right",
+                  "game show",
+                  "game shows",
+                  "game show network",
+                  "nosey"
+              )):
+                  return "Entertainment"
+
+              # --------------------------------------------------------
+              # DRAMA
+              # --------------------------------------------------------
+
+              if any(x in name_l for x in (
+                  "drama",
+                  "murdoch mysteries"
+              )):
+                  return "Drama"
+
+              # --------------------------------------------------------
+              # MUSIC
+              # --------------------------------------------------------
+
+              if "music" in name_l:
+                  return "Music"
+
+              # --------------------------------------------------------
+              # EXISTING SOURCE CATEGORY
+              # --------------------------------------------------------
+
+              lookup = gl.replace("+", "&")
+              lookup = lookup.replace(" and ", " & ")
               lookup = re.sub(r'\s+', ' ', lookup).strip()
 
               if lookup in MERGE:
@@ -145,421 +355,19 @@ jobs:
                   if key in lookup:
                       return value
 
+              # --------------------------------------------------------
+              # Plex "Canada" must NOT survive.
+              # If Plex cannot be classified, use Other.
+              # --------------------------------------------------------
+
+              if gl == "canada" or not gl:
+                  return "Other"
+
               return g.title()
 
-          def extract_chno(ext):
-              m = re.search(
-                  r'tvg-chno="([^"]+)"',
-                  ext,
-                  re.I
-              )
-              return m.group(1) if m else None
-
           # ============================================================
-          # PLEX NAME -> EXISTING CATEGORY
-          #
-          # Plex gives every channel group-title="Canada".
-          # We ignore that category and classify the channel name instead.
+          # READ MASTER PLAYLIST
           # ============================================================
-
-          PLEX_RULES = [
-
-              # News / Weather
-              (
-                  "News & Weather",
-                  [
-                      "news",
-                      "weather",
-                      "cbs news",
-                      "abc news",
-                      "nbc news",
-                      "fox weather",
-                      "news 24",
-                      "newsnow",
-                      "headline news",
-                      "breaking news",
-                  ]
-              ),
-
-              # Sports
-              (
-                  "Sports",
-                  [
-                      "sport",
-                      "sports",
-                      "ufc",
-                      "nfl",
-                      "nba",
-                      "nhl",
-                      "mlb",
-                      "nascar",
-                      "motogp",
-                      "formula 1",
-                      "f1 ",
-                      "golf",
-                      "pga",
-                      "dp world tour",
-                      "tennis",
-                      "billiard",
-                      "cornhole",
-                      "fubo sports",
-                      "football",
-                      "basketball",
-                      "baseball",
-                      "hockey",
-                      "wrestling",
-                      "wwe",
-                      "wrestling",
-                      "fight",
-                      "boxing",
-                  ]
-              ),
-
-              # Movies
-              (
-                  "Movies",
-                  [
-                      "movie",
-                      "movies",
-                      "filmrise free movies",
-                      "moviesphere",
-                      "action hollywood",
-                      "cinevault",
-                      "film vault",
-                      "classic cinema",
-                      "free movies",
-                      "horror movies",
-                      "western movies",
-                      "black cinema",
-                      "movieplex",
-                      "redbox",
-                  ]
-              ),
-
-              # Crime
-              (
-                  "Crime",
-                  [
-                      "true crime",
-                      "crime",
-                      "forensic",
-                      "cold case",
-                      "killer",
-                      "killers",
-                      "murder",
-                      "murderer",
-                      "criminal",
-                      "police",
-                      "court",
-                      "law & order",
-                      "law and order",
-                      "detective",
-                      "investigation",
-                      "investigates",
-                      "48 hours",
-                  ]
-              ),
-
-              # Comedy
-              (
-                  "Comedy",
-                  [
-                      "comedy",
-                      "funny",
-                      "stand up",
-                      "stand-up",
-                      "failarmy",
-                      "get comedy",
-                      "conners",
-                      "sitcom",
-                  ]
-              ),
-
-              # Kids
-              (
-                  "Kids",
-                  [
-                      "kids",
-                      "kid ",
-                      "family",
-                      "cartoon",
-                      "nick",
-                      "nickelodeon",
-                      "disney",
-                      "pbs kids",
-                      "yu-gi-oh",
-                      "pokemon",
-                      "paw patrol",
-                      "lego",
-                      "baby",
-                  ]
-              ),
-
-              # Documentary
-              (
-                  "Documentary",
-                  [
-                      "documentary",
-                      "documentaries",
-                      "history channel",
-                      "history vault",
-                      "smithsonian",
-                      "biography",
-                      "explore",
-                      "explorer",
-                      "curiosity",
-                      "modern marvels",
-                      "ancient aliens",
-                  ]
-              ),
-
-              # Nature & Science
-              (
-                  "Nature & Science",
-                  [
-                      "nature",
-                      "science",
-                      "earth",
-                      "animal planet",
-                      "wild ",
-                      "wildlife",
-                      "ocean",
-                      "planet earth",
-                      "adventure earth",
-                      "bbc earth",
-                      "national geographic",
-                      "nat geo",
-                      "space",
-                      "discovery science",
-                  ]
-              ),
-
-              # Home & Food
-              (
-                  "Home & Food",
-                  [
-                      "food",
-                      "cooking",
-                      "cook ",
-                      "cuisine",
-                      "kitchen",
-                      "recipe",
-                      "recipes",
-                      "good eats",
-                      "home ",
-                      "house ",
-                      "garden",
-                      "gardening",
-                      "lifestyle",
-                      "travel channel",
-                  ]
-              ),
-
-              # Drama
-              (
-                  "Drama",
-                  [
-                      "drama",
-                      "murdoch mysteries",
-                      "detective drama",
-                      "soap",
-                      "soap opera",
-                  ]
-              ),
-
-              # Sci-Fi & Horror
-              (
-                  "Sci-Fi & Horror",
-                  [
-                      "sci-fi",
-                      "sci fi",
-                      "science fiction",
-                      "horror",
-                      "supernatural",
-                      "paranormal",
-                      "alien",
-                      "doctor who",
-                      "twilight zone",
-                      "outer limits",
-                      "creature",
-                  ]
-              ),
-
-              # Entertainment
-              (
-                  "Entertainment",
-                  [
-                      "reality",
-                      "entertainment",
-                      "celebrity",
-                      "celebrity",
-                      "pop culture",
-                      "afro",
-                      "music entertainment",
-                      "fashion",
-                      "addictatv",
-                      "afv",
-                      "america's funniest",
-                      "funniest home videos",
-                      "fear factor",
-                      "dance moms",
-                      "osbournes",
-                      "price is right",
-                      "game show",
-                      "game shows",
-                  ]
-              ),
-
-              # Music
-              (
-                  "Music",
-                  [
-                      "music",
-                      "mtv",
-                      "vevo",
-                      "concert",
-                      "concerts",
-                      "country music",
-                      "classic rock",
-                      "rock music",
-                      "hip hop",
-                      "jazz",
-                      "jams",
-                  ]
-              ),
-
-              # Classic TV
-              (
-                  "Classic TV",
-                  [
-                      "classic tv",
-                      "classic television",
-                      "classic shows",
-                      "retro tv",
-                      "retro television",
-                      "old tv",
-                  ]
-              ),
-
-              # South Park
-              (
-                  "South Park",
-                  [
-                      "south park",
-                  ]
-              ),
-
-              # Westerns
-              (
-                  "Westerns",
-                  [
-                      "western",
-                      "westerns",
-                      "cowboy",
-                      "cowboys",
-                  ]
-              ),
-
-              # Game Shows
-              (
-                  "Game Shows",
-                  [
-                      "game show",
-                      "game shows",
-                      "jeopardy",
-                      "wheel of fortune",
-                      "price is right",
-                      "family feud",
-                      "deal or no deal",
-                  ]
-              ),
-          ]
-
-          def classify_plex_channel(name):
-              """
-              Classify a Plex channel using its name.
-              This deliberately ignores Plex's group-title="Canada".
-              """
-
-              n = re.sub(r'\s+', ' ', name.strip().lower())
-
-              for category, keywords in PLEX_RULES:
-                  for keyword in keywords:
-                      if keyword in n:
-                          return category
-
-              return "Other"
-
-          # ============================================================
-          # EPG CHANNELS WITH REAL PROGRAM DATA
-          # ============================================================
-
-          good_ids = set()
-
-          if Path("dcmaster.xml").exists():
-              try:
-                  tree = ET.parse("dcmaster.xml")
-                  root = tree.getroot()
-
-                  for prog in root.findall("programme"):
-                      title = prog.findtext(
-                          "title",
-                          ""
-                      ).lower()
-
-                      if (
-                          title
-                          and "no information" not in title
-                          and "to be announced" not in title
-                      ):
-                          good_ids.add(
-                              prog.get("channel", "")
-                          )
-
-              except Exception as e:
-                  print(
-                      f"EPG parse warning: {e}"
-                  )
-
-          TOP = [
-              "News & Weather",
-              "Sports",
-              "Movies"
-          ]
-
-          BOTTOM = [
-              "Ambiance",
-              "Anime & Gaming",
-              "Anime"
-          ]
-
-          def sort_key(item):
-              category = item[0]
-              name = item[1]
-
-              if category in TOP:
-                  return (
-                      0,
-                      TOP.index(category),
-                      name.lower()
-                  )
-
-              if (
-                  category in BOTTOM
-                  or "ambiance" in category.lower()
-                  or "anime" in category.lower()
-              ):
-                  return (
-                      2,
-                      category.lower(),
-                      name.lower()
-                  )
-
-              return (
-                  1,
-                  category.lower(),
-                  name.lower()
-              )
 
           src = Path("dcmaster.m3u8")
 
@@ -568,18 +376,64 @@ jobs:
               errors="ignore"
           ).splitlines()
 
+          # ============================================================
+          # FIRST PASS
+          #
+          # Build list while remembering which names came from
+          # non-Plex sources.
+          #
+          # Plex channels are identified by:
+          #   epg.provider.plex.tv
+          #   provider-static.plex.tv
+          #   group-title="Canada"
+          #
+          # If the same channel already exists outside Plex,
+          # the Plex copy is discarded.
+          # ============================================================
+
           entries = []
+
+          existing_names = set()
+          plex_entries = []
+
           removed_categories = Counter()
+          duplicate_ids_removed = 0
+          duplicate_plex_removed = 0
           removed_channels = []
 
-          seen_chno = set()
-          duplicate_ids_removed = 0
+          def is_plex(ext, url):
+              text = (ext + " " + url).lower()
 
-          plex_recategorized = Counter()
+              return (
+                  "epg.provider.plex.tv" in text
+                  or "provider-static.plex.tv" in text
+                  or 'group-title="canada"' in text
+              )
 
-          # ============================================================
-          # READ SOURCE PLAYLIST
-          # ============================================================
+          def extract_name(ext):
+              return ext.rsplit(",", 1)[-1].strip()
+
+          def extract_chno(ext):
+              m = re.search(
+                  r'tvg-chno="([^"]+)"',
+                  ext,
+                  re.I
+              )
+
+              return m.group(1).strip() if m else None
+
+          def get_group(ext):
+              m = re.search(
+                  r'group-title="([^"]+)"',
+                  ext,
+                  re.I
+              )
+
+              return m.group(1).strip() if m else ""
+
+          # ------------------------------------------------------------
+          # FIRST PASS: collect non-Plex names
+          # ------------------------------------------------------------
 
           for i, line in enumerate(lines):
 
@@ -595,120 +449,128 @@ jobs:
               if not url.startswith("http"):
                   continue
 
-              name = line.rsplit(
-                  ",",
-                  1
-              )[-1].strip()
+              name = extract_name(line)
+              name_key = re.sub(
+                  r'\s+',
+                  ' ',
+                  name.lower()
+              ).strip()
 
-              # Remove motel welcome channel
+              group = get_group(line)
+              group_lower = group.lower()
+
+              if "welcome" in name_key and "motel" in name_key:
+                  continue
+
+              # Remove French / Spanish / Latin.
               if (
-                  "welcome" in name.lower()
-                  and "motel" in name.lower()
-              ):
-                  removed_channels.append(
-                      f"{name} [welcome]"
+                  group_lower in REMOVE_CATEGORIES
+                  or any(
+                      term in group_lower
+                      for term in (
+                          "spanish",
+                          "espanol",
+                          "español",
+                          "latin",
+                          "french",
+                          "français",
+                          "francais"
+                      )
                   )
-                  continue
-
-              match = re.search(
-                  r'group-title="([^"]+)"',
-                  line,
-                  flags=re.IGNORECASE
-              )
-
-              original_category = (
-                  match.group(1)
-                  if match
-                  else "Other"
-              )
-
-              original_lower = (
-                  original_category.strip().lower()
-              )
-
-              # ========================================================
-              # REMOVE FRENCH / SPANISH / LATIN
-              # ========================================================
-
-              if original_lower in REMOVE_CATEGORIES:
-
-                  removed_categories[
-                      original_category
-                  ] += 1
-
+              ):
+                  removed_categories[group] += 1
                   removed_channels.append(name)
                   continue
 
-              if any(
-                  term in original_lower
-                  for term in (
-                      "spanish",
-                      "espanol",
-                      "español",
-                      "latin",
-                      "french",
-                      "français",
-                      "francais"
-                  )
-              ):
+              if not is_plex(line, url):
+                  existing_names.add(name_key)
 
-                  removed_categories[
-                      original_category
-                  ] += 1
+          # ============================================================
+          # SECOND PASS
+          # ============================================================
 
-                  removed_channels.append(name)
+          seen_chno = set()
+
+          for i, line in enumerate(lines):
+
+              if not line.startswith("#EXTINF"):
                   continue
 
-              # ========================================================
-              # DETERMINE CATEGORY
-              #
-              # Plex supplies group-title="Canada".
-              # DO NOT KEEP THAT CATEGORY.
-              # ========================================================
-
-              if original_lower == "canada":
-
-                  category = classify_plex_channel(
-                      name
-                  )
-
-                  plex_recategorized[
-                      category
-                  ] += 1
-
-              else:
-
-                  if original_lower in (
-                      "tubi",
-                      "roku"
-                  ):
-                      original_category = "Other"
-
-                  category = normalize_category(
-                      original_category
-                  )
-
-              # ========================================================
-              # CHANNEL ID
-              # ========================================================
-
-              tvg_match = re.search(
-                  r'tvg-id="([^"]+)"',
-                  line,
-                  flags=re.IGNORECASE
-              )
-
-              tvg_id = (
-                  tvg_match.group(1)
-                  if tvg_match
+              url = (
+                  lines[i + 1].strip()
+                  if i + 1 < len(lines)
                   else ""
+              )
+
+              if not url.startswith("http"):
+                  continue
+
+              name = extract_name(line)
+
+              name_key = re.sub(
+                  r'\s+',
+                  ' ',
+                  name.lower()
+              ).strip()
+
+              group = get_group(line)
+              group_lower = group.lower()
+
+              if "welcome" in name_key and "motel" in name_key:
+                  continue
+
+              # Remove French / Spanish / Latin.
+              if (
+                  group_lower in REMOVE_CATEGORIES
+                  or any(
+                      term in group_lower
+                      for term in (
+                          "spanish",
+                          "espanol",
+                          "español",
+                          "latin",
+                          "french",
+                          "français",
+                          "francais"
+                      )
+                  )
+              ):
+                  continue
+
+              plex = is_plex(line, url)
+
+              # --------------------------------------------------------
+              # If this is Plex and the same channel already exists
+              # outside Plex, throw the Plex copy away.
+              # --------------------------------------------------------
+
+              if plex and name_key in existing_names:
+                  duplicate_plex_removed += 1
+
+                  print(
+                      f"PLEX DUPLICATE REMOVED: {name}"
+                  )
+
+                  continue
+
+              # --------------------------------------------------------
+              # Plex gets categorized by channel name.
+              # It does NOT retain Canada.
+              # --------------------------------------------------------
+
+              category = normalize_category(
+                  group,
+                  name
               )
 
               chno = extract_chno(line)
 
-              # ========================================================
-              # REMOVE ONLY DUPLICATE CHANNEL NUMBERS
-              # ========================================================
+              # --------------------------------------------------------
+              # Duplicate channel IDs:
+              # keep the first one and remove the later one.
+              #
+              # NO renumbering.
+              # --------------------------------------------------------
 
               if chno:
 
@@ -717,7 +579,7 @@ jobs:
                       duplicate_ids_removed += 1
 
                       print(
-                          "DUPLICATE CHANNEL ID REMOVED: "
+                          f"DUPLICATE CHANNEL ID REMOVED: "
                           f"{chno} - {name}"
                       )
 
@@ -728,30 +590,63 @@ jobs:
               entries.append(
                   (
                       category,
-                      name.lower(),
+                      name_key,
                       name,
                       line,
                       url,
-                      tvg_id,
-                      chno
+                      plex
                   )
               )
 
           # ============================================================
-          # SORT
+          # SORTING
           # ============================================================
 
-          entries.sort(
-              key=lambda item: sort_key(
-                  (
-                      item[0],
-                      item[1]
+          TOP = [
+              "News & Weather",
+              "Sports",
+              "Movies"
+          ]
+
+          BOTTOM = [
+              "Ambiance",
+              "Anime & Gaming",
+              "Anime"
+          ]
+
+          def sort_key(item):
+
+              category = item[0]
+              name = item[1]
+
+              if category in TOP:
+                  return (
+                      0,
+                      TOP.index(category),
+                      name
                   )
+
+              if (
+                  category in BOTTOM
+                  or "ambiance" in category.lower()
+                  or "anime" in category.lower()
+              ):
+                  return (
+                      2,
+                      category.lower(),
+                      name
+                  )
+
+              return (
+                  1,
+                  category.lower(),
+                  name
               )
-          )
+
+          entries.sort(key=sort_key)
 
           # ============================================================
-          # BUILD OUTPUT
+          # WRITE PLAYLIST
           # ============================================================
 
           out = [
@@ -764,24 +659,21 @@ jobs:
               name,
               ext,
               url,
-              _,
-              _
+              plex
           ) in entries:
 
-              # Replace whatever group-title was supplied.
-              # This is what makes Plex channels use our categories.
-
+              # Replace existing group-title.
               if re.search(
                   r'group-title="[^"]*"',
                   ext,
-                  re.IGNORECASE
+                  re.I
               ):
 
                   ext = re.sub(
                       r'group-title="[^"]*"',
                       f'group-title="{category}"',
                       ext,
-                      flags=re.IGNORECASE
+                      flags=re.I
                   )
 
               else:
@@ -798,15 +690,15 @@ jobs:
           text = "\n".join(out)
 
           # ============================================================
-          # WRITE ALL PLAYLIST VARIANTS
+          # WRITE ALL EXPECTED FILENAMES
           # ============================================================
 
-          for filename in [
+          for filename in (
               "dccatalog.m3u8",
               "DCcatalog.m3u8",
               "dccatalog.m3u",
               "DCcatalog.m3u"
-          ]:
+          ):
 
               Path(filename).write_text(
                   text,
@@ -818,16 +710,8 @@ jobs:
           # ============================================================
 
           counts = Counter(
-              category
-              for (
-                  category,
-                  _,
-                  _,
-                  _,
-                  _,
-                  _,
-                  _
-              ) in entries
+              item[0]
+              for item in entries
           )
 
           ordered_categories = (
@@ -838,10 +722,12 @@ jobs:
                       counts,
                       key=str.lower
                   )
-                  if x not in TOP
-                  and x not in BOTTOM
-                  and "ambiance" not in x.lower()
-                  and "anime" not in x.lower()
+                  if (
+                      x not in TOP
+                      and x not in BOTTOM
+                      and "ambiance" not in x.lower()
+                      and "anime" not in x.lower()
+                  )
               ]
               + [
                   x
@@ -849,9 +735,11 @@ jobs:
                       counts,
                       key=str.lower
                   )
-                  if x in BOTTOM
-                  or "ambiance" in x.lower()
-                  or "anime" in x.lower()
+                  if (
+                      x in BOTTOM
+                      or "ambiance" in x.lower()
+                      or "anime" in x.lower()
+                  )
               ]
           )
 
@@ -861,14 +749,12 @@ jobs:
           print("========================================")
 
           for category in ordered_categories:
-
               print(
                   f"{category:<25} "
                   f"{counts[category]:>4}"
               )
 
           print("----------------------------------------")
-
           print(
               f"TOTAL CHANNELS:          "
               f"{len(entries)}"
@@ -880,28 +766,16 @@ jobs:
           )
 
           print(
+              f"PLEX DUPLICATES REMOVED: "
+              f"{duplicate_plex_removed}"
+          )
+
+          print(
               f"CATEGORIES:              "
               f"{len(counts)}"
           )
 
           print("========================================")
-
-          if plex_recategorized:
-
-              print()
-              print(
-                  "PLEX CHANNELS RECATEGORIZED:"
-              )
-
-              for category, count in sorted(
-                  plex_recategorized.items(),
-                  key=lambda x: (-x[1], x[0].lower())
-              ):
-
-                  print(
-                      f"  {category:<25} "
-                      f"{count:>4}"
-                  )
 
           if removed_categories:
 
@@ -920,7 +794,7 @@ jobs:
                   )
 
           # ============================================================
-          # EPG XML
+          # COPY EPG
           # ============================================================
 
           if Path("dcmaster.xml").exists():
@@ -958,10 +832,10 @@ jobs:
                   encoding="utf-8"
               )
 
-              for filename in [
+              for filename in (
                   "dccatalog.xml.gz",
                   "DCcatalog.xml.gz"
-              ]:
+              ):
 
                   Path(filename).write_bytes(
                       gzip.compress(
@@ -989,6 +863,6 @@ jobs:
 
           git diff --cached --quiet && echo "No change" && exit 0
 
-          git commit -m "DCcatalog: categorize Plex channels and remove duplicate IDs"
+          git commit -m "DCcatalog: remove Plex duplicates and categorize Plex channels"
 
           git push
