@@ -21,10 +21,7 @@ jobs:
           import gzip
           from pathlib import Path
           from collections import Counter
-
-          # ============================================================
-          # CATEGORY MERGES
-          # ============================================================
+          import xml.etree.ElementTree as ET
 
           MERGE = {
               "home & food": "Home & Food",
@@ -106,37 +103,6 @@ jobs:
               "nature and science": "Nature & Science",
           }
 
-          # ============================================================
-          # EXISTING CATEGORIES ONLY
-          #
-          # These are the categories DCCatalog is allowed to produce.
-          # Anything else goes to Other.
-          # ============================================================
-
-          ALLOWED_CATEGORIES = {
-              "Home & Food",
-              "Crime",
-              "Comedy",
-              "Drama",
-              "Sci-Fi & Horror",
-              "Movies",
-              "Sports",
-              "Entertainment",
-              "Kids",
-              "Documentary",
-              "Nature & Science",
-              "Music",
-              "News & Weather",
-              "Ambiance",
-              "Anime & Gaming",
-              "Anime",
-              "Other",
-          }
-
-          # ============================================================
-          # CATEGORIES WE NEVER WANT
-          # ============================================================
-
           REMOVE_CATEGORIES = {
               "espanol",
               "español",
@@ -144,6 +110,7 @@ jobs:
               "spanish",
               "spanish language",
               "spanish-language",
+
               "français",
               "francais",
               "french",
@@ -154,18 +121,32 @@ jobs:
               "french canadian",
           }
 
-          # ============================================================
-          # HELPER FUNCTIONS
-          # ============================================================
+          def normalize_category(raw):
+              if not raw:
+                  return "Other"
 
-          def clean_text(value):
-              value = value or ""
-              value = re.sub(r'&amp;', '&', value, flags=re.IGNORECASE)
-              value = re.sub(r'\s+', ' ', value)
-              return value.strip()
+              g = raw.strip()
+              g = re.sub(r'&amp;', '&', g, flags=re.IGNORECASE)
+              g = re.sub(r'\s+', ' ', g).strip()
+              gl = g.lower()
 
-          def extract_name(ext):
-              return clean_text(ext.rsplit(",", 1)[-1])
+              if "news" in gl or "weather" in gl:
+                  return "News & Weather"
+
+              if gl == "tv & movies":
+                  return "Movies"
+
+              lookup = gl.replace("+", "&").replace(" and ", " & ")
+              lookup = re.sub(r'\s+', ' ', lookup).strip()
+
+              if lookup in MERGE:
+                  return MERGE[lookup]
+
+              for key, value in MERGE.items():
+                  if key in lookup:
+                      return value
+
+              return g.title()
 
           def extract_chno(ext):
               m = re.search(
@@ -173,545 +154,28 @@ jobs:
                   ext,
                   re.I
               )
-              return m.group(1).strip() if m else None
 
-          def get_group(ext):
-              m = re.search(
-                  r'group-title="([^"]+)"',
-                  ext,
-                  re.I
-              )
-              return clean_text(m.group(1)) if m else ""
+              return m.group(1) if m else None
 
-          # ============================================================
-          # SOURCE DETECTION
-          # ============================================================
+          good_ids = set()
 
-          def is_plex(ext, url):
-              text = (ext + " " + url).lower()
+          if Path("dcmaster.xml").exists():
+              try:
+                  tree = ET.parse("dcmaster.xml")
+                  root = tree.getroot()
 
-              return (
-                  "epg.provider.plex.tv" in text
-                  or "provider-static.plex.tv" in text
-                  or 'group-title="canada"' in text
-              )
+                  for prog in root.findall("programme"):
+                      title = prog.findtext("title", "").lower()
 
-          def is_roku(ext, url):
-              text = (ext + " " + url).lower()
+                      if (
+                          title
+                          and "no information" not in title
+                          and "to be announced" not in title
+                      ):
+                          good_ids.add(prog.get("channel", ""))
 
-              # DCMaster's Roku pull assigns Roku tvg-ids when needed.
-              # Roku's source/category may also survive in group-title.
-              return (
-                  'group-title="roku"' in text
-                  or 'tvg-id="roku.' in text
-                  or "roku.com" in text
-                  or "rokuchannel" in text
-                  or "/roku/" in text
-              )
-
-          # ============================================================
-          # NEWS / WEATHER DETECTION
-          #
-          # These channels are being removed completely.
-          # ============================================================
-
-          def is_news_channel(ext, name, group):
-              name_l = name.lower().strip()
-              group_l = group.lower().strip()
-
-              news_names = (
-                  "the grio",
-                  "euronews",
-                  "scripps news",
-                  "fox local news",
-                  "fox weather",
-                  "cbs news",
-                  "abc news",
-                  "nbc news",
-              )
-
-              if any(x in name_l for x in news_names):
-                  return True
-
-              if "news" in name_l:
-                  return True
-
-              if "weather" in name_l:
-                  return True
-
-              if "news" in group_l:
-                  return True
-
-              if "weather" in group_l:
-                  return True
-
-              return False
-
-          # ============================================================
-          # CATEGORY DETECTION
-          # ============================================================
-
-          def normalize_category(raw, name="", plex=False, roku=False):
-
-              g = clean_text(raw)
-              gl = g.lower()
-
-              name_l = clean_text(name).lower()
-
-              # --------------------------------------------------------
-              # Roku ALWAYS goes to Other.
-              # --------------------------------------------------------
-
-              if roku:
-                  return "Other"
-
-              # --------------------------------------------------------
-              # Plex's generic "Canada" category is meaningless.
-              # Plex is classified by channel name instead.
-              # --------------------------------------------------------
-
-              if gl == "canada":
-                  gl = ""
-
-              # --------------------------------------------------------
-              # MOVIES
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "movie",
-                  "movies",
-                  "cinema",
-                  "filmrise",
-                  "moviesphere",
-                  "cinevault",
-                  "hollywood"
-              )):
-                  return "Movies"
-
-              if gl == "tv & movies":
-                  return "Movies"
-
-              # --------------------------------------------------------
-              # SPORTS
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "sport",
-                  "sports",
-                  "ufc",
-                  "nfl",
-                  "nba",
-                  "nhl",
-                  "mlb",
-                  "nascar",
-                  "formula 1",
-                  "f1",
-                  "golf",
-                  "cornhole",
-                  "billiard",
-                  "billiards",
-                  "dp world tour",
-                  "fantasy life"
-              )):
-                  return "Sports"
-
-              # --------------------------------------------------------
-              # KIDS
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "kids",
-                  "kid ",
-                  "family",
-                  "yu-gi-oh",
-                  "yugi"
-              )):
-                  return "Kids"
-
-              # --------------------------------------------------------
-              # COMEDY
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "comedy",
-                  "funny",
-                  "conners",
-                  "south park"
-              )):
-                  return "Comedy"
-
-              # --------------------------------------------------------
-              # CRIME
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "crime",
-                  "criminal",
-                  "killer",
-                  "killers",
-                  "murder",
-                  "cold case",
-                  "forensic",
-                  "law & order"
-              )):
-                  return "Crime"
-
-              # --------------------------------------------------------
-              # DOCUMENTARY
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "documentary",
-                  "documentaries"
-              )):
-                  return "Documentary"
-
-              # --------------------------------------------------------
-              # NATURE / SCIENCE
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "nature",
-                  "science",
-                  "earth",
-                  "curiosity",
-                  "history"
-              )):
-                  return "Nature & Science"
-
-              # --------------------------------------------------------
-              # SCI-FI / HORROR
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "horror",
-                  "sci-fi",
-                  "scifi",
-                  "supernatural",
-                  "paranormal",
-                  "doctor who",
-                  "alien nation"
-              )):
-                  return "Sci-Fi & Horror"
-
-              # --------------------------------------------------------
-              # HOME & FOOD
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "food",
-                  "cooking",
-                  "cooking channel",
-                  "good eats",
-                  "home & garden",
-                  "home and garden",
-                  "lifestyle"
-              )):
-                  return "Home & Food"
-
-              # --------------------------------------------------------
-              # ENTERTAINMENT / GAME SHOWS
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "reality",
-                  "entertainment",
-                  "celebrity",
-                  "pop culture",
-                  "dance moms",
-                  "osbournes",
-                  "fear factor",
-                  "price is right",
-                  "the price is right",
-                  "family feud",
-                  "deal or no deal",
-                  "let's make a deal",
-                  "lets make a deal",
-                  "supermarket sweep",
-                  "game show",
-                  "game shows",
-                  "game show network",
-                  "nosey"
-              )):
-                  return "Entertainment"
-
-              # --------------------------------------------------------
-              # DRAMA
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "drama",
-                  "murdoch mysteries"
-              )):
-                  return "Drama"
-
-              # --------------------------------------------------------
-              # MUSIC
-              # --------------------------------------------------------
-
-              if "music" in name_l:
-                  return "Music"
-
-              # --------------------------------------------------------
-              # EXISTING SOURCE CATEGORY
-              # --------------------------------------------------------
-
-              lookup = gl.replace("+", "&")
-              lookup = lookup.replace(" and ", " & ")
-              lookup = re.sub(r'\s+', ' ', lookup).strip()
-
-              if lookup in MERGE:
-                  category = MERGE[lookup]
-
-                  if category in ALLOWED_CATEGORIES:
-                      return category
-
-              for key, value in MERGE.items():
-                  if key in lookup:
-                      if value in ALLOWED_CATEGORIES:
-                          return value
-
-              # --------------------------------------------------------
-              # Existing category names can pass through unchanged.
-              # --------------------------------------------------------
-
-              if g in ALLOWED_CATEGORIES:
-                  return g
-
-              # Case-insensitive existing category match.
-              for allowed in ALLOWED_CATEGORIES:
-                  if allowed.lower() == gl:
-                      return allowed
-
-              # --------------------------------------------------------
-              # Plex Canada / blank / unknown = Other.
-              #
-              # This is deliberately the final fallback.
-              # DCCatalog will NEVER invent a new category.
-              # --------------------------------------------------------
-
-              return "Other"
-
-          # ============================================================
-          # READ MASTER PLAYLIST
-          # ============================================================
-
-          src = Path("dcmaster.m3u8")
-
-          lines = src.read_text(
-              encoding="utf-8",
-              errors="ignore"
-          ).splitlines()
-
-          # ============================================================
-          # FIRST PASS
-          #
-          # Remember names that exist outside Plex so Plex duplicates
-          # can be discarded.
-          # ============================================================
-
-          entries = []
-
-          existing_names = set()
-
-          removed_categories = Counter()
-          removed_news = Counter()
-          duplicate_ids_removed = 0
-          duplicate_plex_removed = 0
-          removed_channels = []
-
-          # ------------------------------------------------------------
-          # FIRST PASS: collect non-Plex names
-          # ------------------------------------------------------------
-
-          for i, line in enumerate(lines):
-
-              if not line.startswith("#EXTINF"):
-                  continue
-
-              url = (
-                  lines[i + 1].strip()
-                  if i + 1 < len(lines)
-                  else ""
-              )
-
-              if not url.startswith("http"):
-                  continue
-
-              name = extract_name(line)
-              name_key = re.sub(
-                  r'\s+',
-                  ' ',
-                  name.lower()
-              ).strip()
-
-              group = get_group(line)
-              group_lower = group.lower()
-
-              if "welcome" in name_key and "motel" in name_key:
-                  continue
-
-              # Remove French / Spanish / Latin.
-              if (
-                  group_lower in REMOVE_CATEGORIES
-                  or any(
-                      term in group_lower
-                      for term in (
-                          "spanish",
-                          "espanol",
-                          "español",
-                          "latin",
-                          "french",
-                          "français",
-                          "francais"
-                      )
-                  )
-              ):
-                  removed_categories[group] += 1
-                  removed_channels.append(name)
-                  continue
-
-              # Remove News / Weather completely.
-              if is_news_channel(line, name, group):
-                  removed_news[group or "Name match"] += 1
-                  removed_channels.append(name)
-                  continue
-
-              if not is_plex(line, url):
-                  existing_names.add(name_key)
-
-          # ============================================================
-          # SECOND PASS
-          # ============================================================
-
-          seen_chno = set()
-
-          for i, line in enumerate(lines):
-
-              if not line.startswith("#EXTINF"):
-                  continue
-
-              url = (
-                  lines[i + 1].strip()
-                  if i + 1 < len(lines)
-                  else ""
-              )
-
-              if not url.startswith("http"):
-                  continue
-
-              name = extract_name(line)
-
-              name_key = re.sub(
-                  r'\s+',
-                  ' ',
-                  name.lower()
-              ).strip()
-
-              group = get_group(line)
-              group_lower = group.lower()
-
-              if "welcome" in name_key and "motel" in name_key:
-                  continue
-
-              # --------------------------------------------------------
-              # Remove French / Spanish / Latin.
-              # --------------------------------------------------------
-
-              if (
-                  group_lower in REMOVE_CATEGORIES
-                  or any(
-                      term in group_lower
-                      for term in (
-                          "spanish",
-                          "espanol",
-                          "español",
-                          "latin",
-                          "french",
-                          "français",
-                          "francais"
-                      )
-                  )
-              ):
-                  continue
-
-              # --------------------------------------------------------
-              # Remove News / Weather.
-              # --------------------------------------------------------
-
-              if is_news_channel(line, name, group):
-                  continue
-
-              plex = is_plex(line, url)
-              roku = is_roku(line, url)
-
-              # --------------------------------------------------------
-              # Plex duplicate removal.
-              # --------------------------------------------------------
-
-              if plex and name_key in existing_names:
-
-                  duplicate_plex_removed += 1
-
-                  print(
-                      f"PLEX DUPLICATE REMOVED: {name}"
-                  )
-
-                  continue
-
-              # --------------------------------------------------------
-              # Determine final category.
-              # --------------------------------------------------------
-
-              category = normalize_category(
-                  group,
-                  name,
-                  plex=plex,
-                  roku=roku
-              )
-
-              # Safety net:
-              # absolutely nothing outside our approved categories.
-              if category not in ALLOWED_CATEGORIES:
-                  category = "Other"
-
-              # --------------------------------------------------------
-              # Duplicate channel IDs:
-              # keep first, remove later.
-              # NO renumbering.
-              # --------------------------------------------------------
-
-              chno = extract_chno(line)
-
-              if chno:
-
-                  if chno in seen_chno:
-
-                      duplicate_ids_removed += 1
-
-                      print(
-                          f"DUPLICATE CHANNEL ID REMOVED: "
-                          f"{chno} - {name}"
-                      )
-
-                      continue
-
-                  seen_chno.add(chno)
-
-              entries.append(
-                  (
-                      category,
-                      name_key,
-                      name,
-                      line,
-                      url,
-                      plex
-                  )
-              )
-
-          # ============================================================
-          # SORTING
-          # ============================================================
+              except Exception as e:
+                  print(f"EPG parse warning: {e}")
 
           TOP = [
               "News & Weather",
@@ -726,7 +190,6 @@ jobs:
           ]
 
           def sort_key(item):
-
               category = item[0]
               name = item[1]
 
@@ -734,7 +197,7 @@ jobs:
                   return (
                       0,
                       TOP.index(category),
-                      name
+                      name.lower()
                   )
 
               if (
@@ -745,20 +208,174 @@ jobs:
                   return (
                       2,
                       category.lower(),
-                      name
+                      name.lower()
                   )
 
               return (
                   1,
                   category.lower(),
-                  name
+                  name.lower()
               )
 
-          entries.sort(key=sort_key)
+          src = Path("dcmaster.m3u8")
+
+          lines = src.read_text(
+              encoding="utf-8",
+              errors="ignore"
+          ).splitlines()
+
+          entries = []
+          removed_categories = Counter()
+          removed_channels = []
+
+          # IMPORTANT:
+          # We do NOT use channel name as the duplicate key.
+          # Multiple channels with the same name are allowed.
+          # Only duplicate tvg-chno values are removed.
+
+          seen_chno = set()
+          duplicate_ids_removed = 0
+
+          for i, line in enumerate(lines):
+
+              if not line.startswith("#EXTINF"):
+                  continue
+
+              url = (
+                  lines[i + 1].strip()
+                  if i + 1 < len(lines)
+                  else ""
+              )
+
+              if not url.startswith("http"):
+                  continue
+
+              name = line.rsplit(",", 1)[-1].strip()
+
+              if (
+                  "welcome" in name.lower()
+                  and "motel" in name.lower()
+              ):
+                  removed_channels.append(
+                      f"{name} [welcome]"
+                  )
+                  continue
+
+              match = re.search(
+                  r'group-title="([^"]+)"',
+                  line,
+                  flags=re.IGNORECASE
+              )
+
+              original_category = (
+                  match.group(1)
+                  if match
+                  else "Other"
+              )
+
+              original_lower = (
+                  original_category.strip().lower()
+              )
+
+              # Remove only French / Spanish / Latin categories.
+              if original_lower in REMOVE_CATEGORIES:
+                  removed_categories[
+                      original_category
+                  ] += 1
+
+                  removed_channels.append(name)
+                  continue
+
+              # Catch category names such as:
+              # Spanish TV, French Channels, Latin America, etc.
+              if any(
+                  term in original_lower
+                  for term in (
+                      "spanish",
+                      "espanol",
+                      "español",
+                      "latin",
+                      "french",
+                      "français",
+                      "francais"
+                  )
+              ):
+                  removed_categories[
+                      original_category
+                  ] += 1
+
+                  removed_channels.append(name)
+                  continue
+
+              # Tubi and Roku remain part of the normal playlist.
+              if original_lower in (
+                  "tubi",
+                  "roku"
+              ):
+                  original_category = "Other"
+
+              category = normalize_category(
+                  original_category
+              )
+
+              # Read the channel ID.
+              tvg_match = re.search(
+                  r'tvg-id="([^"]+)"',
+                  line,
+                  flags=re.IGNORECASE
+              )
+
+              tvg_id = (
+                  tvg_match.group(1)
+                  if tvg_match
+                  else ""
+              )
+
+              chno = extract_chno(line)
+
+              # Remove ONLY duplicate channel numbers.
+              if chno:
+                  if chno in seen_chno:
+                      duplicate_ids_removed += 1
+
+                      print(
+                          f"DUPLICATE CHANNEL ID REMOVED: "
+                          f"{chno} - {name}"
+                      )
+
+                      continue
+
+                  seen_chno.add(chno)
+
+              entries.append(
+                  (
+                      category,
+                      name.lower(),
+                      name,
+                      line,
+                      url,
+                      tvg_id,
+                      chno
+                  )
+              )
 
           # ============================================================
-          # WRITE PLAYLIST
+          # CATEGORY SORTING
+          #
+          # These are the existing categories.
+          # No Plex-only categories are created.
+          #
+          # Plex receives an explicit group-title on every channel.
           # ============================================================
+
+          entries.sort(
+              key=lambda item: sort_key(
+                  (
+                      item[0],
+                      item[1]
+                  )
+              )
+          )
 
           out = [
               '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
@@ -770,24 +387,24 @@ jobs:
               name,
               ext,
               url,
-              plex
+              _,
+              _
           ) in entries:
 
-              # Replace existing group-title.
-              if re.search(
+              # Replace the source group-title with our normalized
+              # category so Plex receives the same category structure
+              # used by the rest of the playlist.
+
+              ext = re.sub(
                   r'group-title="[^"]*"',
+                  f'group-title="{category}"',
                   ext,
-                  re.I
-              ):
+                  flags=re.IGNORECASE
+              )
 
-                  ext = re.sub(
-                      r'group-title="[^"]*"',
-                      f'group-title="{category}"',
-                      ext,
-                      flags=re.I
-                  )
-
-              else:
+              # If the source entry did not have group-title,
+              # explicitly add one.
+              if "group-title=" not in ext.lower():
 
                   ext = ext.replace(
                       "#EXTINF:-1",
@@ -800,29 +417,29 @@ jobs:
 
           text = "\n".join(out)
 
-          # ============================================================
-          # WRITE ALL EXPECTED FILENAMES
-          # ============================================================
-
-          for filename in (
+          for filename in [
               "dccatalog.m3u8",
               "DCcatalog.m3u8",
               "dccatalog.m3u",
               "DCcatalog.m3u"
-          ):
+          ]:
 
               Path(filename).write_text(
                   text,
                   encoding="utf-8"
               )
 
-          # ============================================================
-          # CATEGORY REPORT
-          # ============================================================
-
           counts = Counter(
-              item[0]
-              for item in entries
+              category
+              for (
+                  category,
+                  _,
+                  _,
+                  _,
+                  _,
+                  _,
+                  _
+              ) in entries
           )
 
           ordered_categories = (
@@ -833,12 +450,10 @@ jobs:
                       counts,
                       key=str.lower
                   )
-                  if (
-                      x not in TOP
-                      and x not in BOTTOM
-                      and "ambiance" not in x.lower()
-                      and "anime" not in x.lower()
-                  )
+                  if x not in TOP
+                  and x not in BOTTOM
+                  and "ambiance" not in x.lower()
+                  and "anime" not in x.lower()
               ]
               + [
                   x
@@ -846,11 +461,9 @@ jobs:
                       counts,
                       key=str.lower
                   )
-                  if (
-                      x in BOTTOM
-                      or "ambiance" in x.lower()
-                      or "anime" in x.lower()
-                  )
+                  if x in BOTTOM
+                  or "ambiance" in x.lower()
+                  or "anime" in x.lower()
               ]
           )
 
@@ -870,27 +483,14 @@ jobs:
               f"TOTAL CHANNELS:          "
               f"{len(entries)}"
           )
-
           print(
               f"DUPLICATE IDS REMOVED:   "
               f"{duplicate_ids_removed}"
           )
-
-          print(
-              f"PLEX DUPLICATES REMOVED: "
-              f"{duplicate_plex_removed}"
-          )
-
-          print(
-              f"NEWS/WEATHER REMOVED:    "
-              f"{sum(removed_news.values())}"
-          )
-
           print(
               f"CATEGORIES:              "
               f"{len(counts)}"
           )
-
           print("========================================")
 
           if removed_categories:
@@ -904,29 +504,9 @@ jobs:
               for category, count in (
                   removed_categories.items()
               ):
-
                   print(
                       f"  {category}: {count}"
                   )
-
-          if removed_news:
-
-              print()
-              print(
-                  "REMOVED NEWS / WEATHER:"
-              )
-
-              for category, count in (
-                  removed_news.items()
-              ):
-
-                  print(
-                      f"  {category}: {count}"
-                  )
-
-          # ============================================================
-          # COPY EPG
-          # ============================================================
 
           if Path("dcmaster.xml").exists():
 
@@ -963,10 +543,10 @@ jobs:
                   encoding="utf-8"
               )
 
-              for filename in (
+              for filename in [
                   "dccatalog.xml.gz",
                   "DCcatalog.xml.gz"
-              ):
+              ]:
 
                   Path(filename).write_bytes(
                       gzip.compress(
@@ -994,6 +574,6 @@ jobs:
 
           git diff --cached --quiet && echo "No change" && exit 0
 
-          git commit -m "DCcatalog: refine Plex classification and force unknown channels to Other"
+          git commit -m "DCcatalog: categories and duplicate channel IDs"
 
           git push
