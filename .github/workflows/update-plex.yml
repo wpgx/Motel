@@ -13,595 +13,449 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: main
 
-      # ============================================================
-      # DOWNLOAD BUDDY'S WORKING PLEX CANADA PLAYLIST
-      # ============================================================
-      - name: Download Plex CA playlist from BuddyChewChew
+      - name: Download Plex CA playlist from Buddy
         run: |
           set -e
-
-          echo "Downloading Plex Canada playlist..."
-
-          curl -L --fail -A "Mozilla/5.0" \
-            "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
-            -o plex-ca-source.m3u
-
-          echo "Downloaded:"
-          ls -lh plex-ca-source.m3u
-
-          echo "Source channels:"
-          grep -c '^#EXTINF:' plex-ca-source.m3u || true
-
-      # ============================================================
-      # DOWNLOAD MATT'S CANADA EPG
-      # ============================================================
-      - name: Download Plex CA guide from Matt
-        run: |
-          set -e
-
-          echo "Downloading Plex Canada EPG..."
+          echo "Downloading Plex CA playlist..."
 
           curl -L --fail -A "Mozilla/5.0" \
-            "https://github.com/matthuisman/i.mjh.nz/raw/master/Plex/ca.xml.gz" \
-            -o plex-ca.xml.gz
+            "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/ca.m3u8" \
+            -o plex-ca-source.m3u8
 
-          ls -lh plex-ca.xml.gz
-
-      # ============================================================
-      # CLEAN / CATEGORIZE / NUMBER PLEX
-      # ============================================================
       - name: Build cleaned Plex CA playlist
         run: |
-          python3 - <<'PY'
+          python3 - << 'PY'
           import re
           from pathlib import Path
-          from collections import Counter
 
-          SOURCE = Path("plex-ca-source.m3u")
+          SOURCE = Path("plex-ca-source.m3u8")
           OUTPUT = Path("plex-ca.m3u")
-
-          text = SOURCE.read_text(
-              encoding="utf-8",
-              errors="ignore"
-          )
-
-          lines = text.replace("\r", "").splitlines()
-
-          # --------------------------------------------------------
-          # EXISTING MOTEL CATEGORIES
-          # --------------------------------------------------------
 
           CATEGORIES = [
               "News & Weather",
               "Sports",
               "Movies",
-              "Crime",
+              "Classic TV",
+              "Classic TV Comedy",
               "Comedy",
-              "Drama",
-              "Sci-Fi & Horror",
-              "Entertainment",
-              "Kids",
+              "Crime",
+              "Daytime & Talk Shows",
               "Documentary",
-              "Nature & Science",
+              "Drama",
+              "Entertainment",
+              "Game Shows",
               "Home & Food",
-              "Other"
+              "Kids",
+              "Music",
+              "Mystery",
+              "Nature & Science",
+              "Other",
+              "Sci-Fi & Horror",
+              "South Park",
+              "Westerns",
+              "Ambiance",
+              "Anime & Gaming",
           ]
 
-          # --------------------------------------------------------
-          # LANGUAGE FILTERS
-          # --------------------------------------------------------
-
-          REMOVE_TERMS = (
+          REMOVE_WORDS = (
               "spanish",
               "espanol",
               "español",
-              "latin america",
-              "latin tv",
               "latin",
               "french",
               "français",
               "francais",
-              "french canadian",
-              "français canadien"
           )
 
-          # --------------------------------------------------------
-          # CATEGORY RULES
-          #
-          # These are deliberately name-based because Buddy's Plex
-          # CA playlist puts everything under "Canada".
-          # --------------------------------------------------------
+          def channel_name(ext):
+              return ext.rsplit(",", 1)[-1].strip()
 
-          RULES = [
-
-              # NEWS / WEATHER
-              (
-                  "News & Weather",
-                  (
-                      "news",
-                      "weather",
-                      "cnn",
-                      "cbc news",
-                      "cbs news",
-                      "abc news",
-                      "nbc news",
-                      "fox news",
-                      "newsmax",
-                      "newsy",
-                      "weather channel"
-                  )
-              ),
-
-              # SPORTS
-              (
-                  "Sports",
-                  (
-                      "sports",
-                      "espn",
-                      "nfl",
-                      "nba",
-                      "nhl",
-                      "mlb",
-                      "nascar",
-                      "golf",
-                      "tennis",
-                      "ufc",
-                      "boxing",
-                      "wwe",
-                      "fifa",
-                      "football",
-                      "soccer",
-                      "hockey",
-                      "pga",
-                      "motorsport",
-                      "motortrend"
-                  )
-              ),
-
-              # MOVIES
-              (
-                  "Movies",
-                  (
-                      "movie",
-                      "movies",
-                      "cinema",
-                      "film",
-                      "films",
-                      "hallmark movies",
-                      "cinevault",
-                      "mystery movie",
-                      "action movie",
-                      "classic movie",
-                      "classic cinema",
-                      "national lampoon"
-                  )
-              ),
-
-              # CRIME
-              (
-                  "Crime",
-                  (
-                      "crime",
-                      "forensic",
-                      "cold case",
-                      "murder",
-                      "killer",
-                      "killers",
-                      "criminal",
-                      "true crime",
-                      "investigation",
-                      "investigates",
-                      "law & order"
-                  )
-              ),
-
-              # COMEDY
-              (
-                  "Comedy",
-                  (
-                      "comedy",
-                      "funny",
-                      "laugh",
-                      "conners",
-                      "tyler perry comedy"
-                  )
-              ),
-
-              # DRAMA
-              (
-                  "Drama",
-                  (
-                      "drama",
-                      "tv drama",
-                      "tyler perry drama"
-                  )
-              ),
-
-              # SCI-FI / HORROR
-              (
-                  "Sci-Fi & Horror",
-                  (
-                      "sci-fi",
-                      "sci fi",
-                      "scifi",
-                      "horror",
-                      "supernatural",
-                      "paranormal",
-                      "walking dead",
-                      "doctor who",
-                      "alien"
-                  )
-              ),
-
-              # KIDS
-              (
-                  "Kids",
-                  (
-                      "kids",
-                      "family",
-                      "cartoon",
-                      "nickelodeon",
-                      "nick jr",
-                      "pbs kids",
-                      "disney junior",
-                      "disney xd"
-                  )
-              ),
-
-              # DOCUMENTARY
-              (
-                  "Documentary",
-                  (
-                      "documentary",
-                      "documentaries",
-                      "history",
-                      "biography",
-                      "explore",
-                      "smithsonian",
-                      "vice"
-                  )
-              ),
-
-              # NATURE / SCIENCE
-              (
-                  "Nature & Science",
-                  (
-                      "nature",
-                      "science",
-                      "animal",
-                      "animals",
-                      "wild",
-                      "wildlife",
-                      "planet earth",
-                      "discovery",
-                      "national geographic",
-                      "nat geo"
-                  )
-              ),
-
-              # HOME / FOOD
-              (
-                  "Home & Food",
-                  (
-                      "food",
-                      "cooking",
-                      "cooking channel",
-                      "food network",
-                      "home",
-                      "property brothers",
-                      "house",
-                      "fixer",
-                      "garden",
-                      "gardening",
-                      "lifestyle"
-                  )
-              ),
-
-              # ENTERTAINMENT
-              (
-                  "Entertainment",
-                  (
-                      "entertainment",
-                      "reality",
-                      "reality tv",
-                      "celebrity",
-                      "pop culture",
-                      "amc",
-                      "bet",
-                      "hallmark",
-                      "tv land",
-                      "game show"
-                  )
+          def get_attr(ext, attr):
+              m = re.search(
+                  rf'{re.escape(attr)}="([^"]*)"',
+                  ext,
+                  re.I
               )
-          ]
+              return m.group(1) if m else ""
 
-          def get_name(extinf):
-              return extinf.rsplit(",", 1)[-1].strip()
+          def category_for(name):
+              n = name.lower()
 
-          def get_url(line):
-              return line.strip()
+              # -------------------------------
+              # South Park
+              # -------------------------------
+              if "south park" in n:
+                  return "South Park"
 
-          def clean_html(value):
-              value = value.replace("&amp;", "&")
-              value = value.replace("&quot;", '"')
-              return value
+              # -------------------------------
+              # Westerns
+              # -------------------------------
+              if any(x in n for x in (
+                  "western",
+                  "cowboy",
+                  "wild west"
+              )):
+                  return "Westerns"
 
-          def categorize(name):
-              n = clean_html(name).lower().strip()
+              # -------------------------------
+              # Classic TV Comedy
+              # -------------------------------
+              if any(x in n for x in (
+                  "three stooges",
+                  "andy griffith",
+                  "beverly hillbillies",
+                  "bewitched",
+                  "i dream of jeannie",
+                  "leave it to beaver",
+                  "munsters",
+                  "addams family",
+                  "gilligan",
+                  "honeymooners",
+                  "classic comedy"
+              )):
+                  return "Classic TV Comedy"
 
-              for category, keywords in RULES:
-                  for keyword in keywords:
-                      if keyword in n:
-                          return category
+              # -------------------------------
+              # Classic TV
+              # -------------------------------
+              if any(x in n for x in (
+                  "classic tv",
+                  "classic television",
+                  "retro tv",
+                  "vintage tv"
+              )):
+                  return "Classic TV"
+
+              # -------------------------------
+              # Game Shows
+              # -------------------------------
+              if any(x in n for x in (
+                  "game show",
+                  "game shows",
+                  "deal or no deal",
+                  "family feud",
+                  "price is right",
+                  "wheel of fortune"
+              )):
+                  return "Game Shows"
+
+              # -------------------------------
+              # Daytime / Talk
+              # -------------------------------
+              if any(x in n for x in (
+                  "talk",
+                  "daytime",
+                  "court",
+                  "judge",
+                  "divorce court"
+              )):
+                  return "Daytime & Talk Shows"
+
+              # -------------------------------
+              # News / Weather
+              # -------------------------------
+              if any(x in n for x in (
+                  "news",
+                  "weather",
+                  "headline",
+                  "cnn",
+                  "cnbc",
+                  "msnbc",
+                  "abc news",
+                  "cbs news",
+                  "nbc news",
+                  "fox news"
+              )):
+                  return "News & Weather"
+
+              # -------------------------------
+              # Sports
+              # -------------------------------
+              if any(x in n for x in (
+                  "sports",
+                  "nfl",
+                  "nba",
+                  "nhl",
+                  "mlb",
+                  "nascar",
+                  "golf",
+                  "tennis",
+                  "soccer",
+                  "wrestling",
+                  "ufc",
+                  "fishing"
+              )):
+                  return "Sports"
+
+              # -------------------------------
+              # Kids
+              # -------------------------------
+              if any(x in n for x in (
+                  "kids",
+                  "nick",
+                  "nickelodeon",
+                  "cartoon",
+                  "baby",
+                  "junior",
+                  "paw patrol"
+              )):
+                  return "Kids"
+
+              # -------------------------------
+              # Music
+              # -------------------------------
+              if any(x in n for x in (
+                  "music",
+                  "vevo",
+                  "concert",
+                  "mtv",
+                  "vh1"
+              )):
+                  return "Music"
+
+              # -------------------------------
+              # Home & Food
+              # -------------------------------
+              if any(x in n for x in (
+                  "food",
+                  "cooking",
+                  "cuisine",
+                  "home",
+                  "cooking channel",
+                  "food network"
+              )):
+                  return "Home & Food"
+
+              # -------------------------------
+              # Crime
+              # -------------------------------
+              if any(x in n for x in (
+                  "crime",
+                  "forensic",
+                  "murder",
+                  "killer",
+                  "cold case",
+                  "investigation",
+                  "law & order"
+              )):
+                  return "Crime"
+
+              # -------------------------------
+              # Documentary
+              # -------------------------------
+              if any(x in n for x in (
+                  "documentary",
+                  "documentaries",
+                  "history",
+                  "biography"
+              )):
+                  return "Documentary"
+
+              # -------------------------------
+              # Nature & Science
+              # -------------------------------
+              if any(x in n for x in (
+                  "nature",
+                  "science",
+                  "discovery",
+                  "animal planet",
+                  "wild",
+                  "earth"
+              )):
+                  return "Nature & Science"
+
+              # -------------------------------
+              # Sci-Fi & Horror
+              # -------------------------------
+              if any(x in n for x in (
+                  "sci-fi",
+                  "scifi",
+                  "science fiction",
+                  "horror",
+                  "paranormal",
+                  "supernatural"
+              )):
+                  return "Sci-Fi & Horror"
+
+              # -------------------------------
+              # Comedy
+              # -------------------------------
+              if any(x in n for x in (
+                  "comedy",
+                  "funny",
+                  "laugh"
+              )):
+                  return "Comedy"
+
+              # -------------------------------
+              # Movies
+              # -------------------------------
+              if any(x in n for x in (
+                  "movie",
+                  "movies",
+                  "film",
+                  "cinema",
+                  "cine"
+              )):
+                  return "Movies"
+
+              # -------------------------------
+              # Drama
+              # -------------------------------
+              if any(x in n for x in (
+                  "drama",
+                  "soap"
+              )):
+                  return "Drama"
+
+              # -------------------------------
+              # Entertainment
+              # -------------------------------
+              if any(x in n for x in (
+                  "entertainment",
+                  "reality",
+                  "celebrity",
+                  "lifestyle"
+              )):
+                  return "Entertainment"
 
               return "Other"
 
-          # --------------------------------------------------------
-          # PARSE M3U
-          # --------------------------------------------------------
+          lines = SOURCE.read_text(
+              encoding="utf-8",
+              errors="ignore"
+          ).splitlines()
 
           entries = []
+          seen = set()
 
-          i = 0
-
-          while i < len(lines):
-
-              line = lines[i].strip()
+          for i, line in enumerate(lines):
 
               if not line.startswith("#EXTINF"):
-                  i += 1
                   continue
 
               if i + 1 >= len(lines):
-                  break
+                  continue
 
-              url = get_url(lines[i + 1])
+              url = lines[i + 1].strip()
 
               if not url.startswith("http"):
-                  i += 1
                   continue
 
-              ext = line
-              name = get_name(ext)
+              name = channel_name(line)
 
-              entries.append(
-                  {
-                      "ext": ext,
-                      "url": url,
-                      "name": name
-                  }
+              # Remove unwanted language channels.
+              low = name.lower()
+
+              if any(word in low for word in REMOVE_WORDS):
+                  continue
+
+              plex_id = get_attr(line, "tvg-id")
+
+              # Deduplicate using Plex ID first,
+              # otherwise use the stream URL.
+              duplicate_key = plex_id or url
+
+              if duplicate_key in seen:
+                  continue
+
+              seen.add(duplicate_key)
+
+              category = category_for(name)
+
+              # Plex source currently uses "Canada".
+              # Replace it with one of our real categories.
+              line = re.sub(
+                  r'group-title="[^"]*"',
+                  f'group-title="{category}"',
+                  line,
+                  flags=re.I
               )
 
-              i += 2
-
-          print()
-          print("SOURCE ENTRIES:", len(entries))
-
-          # --------------------------------------------------------
-          # REMOVE UNWANTED LANGUAGE CHANNELS
-          # --------------------------------------------------------
-
-          filtered = []
-
-          removed_language = []
-          removed_duplicates = []
-
-          seen_urls = set()
-
-          for item in entries:
-
-              name_lower = clean_html(
-                  item["name"]
-              ).lower()
-
-              # Remove Spanish / Latin / French.
-              if any(
-                  term in name_lower
-                  for term in REMOVE_TERMS
-              ):
-                  removed_language.append(
-                      item["name"]
+              if "group-title=" not in line.lower():
+                  line = line.replace(
+                      "#EXTINF:-1",
+                      f'#EXTINF:-1 group-title="{category}"',
+                      1
                   )
-                  continue
 
-              # Remove duplicate stream URLs.
-              if item["url"] in seen_urls:
-                  removed_duplicates.append(
-                      item["name"]
-                  )
-                  continue
+              entries.append((category, name.lower(), line, url))
 
-              seen_urls.add(item["url"])
-
-              item["category"] = categorize(
-                  item["name"]
-              )
-
-              filtered.append(item)
-
-          # --------------------------------------------------------
-          # SORT BY OUR EXISTING CATEGORY ORDER
-          # --------------------------------------------------------
-
+          # Sort by our existing category order.
           category_order = {
-              "News & Weather": 0,
-              "Sports": 1,
-              "Movies": 2,
-              "Crime": 3,
-              "Comedy": 4,
-              "Drama": 5,
-              "Sci-Fi & Horror": 6,
-              "Entertainment": 7,
-              "Kids": 8,
-              "Documentary": 9,
-              "Nature & Science": 10,
-              "Home & Food": 11,
-              "Other": 12
+              name: i for i, name in enumerate(CATEGORIES)
           }
 
-          filtered.sort(
+          entries.sort(
               key=lambda x: (
-                  category_order.get(
-                      x["category"],
-                      99
-                  ),
-                  clean_html(
-                      x["name"]
-                  ).lower()
+                  category_order.get(x[0], 999),
+                  x[1]
               )
           )
 
-          # --------------------------------------------------------
-          # ASSIGN 6500+
-          # --------------------------------------------------------
-
-          channel_number = 6500
-
+          # Plex channels get their own range.
           output = [
               '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
           ]
 
-          category_counts = Counter()
+          number = 6500
 
-          for item in filtered:
+          for category, _, line, url in entries:
 
-              ext = item["ext"]
-
-              # Remove Buddy's source category.
-              ext = re.sub(
-                  r'\s*group-title="[^"]*"',
-                  "",
-                  ext,
-                  flags=re.IGNORECASE
+              line = re.sub(
+                  r'tvg-chno="[^"]*"',
+                  f'tvg-chno="{number}"',
+                  line,
+                  flags=re.I
               )
 
-              # Remove existing Plex channel number.
-              ext = re.sub(
-                  r'\s*tvg-chno="[^"]*"',
-                  "",
-                  ext,
-                  flags=re.IGNORECASE
-              )
+              if "tvg-chno=" not in line.lower():
+                  line = line.replace(
+                      "#EXTINF:-1",
+                      f'#EXTINF:-1 tvg-chno="{number}"',
+                      1
+                  )
 
-              category = item["category"]
+              output.append(line)
+              output.append(url)
 
-              # Add OUR category and OUR number.
-              ext = ext.replace(
-                  "#EXTINF:-1",
-                  (
-                      f'#EXTINF:-1 '
-                      f'group-title="{category}" '
-                      f'tvg-chno="{channel_number}"'
-                  ),
-                  1
-              )
-
-              output.append(ext)
-              output.append(item["url"])
-
-              category_counts[category] += 1
-
-              channel_number += 1
+              number += 1
 
           OUTPUT.write_text(
               "\n".join(output) + "\n",
               encoding="utf-8"
           )
 
-          # --------------------------------------------------------
-          # REPORT
-          # --------------------------------------------------------
+          print(f"Plex CA source entries: {len(lines)}")
+          print(f"Plex CA final channels: {len(entries)}")
+          print(f"Duplicates removed: {len(seen) - len(entries)}")
+          print(f"Number range: 6500-{number - 1}")
 
-          print()
-          print("========================================")
-          print("        PLEX CA BUILD REPORT")
-          print("========================================")
-
-          print(
-              f"SOURCE CHANNELS:       {len(entries)}"
-          )
-
-          print(
-              f"FINAL CHANNELS:        {len(filtered)}"
-          )
-
-          print(
-              f"REMOVED LANGUAGE:      {len(removed_language)}"
-          )
-
-          print(
-              f"DUPLICATES REMOVED:    {len(removed_duplicates)}"
-          )
-
-          print(
-              f"NUMBER RANGE:           6500-{channel_number - 1}"
-          )
-
-          print("----------------------------------------")
-
-          for category in CATEGORIES:
-              count = category_counts.get(
-                  category,
-                  0
-              )
-
-              if count:
-                  print(
-                      f"{category:<22} {count:>4}"
-                  )
-
-          print("========================================")
-
-          if removed_language:
-
-              print()
-              print("REMOVED LANGUAGE CHANNELS:")
-
-              for name in removed_language:
-                  print(
-                      f"  - {name}"
-                  )
-
-          print()
-          print("PLEX CA PLAYLIST CREATED:")
-          print(OUTPUT)
           PY
 
-      # ============================================================
-      # VERIFY OUTPUT
-      # ============================================================
-      - name: Check Plex CA files
+      - name: Check playlist
         run: |
-          echo "===== PLEX PLAYLIST ====="
+          echo "===== PLEX CA ====="
           ls -lh plex-ca.m3u
 
           echo "Channels:"
           grep -c '^#EXTINF:' plex-ca.m3u || true
 
           echo
-          echo "===== CATEGORY COUNTS ====="
+          echo "Categories:"
           grep '^#EXTINF:' plex-ca.m3u \
             | sed -n 's/.*group-title="\([^"]*\)".*/\1/p' \
             | sort \
             | uniq -c \
-            | sort
+            | sort -k2
 
           echo
-          echo "===== FIRST CHANNELS ====="
-          grep '^#EXTINF:' plex-ca.m3u | head -10
+          echo "First channels:"
+          head -8 plex-ca.m3u
 
-          echo
-          echo "===== EPG ====="
-          ls -lh plex-ca.xml.gz
-
-      # ============================================================
-      # COMMIT
-      # ============================================================
-      - name: Commit Plex files
+      - name: Commit Plex CA
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Plex CA: clean, categorize and number 6500+"
-          file_pattern: "plex-ca.m3u plex-ca.xml.gz"
+          commit_message: "Update Plex CA playlist"
+          file_pattern: "plex-ca.m3u"
