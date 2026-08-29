@@ -28,9 +28,10 @@ jobs:
           set -e
           echo "Downloading Plex CA guide from Cloudflare..."
           curl -L --fail -A "Mozilla/5.0" \
-            "https://YOUR_WORKER.workers.dev/plex-ca.xml" \
+            "https://plex-ca.donxman.workers.dev/plex-ca.xml" \
             -o plex-ca.xml
           ls -lh plex-ca.xml
+          echo "Guide lines: $(wc -l < plex-ca.xml)"
 
       - name: Build cleaned Plex CA playlist
         run: |
@@ -174,9 +175,8 @@ jobs:
           category_order = {category: i for i, category in enumerate(CATEGORIES)}
           entries.sort(key=lambda x: (category_order.get(x[0], 999), x[1]))
 
-          # CHANGED: Now points to your Cloudflare guide
           output = [
-              '#EXTM3U url-tvg="https://YOUR_WORKER.workers.dev/plex-ca.xml"'
+              '#EXTM3U url-tvg="https://plex-ca.donxman.workers.dev/plex-ca.xml"'
           ]
 
           channel_number = 6500
@@ -196,6 +196,7 @@ jobs:
       - name: Check final playlist
         run: |
           ls -lh plex-ca.m3u plex-ca.xml
+          echo "CHANNEL COUNT:"
           grep -c '^#EXTINF:' plex-ca.m3u || true
 
       - name: Commit Plex CA playlist
