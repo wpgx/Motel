@@ -17,15 +17,20 @@ jobs:
       - name: Download Plex CA playlist from Buddy
         run: |
           set -e
-
           echo "Downloading Plex CA playlist from Buddy..."
-
           curl -L --fail -A "Mozilla/5.0" \
             "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
             -o plex-ca-source.m3u
-
-          echo "Downloaded:"
           ls -lh plex-ca-source.m3u
+
+      - name: Download Plex CA guide from Cloudflare
+        run: |
+          set -e
+          echo "Downloading Plex CA guide from Cloudflare..."
+          curl -L --fail -A "Mozilla/5.0" \
+            "https://YOUR_WORKER.workers.dev/plex-ca.xml" \
+            -o plex-ca.xml
+          ls -lh plex-ca.xml
 
       - name: Build cleaned Plex CA playlist
         run: |
@@ -64,7 +69,6 @@ jobs:
           ]
 
           REMOVE_TERMS = [
-              # Spanish
               "spanish", "espanol", "español", "latin", "latino", "españa",
               "telemundo", "novelisima", "caracol", "pitufo", "pelimex",
               "amor piel salvaje", "historias de corazón", "historias de corazon",
@@ -73,24 +77,17 @@ jobs:
               "nosey escandalos", "noticias telemundo", "telemundo al dia",
               "itv deportes", "alerta", "corazón", "novela", "piel salvaje",
               "cinepride", "bizaar",
-              # French
               "french", "français", "francais", "ça c’est drôle", "ca c'est drole",
               "c'est drole", "un si grand soleil", "noovo cinéma", "noovo cinema",
               "radio-canada info", "france 24",
-              # German / Italian / Portuguese
               "deutsch", "german", "euronews deutsch", "italiano", "italian",
               "euronews italiano", "portuguese", "português", "euronews portuguese",
               "brazuca", "trace brazuca",
-              # Other foreign markers
               "inter 24/7", "éxitos", "exitos", "amasiam", "joysauce",
           ]
 
           def get_attr(ext, attr):
-              m = re.search(
-                  rf'{re.escape(attr)}="([^"]*)"',
-                  ext,
-                  re.I
-              )
+              m = re.search(rf'{re.escape(attr)}="([^"]*)"', ext, re.I)
               return m.group(1) if m else ""
 
           def get_name(ext):
@@ -98,541 +95,113 @@ jobs:
 
           def category_for(name):
               n = name.lower().strip()
-
-              # Exact overrides for the stubborn Other list
               OVERRIDES = {
-                  "123go!": "Home & Food",
-                  "addictatv": "Entertainment",
-                  "aliwko": "Entertainment",
-                  "american gladiators by mgm": "Sports",
-                  "animation+": "Kids",
-                  "asiancrush": "Movies",
-                  "bizaar": "Entertainment",
-                  "blackpix": "Entertainment",
-                  "boot": "Entertainment",
-                  "camp spoopy": "Kids",
-                  "circle country": "Music",
-                  "combatv": "Entertainment",
-                  "ctv gets real": "Entertainment",
-                  "ctv gridlock": "Entertainment",
-                  "entertains": "Entertainment",
-                  "fashiontv": "Entertainment",
-                  "galxy tv": "Entertainment",
-                  "life+style": "Entertainment",
-                  "lone star": "Drama",
-                  "mst3k": "Sci-Fi & Horror",
-                  "pickletv": "Sports",
-                  "pink panther": "Kids",
-                  "pll network": "Drama",
-                  "rcm": "Music",
-                  "rig tv": "Entertainment",
-                  "robot wars by mech+": "Entertainment",
-                  "skwad": "Kids",
-                  "super channel hearties": "Drama",
-                  "super channel uncovered": "Documentary",
-                  "swerve combat": "Sports",
-                  "tarima tv": "Music",
-                  "teen wolf by mgm": "Sci-Fi & Horror",
-                  "the mightiest by ctv": "Entertainment",
-                  "the wicked tuna channel": "Sports",
-                  "trailers from hell": "Movies",
-                  "untold stories of the er": "Documentary",
-                  "xtreme caution": "Sports",
-                  "xtreme outdoor": "Nature & Science",
-                  "watch it scream": "Sci-Fi & Horror",
-                  "wipeoutxtra": "Comedy",
-                  "wipeout xtra": "Comedy",
+                  "123go!": "Home & Food", "addictatv": "Entertainment", "aliwko": "Entertainment",
+                  "american gladiators by mgm": "Sports", "animation+": "Kids", "asiancrush": "Movies",
+                  "bizaar": "Entertainment", "blackpix": "Entertainment", "boot": "Entertainment",
+                  "camp spoopy": "Kids", "circle country": "Music", "combatv": "Entertainment",
+                  "ctv gets real": "Entertainment", "ctv gridlock": "Entertainment", "entertains": "Entertainment",
+                  "fashiontv": "Entertainment", "galxy tv": "Entertainment", "life+style": "Entertainment",
+                  "lone star": "Drama", "mst3k": "Sci-Fi & Horror", "pickletv": "Sports",
+                  "pink panther": "Kids", "pll network": "Drama", "rcm": "Music", "rig tv": "Entertainment",
+                  "robot wars by mech+": "Entertainment", "skwad": "Kids", "super channel hearties": "Drama",
+                  "super channel uncovered": "Documentary", "swerve combat": "Sports", "tarima tv": "Music",
+                  "teen wolf by mgm": "Sci-Fi & Horror", "the mightiest by ctv": "Entertainment",
+                  "the wicked tuna channel": "Sports", "trailers from hell": "Movies",
+                  "untold stories of the er": "Documentary", "xtreme caution": "Sports",
+                  "xtreme outdoor": "Nature & Science", "watch it scream": "Sci-Fi & Horror",
+                  "wipeoutxtra": "Comedy", "wipeout xtra": "Comedy",
               }
-              if n in OVERRIDES:
-                  return OVERRIDES[n]
-
-              # SOUTH PARK
-              if "south park" in n:
-                  return "South Park"
-
-              # ANIME & GAMING
-              if any(x in n for x in [
-                  "anime", "gaming", "gamer", "video game", "videogame",
-                  "beyblade", "yu-gi-oh", "dungeons & dragons", "sonic",
-              ]):
-                  return "Anime & Gaming"
-
-              # AMBIANCE
-              if any(x in n for x in [
-                  "ambiance", "ambient", "relaxation", "relax", "scenic",
-                  "fireplace", "aquarium", "lofi", "lo-fi", "nature escape",
-                  "naturescape", "holidayscapes", "spa",
-              ]):
-                  return "Ambiance"
-
-              # WESTERNS
-              if any(x in n for x in [
-                  "western", "cowboy", "wild west", "rifleman", "wanted: dead",
-                  "death valley days", "western bound", "grjngo",
-              ]):
-                  return "Westerns"
-
-              # CLASSIC TV COMEDY
-              if any(x in n for x in [
-                  "classic comedy", "classic sitcom", "classic tv comedy",
-                  "three stooges", "andy griffith", "beverly hillbillies",
-                  "bewitched", "i dream of jeannie", "leave it to beaver",
-                  "munsters", "addams family", "gilligan", "honeymooners",
-                  "sanford and son", "jeffersons", "good times", "family ties",
-                  "cheers", "frasier", "taxi", "mash", "three's company",
-                  "dick van dyke", "carol burnett", "ed sullivan", "mr. bean",
-                  "schitts creek", "corner gas", "portlandia",
-                  "trailer park boys", "that girl", "johnny carson",
-              ]):
-                  return "Classic TV Comedy"
-
-              # CLASSIC TV
-              if any(x in n for x in [
-                  "classic tv", "classic television", "retro tv", "vintage tv",
-                  "classic shows", "classic western", "classic doctor who",
-              ]):
-                  return "Classic TV"
-
-              # GAME SHOWS
-              if any(x in n for x in [
-                  "game show", "gameshow", "family feud", "price is right",
-                  "wheel of fortune", "deal or no deal", "jeopardy", "match game",
-                  "supermarket sweep", "buzzr", "game tv", "gametvgo",
-                  "let's make a deal", "impossible - quiz", "deal zone",
-              ]):
-                  return "Game Shows"
-
-              # DAYTIME & TALK SHOWS
-              if any(x in n for x in [
-                  "talk show", "daytime", "court tv", "judge", "divorce court",
-                  "people's court", "peoples court", "paternity court",
-                  "trutv", "talktv", "dr. phil", "nosey", "the graham norton",
-                  "startalk", "prof g", "growthday",
-              ]):
-                  return "Daytime & Talk Shows"
-
-              # NEWS & WEATHER
-              if any(x in n for x in [
-                  "news", "weather", "cnn", "cnbc", "msnbc", "abc news",
-                  "cbs news", "nbc news", "fox news", "weather channel",
-                  "headline news", "newsmax", "bloomberg", "cheddar",
-                  "reuters", "france 24", "euronews", "radio-canada info",
-                  "cbc news", "ctv news", "weatherspy", "usa today",
-                  "yahoo finance",
-              ]):
-                  return "News & Weather"
-
-              # SPORTS
-              if any(x in n for x in [
-                  "sports", "nfl", "nba", "nhl", "mlb", "nascar", "racing",
-                  "golf", "tennis", "soccer", "football", "basketball",
-                  "hockey", "wrestling", "ufc", "fight", "fishing", "motor",
-                  "motortrend", "olympic", "bowling", "billiard", "cornhole",
-                  "bassmaster", "poker", "pga tour", "dp world tour", "fifa",
-                  "glory kickboxing", "pfl mma", "one championship", "xfc tv",
-                  "nhra", "racer select", "speed sport", "speedvision",
-                  "slvr sports", "willow sports", "sportsgrid", "sports illustrated",
-                  "tennis+", "golfpass", "tnawrestling", "tna wrestling", "pac-12",
-                  "victory+", "fuel tv", "game & fish", "waypoint tv",
-                  "powernation", "wired2fish", "world billiards", "world surf",
-                  "strongman", "hard knocks", "acl cornhole", "cricket gold",
-                  "hong kong fight", "powder tv", "slopes", "ski", "surf league",
-                  "sail", "sailing", "poker night", "pokergo", "triton poker",
-                  "world poker", "fight network", "el conflicto", "lucha plus",
-                  "itv deportes", "tsn the ocho", "willow", "ftf sports",
-                  "swerve", "xfc", "pursuitup", "pickle", "wicked tuna", "xtreme",
-              ]):
-                  return "Sports"
-
-              # KIDS
-              if any(x in n for x in [
-                  "kids", "kid's", "children", "nick", "nickelodeon", "cartoon",
-                  "baby", "junior", "paw patrol", "pbs kids", "teletubbies",
-                  "baby shark", "baby einstein", "my little pony", "power rangers",
-                  "transformers", "sonic the hedgehog", "beyblade", "strawberry shortcake",
-                  "arthur", "wiggles", "brat tv", "kidoodle", "ninja kidz",
-                  "ryan and friends", "toon goggles", "preston & brianna",
-                  "pocket.watch", "sonic tv", "tg junior", "watch it kid",
-                  "123go", "animation", "pink panther", "skwad", "camp spoopy",
-              ]):
-                  return "Kids"
-
-              # MUSIC
-              if any(x in n for x in [
-                  "music", "vevo", "concert", "mtv", "vh1", "country music",
-                  "rock music", "music videos", "qello", "xite", "stingray",
-                  "trace", "classic rock", "smooth jazz", "easy listening",
-                  "hip-hop", "k-pop", "kpop", "new k-pop", "today's k-pop",
-                  "metal.rocks", "qwest tv", "djazz", "classica", "karaoke",
-                  "soul storm", "greatest hits", "hot country", "holidayscapes",
-                  "zenlife", "rock x metal", "r&b", "rap game", "reggae vibes",
-                  "gospel", "christian hits", "celebrates", "80s flashback",
-                  "90s throwback", "60s & 70s", "euro hits", "non-stop '90s",
-                  "nothin' but 90s", "y2k", "flashback 70s", "remember the",
-                  "alternative", "circle country", "rcm", "tarima",
-              ]):
-                  return "Music"
-
-              # HOME & FOOD
-              if any(x in n for x in [
-                  "food", "cooking", "cuisine", "home", "garden", "gardening",
-                  "house", "design", "diy", "hgtv", "magnolia", "taste", "kitchen",
-                  "renovation", "property", "real estate", "5-minute crafts",
-                  "crafts", "craftsy", "tastemade", "this old house", "tiny house",
-                  "homeful", "property brothers", "design network", "hell's kitchen",
-                  "great british menu", "cooking panda", "come dine with me",
-                  "four in a bed", "don't tell the bride", "hotel inspector",
-                  "bob ross", "martha stewart", "emeril lagasse", "iron chef",
-                  "antiques road", "antiques roadshow", "antiques road trip",
-                  "garden with monty", "made it myself", "flipping nation",
-                  "million dollar dream", "ctv @home", "journy", "123go",
-              ]):
-                  return "Home & Food"
-
-              # CRIME
-              if any(x in n for x in [
-                  "crime", "true crime", "murder", "killer", "forensic",
-                  "cold case", "investigation", "law & order", "law and order",
-                  "unsolved", "police", "detective", "criminal", "crime 360",
-                  "crime beat", "crime scene", "bloodline detectives",
-                  "midsomer murders", "new detectives", "real crime", "forensic files",
-                  "cops", "jail", "sheriffs", "operation repo", "dog the bounty",
-                  "women behind bars", "the first 48", "fbi files", "intervention",
-                  "cheaters", "noovo crime", "ctv crime", "true crime now",
-                  "unsolved mysteries", "dateline",
-              ]):
-                  return "Crime"
-
-              # MYSTERY
-              if any(x in n for x in [
-                  "mystery", "mysteries", "murder mystery", "mhz mysteries",
-                  "murdoch mysteries", "silent witness",
-              ]):
-                  return "Mystery"
-
-              # DOCUMENTARY
-              if any(x in n for x in [
-                  "documentary", "documentaries", "biography", "docuseries",
-                  "documenting", "documentary+", "factual", "get.factual",
-                  "modern marvels", "super channel uncovered", "untold stories",
-              ]):
-                  return "Documentary"
-
-              # NATURE & SCIENCE
-              if any(x in n for x in [
-                  "nature", "science", "animal planet", "animals", "wildlife",
-                  "wild", "earth", "space", "discovery science", "history",
-                  "history channel", "natural world", "ocean", "planet",
-                  "adventure earth", "evolution earth", "go wild", "history & warfare",
-                  "history hit", "magellantv wildest", "popular science",
-                  "real wild", "true history", "wildearth", "cosmic frontiers",
-                  "unidentified", "unxplained zone", "survivorman", "life down under",
-                  "ax men", "bassmaster", "bondi rescue", "ice pilots", "pet collective",
-                  "xtreme outdoor",
-              ]):
-                  return "Nature & Science"
-
-              # SCI-FI & HORROR
-              if any(x in n for x in [
-                  "sci-fi", "sci fi", "scifi", "science fiction", "horror",
-                  "paranormal", "supernatural", "twilight zone", "monster",
-                  "stargate", "farscape", "andromeda", "continuum", "outer limits",
-                  "outpost", "haunttv", "most haunted", "ghost hunters",
-                  "frightflix", "scream factory", "screambox", "midnight pulp",
-                  "river monsters", "beyond belief", "beyond paranormal",
-                  "classic doctor who", "x nation", "z nation", "walking dead",
-                  "teen wolf", "mst3k", "scream", "wipeout",
-              ]):
-                  return "Sci-Fi & Horror"
-
-              # COMEDY
-              if any(x in n for x in [
-                  "comedy", "comedies", "funny", "laugh", "always funny",
-                  "stand up", "stand-up", "comedy dynamics", "cbc comedy",
-                  "ctv laughs", "failarmy", "people are awesome", "hot ones",
-              ]):
-                  return "Comedy"
-
-              # MOVIES
-              if any(x in n for x in [
-                  "movie", "movies", "film", "films", "cinema", "cinevault",
-                  "hallmark movies", "action movies", "classic movies",
-                  "movie channel", "maverick black", "gravitas movies",
-                  "filmrise", "moviesphere", "fresh movies", "surf cinema",
-                  "action hollywood", "new k.movies", "movieitaly", "tribeca channel",
-                  "shout! tv", "stories by amc", "midnight pulp", "screambox",
-                  "wu tang collection", "shemaroo", "retrocrush", "asian crush",
-                  "rakuten viki", "cinepride", "24 hour free movies", "trailers from hell",
-                  "asiancrush", "pink panther",
-              ]):
-                  return "Movies"
-
-              # DRAMA
-              if any(x in n for x in [
-                  "drama", "dramatic", "soap", "bold and beautiful", "all my children",
-                  "primetime soaps", "asian drama", "k-drama", "romcom k-drama",
-                  "21 jump street", "nash bridges", "hunter", "baywatch",
-                  "highway to heaven", "heartland", "mcleods daughters", "nashville",
-                  "nip/tuck", "weeds", "the conners", "degrassi", "legacy",
-                  "mi-5", "nolly africa", "the outpost", "the outer limits",
-                  "in the heat of the night", "bon voyage", "that girl",
-                  "are we there yet", "anger management", "schitts creek",
-                  "three's company", "the bold and the beautiful", "tvb pearl drama",
-                  "lone star", "super channel hearties", "pll network",
-              ]):
-                  return "Drama"
-
-              # ENTERTAINMENT
-              if any(x in n for x in [
-                  "entertainment", "reality", "celebrity", "lifestyle", "pop culture",
-                  "tyler perry", "dance moms", "duck dynasty", "little women",
-                  "osbournes", "biggest loser", "fear factor", "project runway",
-                  "dog whisperer", "dr. g", "i shouldn't be alive", "hard knocks",
-                  "hardcore pawn", "pawn", "american pickers", "top gear",
-                  "fifth gear", "made in hollywood", "powernation", "barbecue",
-                  "travel", "bbc travel", "pbs travel", "travel escapes", "bon voyage",
-                  "revry", "outflix", "qwest", "joysauce", "afroland", "amasian",
-                  "complex tv", "creator television", "glewed", "hit list", "hit sitcoms",
-                  "pop adult", "so... real", "spark tv", "cheddar", "everyday",
-                  "wonder", "dove", "heartland", "more u", "mythical", "unbeaten",
-                  "unspeakable", "dude perfect", "failarmy", "fashion", "rig tv",
-                  "robot wars", "ctv gets real", "ctv gridlock", "life+style",
-                  "entertains", "addicta", "aliwko", "bizaar", "blackpix", "combatv",
-                  "galxy", "mightiest", "boot",
-              ]):
-                  return "Entertainment"
-
+              if n in OVERRIDES: return OVERRIDES[n]
+              if "south park" in n: return "South Park"
+              if any(x in n for x in ["anime", "gaming", "gamer", "video game", "videogame", "beyblade", "yu-gi-oh", "dungeons & dragons", "sonic"]): return "Anime & Gaming"
+              if any(x in n for x in ["ambiance", "ambient", "relaxation", "relax", "scenic", "fireplace", "aquarium", "lofi", "lo-fi", "nature escape", "naturescape", "holidayscapes", "spa"]): return "Ambiance"
+              if any(x in n for x in ["western", "cowboy", "wild west", "rifleman", "wanted: dead", "death valley days", "western bound", "grjngo"]): return "Westerns"
+              if any(x in n for x in ["classic comedy", "classic sitcom", "classic tv comedy", "three stooges", "andy griffith", "beverly hillbillies", "bewitched", "i dream of jeannie", "leave it to beaver", "munsters", "addams family", "gilligan", "honeymooners", "sanford and son", "jeffersons", "good times", "family ties", "cheers", "frasier", "taxi", "mash", "three's company", "dick van dyke", "carol burnett", "ed sullivan", "mr. bean", "schitts creek", "corner gas", "portlandia", "trailer park boys", "that girl", "johnny carson"]): return "Classic TV Comedy"
+              if any(x in n for x in ["classic tv", "classic television", "retro tv", "vintage tv", "classic shows", "classic western", "classic doctor who"]): return "Classic TV"
+              if any(x in n for x in ["game show", "gameshow", "family feud", "price is right", "wheel of fortune", "deal or no deal", "jeopardy", "match game", "supermarket sweep", "buzzr", "game tv", "gametvgo", "let's make a deal", "impossible - quiz", "deal zone"]): return "Game Shows"
+              if any(x in n for x in ["talk show", "daytime", "court tv", "judge", "divorce court", "people's court", "peoples court", "paternity court", "trutv", "talktv", "dr. phil", "nosey", "the graham norton", "startalk", "prof g", "growthday"]): return "Daytime & Talk Shows"
+              if any(x in n for x in ["news", "weather", "cnn", "cnbc", "msnbc", "abc news", "cbs news", "nbc news", "fox news", "weather channel", "headline news", "newsmax", "bloomberg", "cheddar", "reuters", "france 24", "euronews", "radio-canada info", "cbc news", "ctv news", "weatherspy", "usa today", "yahoo finance"]): return "News & Weather"
+              if any(x in n for x in ["sports", "nfl", "nba", "nhl", "mlb", "nascar", "racing", "golf", "tennis", "soccer", "football", "basketball", "hockey", "wrestling", "ufc", "fight", "fishing", "motor", "motortrend", "olympic", "bowling", "billiard", "cornhole", "bassmaster", "poker", "pga tour", "dp world tour", "fifa", "glory kickboxing", "pfl mma", "one championship", "xfc tv", "nhra", "racer select", "speed sport", "speedvision", "slvr sports", "willow sports", "sportsgrid", "sports illustrated", "tennis+", "golfpass", "tnawrestling", "tna wrestling", "pac-12", "victory+", "fuel tv", "game & fish", "waypoint tv", "powernation", "wired2fish", "world billiards", "world surf", "strongman", "hard knocks", "acl cornhole", "cricket gold", "hong kong fight", "powder tv", "slopes", "ski", "surf league", "sail", "sailing", "poker night", "pokergo", "triton poker", "world poker", "fight network", "el conflicto", "lucha plus", "itv deportes", "tsn the ocho", "willow", "ftf sports", "swerve", "xfc", "pursuitup", "pickle", "wicked tuna", "xtreme"]): return "Sports"
+              if any(x in n for x in ["kids", "kid's", "children", "nick", "nickelodeon", "cartoon", "baby", "junior", "paw patrol", "pbs kids", "teletubbies", "baby shark", "baby einstein", "my little pony", "power rangers", "transformers", "sonic the hedgehog", "beyblade", "strawberry shortcake", "arthur", "wiggles", "brat tv", "kidoodle", "ninja kidz", "ryan and friends", "toon goggles", "preston & brianna", "pocket.watch", "sonic tv", "tg junior", "watch it kid", "123go", "animation", "pink panther", "skwad", "camp spoopy"]): return "Kids"
+              if any(x in n for x in ["music", "vevo", "concert", "mtv", "vh1", "country music", "rock music", "music videos", "qello", "xite", "stingray", "trace", "classic rock", "smooth jazz", "easy listening", "hip-hop", "k-pop", "kpop", "new k-pop", "today's k-pop", "metal.rocks", "qwest tv", "djazz", "classica", "karaoke", "soul storm", "greatest hits", "hot country", "holidayscapes", "zenlife", "rock x metal", "r&b", "rap game", "reggae vibes", "gospel", "christian hits", "celebrates", "80s flashback", "90s throwback", "60s & 70s", "euro hits", "non-stop '90s", "nothin' but 90s", "y2k", "flashback 70s", "remember the", "alternative", "circle country", "rcm", "tarima"]): return "Music"
+              if any(x in n for x in ["food", "cooking", "cuisine", "home", "garden", "gardening", "house", "design", "diy", "hgtv", "magnolia", "taste", "kitchen", "renovation", "property", "real estate", "5-minute crafts", "crafts", "craftsy", "tastemade", "this old house", "tiny house", "homeful", "property brothers", "design network", "hell's kitchen", "great british menu", "cooking panda", "come dine with me", "four in a bed", "don't tell the bride", "hotel inspector", "bob ross", "martha stewart", "emeril lagasse", "iron chef", "antiques road", "antiques roadshow", "antiques road trip", "garden with monty", "made it myself", "flipping nation", "million dollar dream", "ctv @home", "journy", "123go"]): return "Home & Food"
+              if any(x in n for x in ["crime", "true crime", "murder", "killer", "forensic", "cold case", "investigation", "law & order", "law and order", "unsolved", "police", "detective", "criminal", "crime 360", "crime beat", "crime scene", "bloodline detectives", "midsomer murders", "new detectives", "real crime", "forensic files", "cops", "jail", "sheriffs", "operation repo", "dog the bounty", "women behind bars", "the first 48", "fbi files", "intervention", "cheaters", "noovo crime", "ctv crime", "true crime now", "unsolved mysteries", "dateline"]): return "Crime"
+              if any(x in n for x in ["mystery", "mysteries", "murder mystery", "mhz mysteries", "murdoch mysteries", "silent witness"]): return "Mystery"
+              if any(x in n for x in ["documentary", "documentaries", "biography", "docuseries", "documenting", "documentary+", "factual", "get.factual", "modern marvels", "super channel uncovered", "untold stories"]): return "Documentary"
+              if any(x in n for x in ["nature", "science", "animal planet", "animals", "wildlife", "wild", "earth", "space", "discovery science", "history", "history channel", "natural world", "ocean", "planet", "adventure earth", "evolution earth", "go wild", "history & warfare", "history hit", "magellantv wildest", "popular science", "real wild", "true history", "wildearth", "cosmic frontiers", "unidentified", "unxplained zone", "survivorman", "life down under", "ax men", "bassmaster", "bondi rescue", "ice pilots", "pet collective", "xtreme outdoor"]): return "Nature & Science"
+              if any(x in n for x in ["sci-fi", "sci fi", "scifi", "science fiction", "horror", "paranormal", "supernatural", "twilight zone", "monster", "stargate", "farscape", "andromeda", "continuum", "outer limits", "outpost", "haunttv", "most haunted", "ghost hunters", "frightflix", "scream factory", "screambox", "midnight pulp", "river monsters", "beyond belief", "beyond paranormal", "classic doctor who", "x nation", "z nation", "walking dead", "teen wolf", "mst3k", "scream", "wipeout"]): return "Sci-Fi & Horror"
+              if any(x in n for x in ["comedy", "comedies", "funny", "laugh", "always funny", "stand up", "stand-up", "comedy dynamics", "cbc comedy", "ctv laughs", "failarmy", "people are awesome", "hot ones"]): return "Comedy"
+              if any(x in n for x in ["movie", "movies", "film", "films", "cinema", "cinevault", "hallmark movies", "action movies", "classic movies", "movie channel", "maverick black", "gravitas movies", "filmrise", "moviesphere", "fresh movies", "surf cinema", "action hollywood", "new k.movies", "movieitaly", "tribeca channel", "shout! tv", "stories by amc", "midnight pulp", "screambox", "wu tang collection", "shemaroo", "retrocrush", "asian crush", "rakuten viki", "cinepride", "24 hour free movies", "trailers from hell", "asiancrush", "pink panther"]): return "Movies"
+              if any(x in n for x in ["drama", "dramatic", "soap", "bold and beautiful", "all my children", "primetime soaps", "asian drama", "k-drama", "romcom k-drama", "21 jump street", "nash bridges", "hunter", "baywatch", "highway to heaven", "heartland", "mcleods daughters", "nashville", "nip/tuck", "weeds", "the conners", "degrassi", "legacy", "mi-5", "nolly africa", "the outpost", "the outer limits", "in the heat of the night", "bon voyage", "that girl", "are we there yet", "anger management", "schitts creek", "three's company", "the bold and the beautiful", "tvb pearl drama", "lone star", "super channel hearties", "pll network"]): return "Drama"
+              if any(x in n for x in ["entertainment", "reality", "celebrity", "lifestyle", "pop culture", "tyler perry", "dance moms", "duck dynasty", "little women", "osbournes", "biggest loser", "fear factor", "project runway", "dog whisperer", "dr. g", "i shouldn't be alive", "hard knocks", "hardcore pawn", "pawn", "american pickers", "top gear", "fifth gear", "made in hollywood", "powernation", "barbecue", "travel", "bbc travel", "pbs travel", "travel escapes", "bon voyage", "revry", "outflix", "qwest", "joysauce", "afroland", "amasian", "complex tv", "creator television", "glewed", "hit list", "hit sitcoms", "pop adult", "so... real", "spark tv", "cheddar", "everyday", "wonder", "dove", "heartland", "more u", "mythical", "unbeaten", "unspeakable", "dude perfect", "failarmy", "fashion", "rig tv", "robot wars", "ctv gets real", "ctv gridlock", "life+style", "entertains", "addicta", "aliwko", "bizaar", "blackpix", "combatv", "galxy", "mightiest", "boot"]): return "Entertainment"
               return "Entertainment"
 
-          # ============================================================
-          # LOAD PLAYLIST
-          # ============================================================
-
-          lines = SOURCE.read_text(
-              encoding="utf-8",
-              errors="ignore"
-          ).splitlines()
-
+          lines = SOURCE.read_text(encoding="utf-8", errors="ignore").splitlines()
           entries = []
           seen = set()
-
           removed_language = 0
           duplicate_count = 0
           category_counts = Counter()
           other_channels = []
 
-          # ============================================================
-          # PROCESS CHANNELS
-          # ============================================================
-
           for i, line in enumerate(lines):
-
-              if not line.startswith("#EXTINF"):
-                  continue
-
-              if i + 1 >= len(lines):
-                  continue
-
+              if not line.startswith("#EXTINF"): continue
+              if i + 1 >= len(lines): continue
               url = lines[i + 1].strip()
-
-              if not url.startswith("http"):
-                  continue
-
+              if not url.startswith("http"): continue
               name = get_name(line)
               name_lower = name.lower()
-
-              # --------------------------------------------------------
-              # REMOVE LANGUAGE CHANNELS
-              # --------------------------------------------------------
-
               if any(term in name_lower for term in REMOVE_TERMS):
                   removed_language += 1
                   continue
-
-              # --------------------------------------------------------
-              # DEDUPE
-              # --------------------------------------------------------
-
               plex_id = get_attr(line, "tvg-id")
               key = plex_id or url
-
               if key in seen:
                   duplicate_count += 1
                   continue
-
               seen.add(key)
-
-              # --------------------------------------------------------
-              # CATEGORY
-              # --------------------------------------------------------
-
               category = category_for(name)
-
-              if category == "Other":
-                  other_channels.append(name)
-
+              if category == "Other": other_channels.append(name)
               category_counts[category] += 1
-
-              # --------------------------------------------------------
-              # REPLACE SOURCE CATEGORY
-              # --------------------------------------------------------
-
-              if re.search(
-                  r'group-title="[^"]*"',
-                  line,
-                  re.I
-              ):
-                  line = re.sub(
-                      r'group-title="[^"]*"',
-                      f'group-title="{category}"',
-                      line,
-                      flags=re.I
-                  )
+              if re.search(r'group-title="[^"]*"', line, re.I):
+                  line = re.sub(r'group-title="[^"]*"', f'group-title="{category}"', line, flags=re.I)
               else:
-                  line = line.replace(
-                      "#EXTINF:-1",
-                      f'#EXTINF:-1 group-title="{category}"',
-                      1
-                  )
+                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{category}"', 1)
+              line = re.sub(r'\s+tvg-chno="[^"]*"', "", line, flags=re.I)
+              entries.append((category, name.lower(), line, url))
 
-              # --------------------------------------------------------
-              # REMOVE OLD CHANNEL NUMBER
-              # --------------------------------------------------------
+          category_order = {category: i for i, category in enumerate(CATEGORIES)}
+          entries.sort(key=lambda x: (category_order.get(x[0], 999), x[1]))
 
-              line = re.sub(
-                  r'\s+tvg-chno="[^"]*"',
-                  "",
-                  line,
-                  flags=re.I
-              )
-
-              entries.append(
-                  (
-                      category,
-                      name.lower(),
-                      line,
-                      url
-                  )
-              )
-
-          # ============================================================
-          # SORT
-          # ============================================================
-
-          category_order = {
-              category: i
-              for i, category in enumerate(CATEGORIES)
-          }
-
-          entries.sort(
-              key=lambda x: (
-                  category_order.get(x[0], 999),
-                  x[1]
-              )
-          )
-
-          # ============================================================
-          # WRITE PLAYLIST
-          # ============================================================
-
+          # CHANGED: Now points to your Cloudflare guide
           output = [
-              '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
+              '#EXTM3U url-tvg="https://YOUR_WORKER.workers.dev/plex-ca.xml"'
           ]
 
           channel_number = 6500
-
           for category, _, line, url in entries:
-
-              line = re.sub(
-                  r'tvg-chno="[^"]*"',
-                  f'tvg-chno="{channel_number}"',
-                  line,
-                  flags=re.I
-              )
-
+              line = re.sub(r'tvg-chno="[^"]*"', f'tvg-chno="{channel_number}"', line, flags=re.I)
               if "tvg-chno=" not in line.lower():
-                  line = line.replace(
-                      "#EXTINF:-1",
-                      f'#EXTINF:-1 tvg-chno="{channel_number}"',
-                      1
-                  )
-
+                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{channel_number}"', 1)
               output.append(line)
               output.append(url)
-
               channel_number += 1
 
-          OUTPUT.write_text(
-              "\n".join(output) + "\n",
-              encoding="utf-8"
-          )
-
-          # ============================================================
-          # REPORT
-          # ============================================================
-
-          print()
-          print("====================================================")
-          print(" PLEX CA BUILD")
-          print("====================================================")
+          OUTPUT.write_text("\n".join(output) + "\n", encoding="utf-8")
           print(f"Final channels: {len(entries)}")
-          print(f"Duplicates removed: {duplicate_count}")
-          print(f"Language removed: {removed_language}")
-          print(f"Number range: 6500-{channel_number - 1}")
-          print(f"Categories used: {len(category_counts)}")
-          print("----------------------------------------------------")
-
-          for category in CATEGORIES:
-              count = category_counts.get(category, 0)
-
-              if count:
-                  print(f"{category:<28} {count:>4}")
-
-          print("====================================================")
-
-          # ============================================================
-          # IMPORTANT DIAGNOSTIC
-          # ============================================================
-
-          print()
-          print("====================================================")
-          print(" CHANNELS CURRENTLY IN OTHER")
-          print("====================================================")
-
-          if other_channels:
-              for name in sorted(other_channels, key=str.lower):
-                  print(name)
-          else:
-              print("NONE")
-
-          print("----------------------------------------------------")
-          print(f"TOTAL OTHER: {len(other_channels)}")
-          print("====================================================")
 
           PY
 
       - name: Check final playlist
         run: |
-          echo "============================================"
-          echo "PLEX CA FINAL PLAYLIST"
-          echo "============================================"
-
-          ls -lh plex-ca.m3u
-
-          echo
-          echo "CHANNEL COUNT:"
+          ls -lh plex-ca.m3u plex-ca.xml
           grep -c '^#EXTINF:' plex-ca.m3u || true
-
-          echo
-          echo "CATEGORIES:"
-          grep '^#EXTINF:' plex-ca.m3u \
-            | sed -n 's/.*group-title="\([^"]*\)".*/\1/p' \
-            | sort \
-            | uniq -c \
-            | sort -k2
 
       - name: Commit Plex CA playlist
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update Plex CA playlist"
-          file_pattern: "plex-ca.m3u"
+          commit_message: "Update Plex CA playlist + guide from Cloudflare"
+          file_pattern: |
+            plex-ca.m3u
+            plex-ca.xml
