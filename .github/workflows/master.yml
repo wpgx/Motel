@@ -2,8 +2,8 @@ name: Master IPTV Build
 
 on:
   workflow_dispatch:
-   schedule:
-     - cron: '0 2,5,8,11,14,17,20,23 * * *'
+  schedule:
+    - cron: '0 2,5,8,11,14,17,20,23 * * *'
 
 permissions:
   actions: write
