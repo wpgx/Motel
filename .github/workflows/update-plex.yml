@@ -41,26 +41,26 @@ jobs:
               "News & Weather",
               "Sports",
               "Movies",
+              "Crime",
               "Classic TV",
               "Classic TV Comedy",
               "Comedy",
-              "Crime",
-              "Daytime & Talk Shows",
-              "Documentary",
               "Drama",
               "Entertainment",
               "Game Shows",
+              "Daytime & Talk Shows",
+              "Documentary",
               "Home & Food",
               "Kids",
               "Music",
               "Mystery",
               "Nature & Science",
-              "Other",
               "Sci-Fi & Horror",
-              "South Park",
               "Westerns",
+              "South Park",
               "Ambiance",
               "Anime & Gaming",
+              "Other",
           ]
 
           REMOVE_TERMS = [
@@ -68,9 +68,30 @@ jobs:
               "espanol",
               "español",
               "latin",
+              "latino",
               "french",
               "français",
               "francais",
+              "deutsch",
+              "german",
+              "italiano",
+              "italian",
+              "portuguese",
+              "português",
+              "españa",
+              "telemundo",
+              "novelisima",
+              "caracol",
+              "pitufo",
+              "racen",
+              "c4 en alerta",
+              "historias de corazón",
+              "éxitos del momento",
+              "ça c'est drôle",
+              "un si grand soleil",
+              "inter 24/7",
+              "noovo cinéma",
+              "alerte",
           ]
 
           def get_attr(ext, attr):
@@ -84,413 +105,267 @@ jobs:
           def get_name(ext):
               return ext.rsplit(",", 1)[-1].strip()
 
+
           def category_for(name):
               n = name.lower()
 
-              # ========================================================
               # SOUTH PARK
-              # ========================================================
-
               if "south park" in n:
                   return "South Park"
 
-              # ========================================================
               # ANIME & GAMING
-              # ========================================================
-
               if any(x in n for x in [
-                  "anime",
-                  "gaming",
-                  "gamer",
-                  "video game",
-                  "videogame",
+                  "anime", "gaming", "gamer", "video game", "videogame",
+                  "beyblade", "yu-gi-oh", "dungeons & dragons", "sonic",
               ]):
                   return "Anime & Gaming"
 
-              # ========================================================
               # AMBIANCE
-              # ========================================================
-
               if any(x in n for x in [
-                  "ambiance",
-                  "ambient",
-                  "relaxation",
-                  "relax",
-                  "scenic",
-                  "fireplace",
-                  "aquarium",
-                  "lofi",
-                  "lo-fi",
-                  "nature escape",
+                  "ambiance", "ambient", "relaxation", "relax", "scenic",
+                  "fireplace", "aquarium", "lofi", "lo-fi", "nature escape",
+                  "naturescape", "holidayscapes", "spa",
               ]):
                   return "Ambiance"
 
-              # ========================================================
               # WESTERNS
-              # ========================================================
-
               if any(x in n for x in [
-                  "western",
-                  "westerns",
-                  "cowboy",
-                  "wild west",
+                  "western", "cowboy", "wild west", "rifleman", "wanted: dead",
+                  "death valley days", "western bound", "grjngo",
               ]):
                   return "Westerns"
 
-              # ========================================================
               # CLASSIC TV COMEDY
-              # ========================================================
-
               if any(x in n for x in [
-                  "classic comedy",
-                  "classic sitcom",
-                  "classic tv comedy",
-                  "three stooges",
-                  "andy griffith",
-                  "beverly hillbillies",
-                  "bewitched",
-                  "i dream of jeannie",
-                  "leave it to beaver",
-                  "munsters",
-                  "addams family",
-                  "gilligan",
-                  "honeymooners",
-                  "sanford and son",
-                  "jeffersons",
-                  "good times",
-                  "family ties",
-                  "cheers",
-                  "frasier",
-                  "taxi",
-                  "mash",
+                  "classic comedy", "classic sitcom", "classic tv comedy",
+                  "three stooges", "andy griffith", "beverly hillbillies",
+                  "bewitched", "i dream of jeannie", "leave it to beaver",
+                  "munsters", "addams family", "gilligan", "honeymooners",
+                  "sanford and son", "jeffersons", "good times", "family ties",
+                  "cheers", "frasier", "taxi", "mash", "three's company",
+                  "dick van dyke", "carol burnett", "ed sullivan", "mr. bean",
+                  "schitts creek", "corner gas", "portlandia",
+                  "trailer park boys", "that girl", "johnny carson",
               ]):
                   return "Classic TV Comedy"
 
-              # ========================================================
               # CLASSIC TV
-              # ========================================================
-
               if any(x in n for x in [
-                  "classic tv",
-                  "classic television",
-                  "retro tv",
-                  "vintage tv",
-                  "classic shows",
-                  "classic western",
+                  "classic tv", "classic television", "retro tv", "vintage tv",
+                  "classic shows", "classic western", "classic doctor who",
               ]):
                   return "Classic TV"
 
-              # ========================================================
               # GAME SHOWS
-              # ========================================================
-
               if any(x in n for x in [
-                  "game show",
-                  "game shows",
-                  "gameshow",
-                  "gameshows",
-                  "family feud",
-                  "price is right",
-                  "wheel of fortune",
-                  "deal or no deal",
-                  "jeopardy",
-                  "match game",
-                  "supermarket sweep",
-                  "buzzr",
-                  "game tv",
+                  "game show", "gameshow", "family feud", "price is right",
+                  "wheel of fortune", "deal or no deal", "jeopardy", "match game",
+                  "supermarket sweep", "buzzr", "game tv", "gametvgo",
+                  "let's make a deal", "impossible - quiz", "deal zone",
               ]):
                   return "Game Shows"
 
-              # ========================================================
               # DAYTIME & TALK SHOWS
-              # ========================================================
-
               if any(x in n for x in [
-                  "talk show",
-                  "talk shows",
-                  "daytime",
-                  "court tv",
-                  "court",
-                  "judge",
-                  "divorce court",
-                  "people's court",
-                  "peoples court",
-                  "trutv",
-                  "talktv",
-                  "talk",
+                  "talk show", "daytime", "court tv", "judge", "divorce court",
+                  "people's court", "peoples court", "paternity court",
+                  "trutv", "talktv", "dr. phil", "nosey", "the graham norton",
+                  "startalk", "prof g", "growthday",
               ]):
                   return "Daytime & Talk Shows"
 
-              # ========================================================
               # NEWS & WEATHER
-              # ========================================================
-
               if any(x in n for x in [
-                  "news",
-                  "weather",
-                  "cnn",
-                  "cnbc",
-                  "msnbc",
-                  "abc news",
-                  "cbs news",
-                  "nbc news",
-                  "fox news",
-                  "weather channel",
-                  "headline news",
-                  "newsmax",
-                  "bloomberg",
-                  "weather",
+                  "news", "weather", "cnn", "cnbc", "msnbc", "abc news",
+                  "cbs news", "nbc news", "fox news", "weather channel",
+                  "headline news", "newsmax", "bloomberg", "cheddar",
+                  "reuters", "france 24", "euronews", "radio-canada info",
+                  "cbc news", "ctv news", "weatherspy", "usa today",
+                  "yahoo finance",
               ]):
                   return "News & Weather"
 
-              # ========================================================
-              # SPORTS
-              # ========================================================
-
+              # SPORTS - expanded
               if any(x in n for x in [
-                  "sports",
-                  "nfl",
-                  "nba",
-                  "nhl",
-                  "mlb",
-                  "nascar",
-                  "racing",
-                  "golf",
-                  "tennis",
-                  "soccer",
-                  "football",
-                  "basketball",
-                  "hockey",
-                  "wrestling",
-                  "ufc",
-                  "fight",
-                  "fishing",
-                  "motor",
-                  "motortrend",
-                  "racing",
-                  "olympic",
+                  "sports", "nfl", "nba", "nhl", "mlb", "nascar", "racing",
+                  "golf", "tennis", "soccer", "football", "basketball",
+                  "hockey", "wrestling", "ufc", "fight", "fishing", "motor",
+                  "motortrend", "olympic", "bowling", "billiard", "cornhole",
+                  "bassmaster", "poker", "pga tour", "dp world tour", "fifa",
+                  "glory kickboxing", "pfl mma", "one championship", "xfc tv",
+                  "nhra", "racer select", "speed sport", "speedvision",
+                  "slvr sports", "willow sports", "sportsgrid", "sports illustrated",
+                  "tennis+", "golfpass", "tnawrestling", "tna wrestling", "ufc",
+                  "pac-12", "victory+", "fuel tv", "game & fish", "waypoint tv",
+                  "powernation", "wired2fish", "world billiards", "world surf",
+                  "strongman", "hard knocks", "acl cornhole", "cricket gold",
+                  "hong kong fight", "powder tv", "slopes", "ski", "surf league",
+                  "sail", "sailing", "poker night", "pokergo", "triton poker",
+                  "world poker", "fight network", "el conflicto", "lucha plus",
+                  "itv deportes", "tsn the ocho", "willow", "ftf sports",
+                  "swERVE", "swerve women", "swERVE combat", "xfc", "pursuitup",
               ]):
                   return "Sports"
 
-              # ========================================================
-              # KIDS
-              # ========================================================
-
+              # KIDS - expanded
               if any(x in n for x in [
-                  "kids",
-                  "kid's",
-                  "children",
-                  "nick",
-                  "nickelodeon",
-                  "cartoon",
-                  "cartoons",
-                  "baby",
-                  "junior",
-                  "paw patrol",
-                  "pbs kids",
-                  "teletubbies",
-                  "family channel",
+                  "kids", "kid's", "children", "nick", "nickelodeon", "cartoon",
+                  "baby", "junior", "paw patrol", "pbs kids", "teletubbies",
+                  "baby shark", "baby einstein", "my little pony", "power rangers",
+                  "transformers", "sonic the hedgehog", "beyblade", "strawberry shortcake",
+                  "my little pony", "arthur", "wiggles", "brat tv", "kidoodle",
+                  "ninja kidz", "ryan and friends", "toon goggles", "preston & brianna",
+                  "pocket.watch", "power rangers", "sonic tv", "tg junior", "kidoodle",
+                  "watch it kid",
               ]):
                   return "Kids"
 
-              # ========================================================
-              # MUSIC
-              # ========================================================
-
+              # MUSIC - expanded for XITE and Stingray
               if any(x in n for x in [
-                  "music",
-                  "vevo",
-                  "concert",
-                  "mtv",
-                  "vh1",
-                  "country music",
-                  "rock music",
-                  "music videos",
-                  "music video",
-                  "great american songbook",
+                  "music", "vevo", "concert", "mtv", "vh1", "country music",
+                  "rock music", "music videos", "qello", "xite", "stingray",
+                  "trace ", "trace brazuca", "trace urban", "trace uk",
+                  "classic rock", "smooth jazz", "easy listening", "hip-hop",
+                  "k-pop", "kpop", "new k-pop", "today's k-pop", "metal.rocks",
+                  "qwest tv", "djazz", "classica", "karaoke", "soul storm",
+                  "greatest hits", "hot country", "holidayscapes", "zenlife",
+                  "rock x metal", "r&b", "rap game", "reggae vibes", "gospel",
+                  "christian hits", "celebrates", "80s flashback", "90s throwback",
+                  "60s & 70s", "euro hits", "non-stop '90s", "nothin' but 90s",
+                  "y2k", "flashback 70s", "remember the", "alternative", "indie",
               ]):
                   return "Music"
 
-              # ========================================================
               # HOME & FOOD
-              # ========================================================
-
               if any(x in n for x in [
-                  "food",
-                  "food network",
-                  "cooking",
-                  "cook",
-                  "cuisine",
-                  "home",
-                  "garden",
-                  "gardening",
-                  "house",
-                  "design",
-                  "diy",
-                  "hgtv",
-                  "magnolia",
-                  "taste",
-                  "kitchen",
-                  "renovation",
-                  "renovating",
-                  "property",
-                  "real estate",
+                  "food", "cooking", "cuisine", "home", "garden", "gardening",
+                  "house", "design", "diy", "hgtv", "magnolia", "taste", "kitchen",
+                  "renovation", "property", "real estate", "5-minute crafts",
+                  "crafts", "craftsy", "tastemade", "this old house", "tiny house",
+                  "homeful", "property brothers", "design network", "hell's kitchen",
+                  "great british menu", "cooking panda", "come dine with me",
+                  "four in a bed", "don't tell the bride", "hotel inspector",
+                  "bob ross", "martha stewart", "emeril lagasse", "iron chef",
+                  "antiques road", "antiques roadshow", "antiques road trip",
+                  "garden with monty", "made it myself", "flipping nation",
+                  "million dollar dream", "ctv @home", "journy",
               ]):
                   return "Home & Food"
 
-              # ========================================================
-              # CRIME
-              # ========================================================
-
+              # CRIME - expanded
               if any(x in n for x in [
-                  "crime",
-                  "true crime",
-                  "murder",
-                  "killer",
-                  "killers",
-                  "forensic",
-                  "cold case",
-                  "investigation",
-                  "investigative",
-                  "law & order",
-                  "law and order",
-                  "unsolved",
-                  "police",
-                  "detective",
-                  "criminal",
-                  "chasing criminals",
-                  "crime 360",
+                  "crime", "true crime", "murder", "killer", "forensic",
+                  "cold case", "investigation", "law & order", "law and order",
+                  "unsolved", "police", "detective", "criminal", "crime 360",
+                  "crime beat", "crime scene", "bloodline detectives",
+                  "midsomer murders", "new detectives", "real crime", "forensic files",
+                  "cops", "jail", "sheriffs", "operation repo", "dog the bounty",
+                  "women behind bars", "the first 48", "fbi files", "intervention",
+                  "cheaters", "noovo crime", "ctv crime", "true crime now",
+                  "unsolved mysteries", "dateline",
               ]):
                   return "Crime"
 
-              # ========================================================
               # MYSTERY
-              # ========================================================
-
               if any(x in n for x in [
-                  "mystery",
-                  "mysteries",
-                  "mystery channel",
-                  "mystery tv",
-                  "murder mystery",
+                  "mystery", "mysteries", "murder mystery", "mhz mysteries",
+                  "murdoch mysteries", "silent witness",
               ]):
                   return "Mystery"
 
-              # ========================================================
               # DOCUMENTARY
-              # ========================================================
-
               if any(x in n for x in [
-                  "documentary",
-                  "documentaries",
-                  "biography",
-                  "biographies",
-                  "docuseries",
-                  "documenting",
+                  "documentary", "documentaries", "biography", "docuseries",
+                  "documenting", "documentary+", "factual", "get.factual",
+                  "modern marvels",
               ]):
                   return "Documentary"
 
-              # ========================================================
               # NATURE & SCIENCE
-              # ========================================================
-
               if any(x in n for x in [
-                  "nature",
-                  "science",
-                  "animal planet",
-                  "animals",
-                  "wildlife",
-                  "wild",
-                  "earth",
-                  "space",
-                  "discovery science",
-                  "history",
-                  "history channel",
-                  "natural world",
-                  "ocean",
-                  "planet",
+                  "nature", "science", "animal planet", "animals", "wildlife",
+                  "wild", "earth", "space", "discovery science", "history",
+                  "history channel", "natural world", "ocean", "planet",
+                  "adventure earth", "evolution earth", "go wild", "history & warfare",
+                  "history hit", "magellantv wildest", "popular science",
+                  "real wild", "true history", "wildearth", "cosmic frontiers",
+                  "unidentified", "unxplained zone", "survivorman", "life down under",
+                  "ax men", "bassmaster", "bondi rescue", "ice pilots", "scream",
+                  "how to heaven", "pet collective",
               ]):
                   return "Nature & Science"
 
-              # ========================================================
               # SCI-FI & HORROR
-              # ========================================================
-
               if any(x in n for x in [
-                  "sci-fi",
-                  "sci fi",
-                  "scifi",
-                  "science fiction",
-                  "horror",
-                  "paranormal",
-                  "supernatural",
-                  "twilight zone",
-                  "monster",
-                  "monsters",
+                  "sci-fi", "sci fi", "scifi", "science fiction", "horror",
+                  "paranormal", "supernatural", "twilight zone", "monster",
+                  "stargate", "farscape", "andromeda", "continuum", "outer limits",
+                  "outpost", "andromeda", "haunttv", "most haunted", "ghost hunters",
+                  "frightflix", "scream factory", "screambox", "midnight pulp",
+                  "river monsters", "beyond belief", "beyond paranormal",
+                  "classic doctor who", "x nation", "z nation", "walking dead",
+                  "unidentified", "unexplained",
               ]):
                   return "Sci-Fi & Horror"
 
-              # ========================================================
               # COMEDY
-              # ========================================================
-
               if any(x in n for x in [
-                  "comedy",
-                  "comedies",
-                  "funny",
-                  "laugh",
-                  "always funny",
-                  "stand up",
-                  "stand-up",
+                  "comedy", "comedies", "funny", "laugh", "always funny",
+                  "stand up", "stand-up", "comedy dynamics", "cbc comedy",
+                  "ctv laughs", "failarmy", "people are awesome",
+                  "hot ones", "impractical", "wipeoutxtra",
               ]):
                   return "Comedy"
 
-              # ========================================================
               # MOVIES
-              # ========================================================
-
               if any(x in n for x in [
-                  "movie",
-                  "movies",
-                  "film",
-                  "films",
-                  "cinema",
-                  "cinevault",
-                  "hallmark movies",
-                  "action movies",
-                  "classic movies",
-                  "movie channel",
+                  "movie", "movies", "film", "films", "cinema", "cinevault",
+                  "hallmark movies", "action movies", "classic movies",
+                  "movie channel", "maverick black", "gravitas movies",
+                  "filmrise", "moviesphere", "fresh movies", "surf cinema",
+                  "action hollywood", "new k.movies", "movieitaly", "tribeca channel",
+                  "shout! tv", "stories by amc", "midnight pulp", "screambox",
+                  "wu tang collection", "shemaroo", "retrocrush", "asian crush",
+                  "rakuten viki", "cinepride", "24 hour free movies",
               ]):
                   return "Movies"
 
-              # ========================================================
-              # DRAMA
-              # ========================================================
-
+              # DRAMA - catch many named dramas
               if any(x in n for x in [
-                  "drama",
-                  "dramatic",
-                  "soap",
-                  "soap opera",
+                  "drama", "dramatic", "soap", "bold and beautiful", "all my children",
+                  "primetime soaps", "asian drama", "k-drama", "romcom k-drama",
+                  "21 jump street", "nash bridges", "hunter", "baywatch",
+                  "highway to heaven", "heartland", "mcleods daughters", "nashville",
+                  "nip/tuck", "weeds", "the conners", "degrassi", "legacy",
+                  "mi-5", "nash bridges", "nolly africa", "the outpost",
+                  "the outer limits", "continuum", "farscape", "andromeda",
+                  "stargate", "in the heat of the night", "bon voyage",
+                  "that girl", "mythical", "my little pony", "are we there yet",
+                  "anger management", "schitts creek", "three's company",
+                  "the bold and the beautiful", "tvb pearl drama",
               ]):
                   return "Drama"
 
-              # ========================================================
-              # ENTERTAINMENT
-              # ========================================================
-
+              # ENTERTAINMENT / REALITY - broad catch
               if any(x in n for x in [
-                  "entertainment",
-                  "reality",
-                  "celebrity",
-                  "lifestyle",
-                  "pop culture",
-                  "tyler perry",
-                  "reality tv",
+                  "entertainment", "reality", "celebrity", "lifestyle", "pop culture",
+                  "tyler perry", "dance moms", "duck dynasty", "little women",
+                  "osbournes", "biggest loser", "fear factor", "project runway",
+                  "dog whisperer", "dr. g", "i shouldn't be alive", "hard knocks",
+                  "hardcore pawn", "pawn", "american pickers", "top gear",
+                  "fifth gear", "made in hollywood", "powernation", "barbecue",
+                  "travel", "bbc travel", "pbs travel", "travel escapes", "bon voyage",
+                  "beyond belief", "beyond belief", "revry", "outflix", "qwest",
+                  "joysauce", "afroland", "amasian", "complex tv", "creator television",
+                  "glewed", "hit list", "hit sitcoms", "pop adult", "so... real",
+                  "spark tv", "so real", "cheddar", "everyday", "wonder", "dove",
+                  "heartland", "more u", "mythical", "unbeaten", "unspeakable",
+                  "dude perfect", "mythical 24/7", "mythical", "failarmy",
               ]):
                   return "Entertainment"
 
               return "Other"
+
 
           # ============================================================
           # LOAD PLAYLIST
