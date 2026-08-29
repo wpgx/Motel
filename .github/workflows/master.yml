@@ -2,8 +2,8 @@ name: Master IPTV Build
 
 on:
   workflow_dispatch:
- # schedule:
- #  - cron: '0 2,5,8,11,14,17,20,23 * * *'
+  # schedule:
+  #   - cron: '0 2,5,8,11,14,17,20,23 * * *'
 
 permissions:
   actions: write
@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Run Samsung
         env:
           GH_TOKEN: ${{ github.token }}
