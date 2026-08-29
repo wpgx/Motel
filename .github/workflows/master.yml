@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run Tubi
+      - name: Run Samsung
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run tubiroku-sync.yml --ref main
+          gh workflow run samsung-render-pull.yml --ref main
           sleep 5
-          RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-          echo "Tubi run: $RUN_ID"
+          RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Samsung run: $RUN_ID"
           gh run watch "$RUN_ID" --exit-status
 
       - name: Run Pluto
@@ -34,14 +34,14 @@ jobs:
           echo "Pluto run: $RUN_ID"
           gh run watch "$RUN_ID" --exit-status
 
-      - name: Run Samsung
+      - name: Run Tubi
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run samsung-render-pull.yml --ref main
+          gh workflow run tubiroku-sync.yml --ref main
           sleep 5
-          RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-          echo "Samsung run: $RUN_ID"
+          RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Tubi run: $RUN_ID"
           gh run watch "$RUN_ID" --exit-status
 
       - name: Run LG
@@ -88,5 +88,5 @@ jobs:
         run: |
           echo "=========================================="
           echo "MASTER IPTV BUILD COMPLETE"
-          echo "Tubi -> Pluto -> Samsung -> LG -> DCFULL -> DCMASTER -> DCCatalog"
+          echo "Samsung -> Pluto -> Tubi -> LG -> DCFULL -> DCMASTER -> DCCatalog"
           echo "=========================================="
