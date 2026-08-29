@@ -17,20 +17,29 @@ jobs:
       - name: Download Plex CA playlist from Buddy
         run: |
           set -e
-          echo "Downloading Plex CA playlist..."
+
+          echo "Downloading Plex CA playlist from Buddy..."
 
           curl -L --fail -A "Mozilla/5.0" \
-            "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/ca.m3u8" \
-            -o plex-ca-source.m3u8
+            "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
+            -o plex-ca-source.m3u
+
+          echo "Downloaded:"
+          ls -lh plex-ca-source.m3u
 
       - name: Build cleaned Plex CA playlist
         run: |
           python3 - << 'PY'
           import re
           from pathlib import Path
+          from collections import Counter
 
-          SOURCE = Path("plex-ca-source.m3u8")
+          SOURCE = Path("plex-ca-source.m3u")
           OUTPUT = Path("plex-ca.m3u")
+
+          # ============================================================
+          # EXISTING DC CATEGORIES
+          # ============================================================
 
           CATEGORIES = [
               "News & Weather",
@@ -58,7 +67,11 @@ jobs:
               "Anime & Gaming",
           ]
 
-          REMOVE_WORDS = (
+          # ============================================================
+          # LANGUAGE CHANNELS WE DO NOT WANT
+          # ============================================================
+
+          REMOVE_TERMS = [
               "spanish",
               "espanol",
               "español",
@@ -66,10 +79,7 @@ jobs:
               "french",
               "français",
               "francais",
-          )
-
-          def channel_name(ext):
-              return ext.rsplit(",", 1)[-1].strip()
+          ]
 
           def get_attr(ext, attr):
               m = re.search(
@@ -79,29 +89,72 @@ jobs:
               )
               return m.group(1) if m else ""
 
+          def get_name(ext):
+              return ext.rsplit(",", 1)[-1].strip()
+
+          # ============================================================
+          # CATEGORY DETECTION
+          # ============================================================
+
           def category_for(name):
               n = name.lower()
 
-              # -------------------------------
-              # South Park
-              # -------------------------------
+              # --------------------------------------------------------
+              # SOUTH PARK
+              # --------------------------------------------------------
+
               if "south park" in n:
                   return "South Park"
 
-              # -------------------------------
-              # Westerns
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # ANIME & GAMING
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
+                  "anime",
+                  "gaming",
+                  "gamer",
+                  "video game",
+                  "videogame",
+              ]):
+                  return "Anime & Gaming"
+
+              # --------------------------------------------------------
+              # AMBIANCE
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
+                  "ambiance",
+                  "ambient",
+                  "relaxation",
+                  "relax",
+                  "scenic",
+                  "fireplace",
+                  "aquarium",
+                  "lofi",
+                  "lo-fi",
+              ]):
+                  return "Ambiance"
+
+              # --------------------------------------------------------
+              # WESTERNS
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "western",
+                  "westerns",
                   "cowboy",
-                  "wild west"
-              )):
+                  "wild west",
+              ]):
                   return "Westerns"
 
-              # -------------------------------
-              # Classic TV Comedy
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # CLASSIC TV COMEDY
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
+                  "classic comedy",
+                  "classic sitcom",
                   "three stooges",
                   "andy griffith",
                   "beverly hillbillies",
@@ -112,215 +165,328 @@ jobs:
                   "addams family",
                   "gilligan",
                   "honeymooners",
-                  "classic comedy"
-              )):
+                  "sanford and son",
+                  "jeffersons",
+                  "good times",
+                  "family ties",
+                  "cheers",
+                  "frasier",
+                  "taxi",
+                  "mash",
+                  "classic tv comedy",
+              ]):
                   return "Classic TV Comedy"
 
-              # -------------------------------
-              # Classic TV
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # CLASSIC TV
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "classic tv",
                   "classic television",
                   "retro tv",
-                  "vintage tv"
-              )):
+                  "vintage tv",
+                  "classic shows",
+              ]):
                   return "Classic TV"
 
-              # -------------------------------
-              # Game Shows
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # GAME SHOWS
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "game show",
                   "game shows",
-                  "deal or no deal",
+                  "gameshow",
+                  "gameshows",
                   "family feud",
                   "price is right",
-                  "wheel of fortune"
-              )):
+                  "wheel of fortune",
+                  "deal or no deal",
+                  "jeopardy",
+                  "match game",
+                  "supermarket sweep",
+                  "buzzr",
+              ]):
                   return "Game Shows"
 
-              # -------------------------------
-              # Daytime / Talk
-              # -------------------------------
-              if any(x in n for x in (
-                  "talk",
+              # --------------------------------------------------------
+              # DAYTIME & TALK SHOWS
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
+                  "talk show",
+                  "talk shows",
                   "daytime",
+                  "court tv",
                   "court",
                   "judge",
-                  "divorce court"
-              )):
+                  "divorce court",
+                  "people's court",
+                  "peoples court",
+                  "trutv",
+              ]):
                   return "Daytime & Talk Shows"
 
-              # -------------------------------
-              # News / Weather
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # NEWS & WEATHER
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "news",
                   "weather",
-                  "headline",
                   "cnn",
                   "cnbc",
                   "msnbc",
                   "abc news",
                   "cbs news",
                   "nbc news",
-                  "fox news"
-              )):
+                  "fox news",
+                  "weather channel",
+                  "headline news",
+                  "newsmax",
+                  "bloomberg",
+              ]):
                   return "News & Weather"
 
-              # -------------------------------
-              # Sports
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # SPORTS
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "sports",
                   "nfl",
                   "nba",
                   "nhl",
                   "mlb",
                   "nascar",
+                  "racing",
                   "golf",
                   "tennis",
                   "soccer",
+                  "football",
+                  "basketball",
+                  "hockey",
                   "wrestling",
                   "ufc",
-                  "fishing"
-              )):
+                  "fight",
+                  "fishing",
+                  "motor",
+                  "motortrend",
+              ]):
                   return "Sports"
 
-              # -------------------------------
-              # Kids
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # KIDS
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "kids",
+                  "kid's",
+                  "children",
                   "nick",
                   "nickelodeon",
                   "cartoon",
+                  "cartoons",
                   "baby",
                   "junior",
-                  "paw patrol"
-              )):
+                  "paw patrol",
+                  "pbs kids",
+                  "teletubbies",
+              ]):
                   return "Kids"
 
-              # -------------------------------
-              # Music
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # MUSIC
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "music",
                   "vevo",
                   "concert",
                   "mtv",
-                  "vh1"
-              )):
+                  "vh1",
+                  "country music",
+                  "rock music",
+                  "music videos",
+              ]):
                   return "Music"
 
-              # -------------------------------
-              # Home & Food
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # HOME & FOOD
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "food",
+                  "food network",
                   "cooking",
+                  "cook",
                   "cuisine",
                   "home",
-                  "cooking channel",
-                  "food network"
-              )):
+                  "garden",
+                  "gardening",
+                  "house",
+                  "design",
+                  "diy",
+                  "hgtv",
+                  "magnolia",
+                  "taste",
+              ]):
                   return "Home & Food"
 
-              # -------------------------------
-              # Crime
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # CRIME
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "crime",
-                  "forensic",
+                  "true crime",
                   "murder",
                   "killer",
+                  "killers",
+                  "forensic",
                   "cold case",
                   "investigation",
-                  "law & order"
-              )):
+                  "investigative",
+                  "law & order",
+                  "law and order",
+                  "unsolved",
+                  "police",
+                  "detective",
+                  "criminal",
+              ]):
                   return "Crime"
 
-              # -------------------------------
-              # Documentary
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # MYSTERY
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
+                  "mystery",
+                  "mysteries",
+                  "mystery channel",
+                  "mystery tv",
+              ]):
+                  return "Mystery"
+
+              # --------------------------------------------------------
+              # DOCUMENTARY
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "documentary",
                   "documentaries",
-                  "history",
-                  "biography"
-              )):
+                  "biography",
+                  "biographies",
+                  "docuseries",
+                  "documenting",
+              ]):
                   return "Documentary"
 
-              # -------------------------------
-              # Nature & Science
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # NATURE & SCIENCE
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "nature",
                   "science",
-                  "discovery",
                   "animal planet",
+                  "animals",
+                  "wildlife",
                   "wild",
-                  "earth"
-              )):
+                  "earth",
+                  "space",
+                  "discovery science",
+                  "history",
+                  "history channel",
+                  "natural world",
+              ]):
                   return "Nature & Science"
 
-              # -------------------------------
-              # Sci-Fi & Horror
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # SCI-FI & HORROR
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "sci-fi",
+                  "sci fi",
                   "scifi",
                   "science fiction",
                   "horror",
                   "paranormal",
-                  "supernatural"
-              )):
+                  "supernatural",
+                  "twilight zone",
+                  "monster",
+                  "monsters",
+              ]):
                   return "Sci-Fi & Horror"
 
-              # -------------------------------
-              # Comedy
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # COMEDY
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "comedy",
+                  "comedies",
                   "funny",
-                  "laugh"
-              )):
+                  "laugh",
+                  "always funny",
+              ]):
                   return "Comedy"
 
-              # -------------------------------
-              # Movies
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # MOVIES
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "movie",
                   "movies",
                   "film",
+                  "films",
                   "cinema",
-                  "cine"
-              )):
+                  "cinevault",
+                  "hallmark movies",
+                  "action movies",
+                  "classic movies",
+              ]):
                   return "Movies"
 
-              # -------------------------------
-              # Drama
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # DRAMA
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "drama",
-                  "soap"
-              )):
+                  "dramatic",
+                  "soap",
+                  "soap opera",
+              ]):
                   return "Drama"
 
-              # -------------------------------
-              # Entertainment
-              # -------------------------------
-              if any(x in n for x in (
+              # --------------------------------------------------------
+              # ENTERTAINMENT
+              # --------------------------------------------------------
+
+              if any(x in n for x in [
                   "entertainment",
                   "reality",
                   "celebrity",
-                  "lifestyle"
-              )):
+                  "lifestyle",
+                  "pop culture",
+                  "tyler perry",
+                  "reality tv",
+              ]):
                   return "Entertainment"
 
+              # --------------------------------------------------------
+              # DEFAULT
+              # --------------------------------------------------------
+
               return "Other"
+
+          # ============================================================
+          # LOAD PLAYLIST
+          # ============================================================
 
           lines = SOURCE.read_text(
               encoding="utf-8",
@@ -328,7 +494,14 @@ jobs:
           ).splitlines()
 
           entries = []
+
+          # Plex ID / URL dedupe
           seen = set()
+
+          removed_language = 0
+          duplicate_count = 0
+
+          category_counts = Counter()
 
           for i, line in enumerate(lines):
 
@@ -343,48 +516,92 @@ jobs:
               if not url.startswith("http"):
                   continue
 
-              name = channel_name(line)
+              name = get_name(line)
+              name_lower = name.lower()
 
-              # Remove unwanted language channels.
-              low = name.lower()
+              # --------------------------------------------------------
+              # REMOVE LANGUAGE CHANNELS
+              # --------------------------------------------------------
 
-              if any(word in low for word in REMOVE_WORDS):
+              if any(term in name_lower for term in REMOVE_TERMS):
+                  removed_language += 1
                   continue
+
+              # --------------------------------------------------------
+              # DEDUPE
+              #
+              # Prefer Plex tvg-id.
+              # Fall back to complete URL.
+              # --------------------------------------------------------
 
               plex_id = get_attr(line, "tvg-id")
 
-              # Deduplicate using Plex ID first,
-              # otherwise use the stream URL.
-              duplicate_key = plex_id or url
+              key = plex_id or url
 
-              if duplicate_key in seen:
+              if key in seen:
+                  duplicate_count += 1
                   continue
 
-              seen.add(duplicate_key)
+              seen.add(key)
+
+              # --------------------------------------------------------
+              # CATEGORY
+              # --------------------------------------------------------
 
               category = category_for(name)
 
-              # Plex source currently uses "Canada".
-              # Replace it with one of our real categories.
-              line = re.sub(
-                  r'group-title="[^"]*"',
-                  f'group-title="{category}"',
-                  line,
-                  flags=re.I
-              )
+              category_counts[category] += 1
 
-              if "group-title=" not in line.lower():
+              # --------------------------------------------------------
+              # REMOVE OLD CATEGORY
+              # AND INSERT OUR CATEGORY
+              # --------------------------------------------------------
+
+              if re.search(
+                  r'group-title="[^"]*"',
+                  line,
+                  re.I
+              ):
+                  line = re.sub(
+                      r'group-title="[^"]*"',
+                      f'group-title="{category}"',
+                      line,
+                      flags=re.I
+                  )
+              else:
                   line = line.replace(
                       "#EXTINF:-1",
                       f'#EXTINF:-1 group-title="{category}"',
                       1
                   )
 
-              entries.append((category, name.lower(), line, url))
+              # --------------------------------------------------------
+              # REMOVE OLD CHANNEL NUMBER
+              # --------------------------------------------------------
 
-          # Sort by our existing category order.
+              line = re.sub(
+                  r'\s+tvg-chno="[^"]*"',
+                  "",
+                  line,
+                  flags=re.I
+              )
+
+              entries.append(
+                  (
+                      category,
+                      name.lower(),
+                      line,
+                      url
+                  )
+              )
+
+          # ============================================================
+          # SORT INTO OUR EXISTING CATEGORY ORDER
+          # ============================================================
+
           category_order = {
-              name: i for i, name in enumerate(CATEGORIES)
+              category: i
+              for i, category in enumerate(CATEGORIES)
           }
 
           entries.sort(
@@ -394,56 +611,94 @@ jobs:
               )
           )
 
-          # Plex channels get their own range.
+          # ============================================================
+          # WRITE FINAL PLAYLIST
+          # ============================================================
+
           output = [
               '#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"'
           ]
 
-          number = 6500
+          channel_number = 6500
 
           for category, _, line, url in entries:
 
               line = re.sub(
                   r'tvg-chno="[^"]*"',
-                  f'tvg-chno="{number}"',
+                  f'tvg-chno="{channel_number}"',
                   line,
                   flags=re.I
               )
 
               if "tvg-chno=" not in line.lower():
+
                   line = line.replace(
                       "#EXTINF:-1",
-                      f'#EXTINF:-1 tvg-chno="{number}"',
+                      f'#EXTINF:-1 tvg-chno="{channel_number}"',
                       1
                   )
 
               output.append(line)
               output.append(url)
 
-              number += 1
+              channel_number += 1
 
           OUTPUT.write_text(
               "\n".join(output) + "\n",
               encoding="utf-8"
           )
 
-          print(f"Plex CA source entries: {len(lines)}")
-          print(f"Plex CA final channels: {len(entries)}")
-          print(f"Duplicates removed: {len(seen) - len(entries)}")
-          print(f"Number range: 6500-{number - 1}")
+          # ============================================================
+          # REPORT
+          # ============================================================
+
+          print()
+          print("============================================")
+          print("          PLEX CA BUILD REPORT")
+          print("============================================")
+          print(
+              f"Final channels:        {len(entries)}"
+          )
+          print(
+              f"Duplicates removed:    {duplicate_count}"
+          )
+          print(
+              f"Language removed:      {removed_language}"
+          )
+          print(
+              f"Number range:          6500-{channel_number - 1}"
+          )
+          print(
+              f"Categories used:       {len(category_counts)}"
+          )
+          print("--------------------------------------------")
+
+          for category in CATEGORIES:
+              count = category_counts.get(category, 0)
+
+              if count:
+                  print(
+                      f"{category:<25} {count:>4}"
+                  )
+
+          print("============================================")
 
           PY
 
-      - name: Check playlist
+      - name: Check final playlist
         run: |
-          echo "===== PLEX CA ====="
+          echo "============================================"
+          echo "PLEX CA PLAYLIST"
+          echo "============================================"
+
           ls -lh plex-ca.m3u
 
-          echo "Channels:"
+          echo
+          echo "CHANNEL COUNT:"
           grep -c '^#EXTINF:' plex-ca.m3u || true
 
           echo
-          echo "Categories:"
+          echo "CATEGORIES:"
           grep '^#EXTINF:' plex-ca.m3u \
             | sed -n 's/.*group-title="\([^"]*\)".*/\1/p' \
             | sort \
@@ -451,10 +706,10 @@ jobs:
             | sort -k2
 
           echo
-          echo "First channels:"
-          head -8 plex-ca.m3u
+          echo "FIRST CHANNELS:"
+          head -12 plex-ca.m3u
 
-      - name: Commit Plex CA
+      - name: Commit Plex CA playlist
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update Plex CA playlist"
