@@ -64,34 +64,25 @@ jobs:
           ]
 
           REMOVE_TERMS = [
-              "spanish",
-              "espanol",
-              "español",
-              "latin",
-              "latino",
-              "french",
-              "français",
-              "francais",
-              "deutsch",
-              "german",
-              "italiano",
-              "italian",
-              "portuguese",
-              "português",
-              "españa",
-              "telemundo",
-              "novelisima",
-              "caracol",
-              "pitufo",
-              "racen",
-              "c4 en alerta",
-              "historias de corazón",
-              "éxitos del momento",
-              "ça c'est drôle",
-              "un si grand soleil",
-              "inter 24/7",
-              "noovo cinéma",
-              "alerte",
+              # Spanish
+              "spanish", "espanol", "español", "latin", "latino", "españa",
+              "telemundo", "novelisima", "caracol", "pitufo", "pelimex",
+              "amor piel salvaje", "historias de corazón", "historias de corazon",
+              "c4 en alerta", "éxitos del momento", "exitos del momento",
+              "ideas en 5 minutos", "wedotv amor", "nosey escándalos",
+              "nosey escandalos", "noticias telemundo", "telemundo al dia",
+              "itv deportes", "alerta", "corazón", "novela", "piel salvaje",
+              "cinepride", "bizaar",
+              # French
+              "french", "français", "francais", "ça c’est drôle", "ca c'est drole",
+              "c'est drole", "un si grand soleil", "noovo cinéma", "noovo cinema",
+              "radio-canada info", "france 24",
+              # German / Italian / Portuguese
+              "deutsch", "german", "euronews deutsch", "italiano", "italian",
+              "euronews italiano", "portuguese", "português", "euronews portuguese",
+              "brazuca", "trace brazuca",
+              # Other foreign markers
+              "inter 24/7", "éxitos", "exitos", "amasiam", "joysauce",
           ]
 
           def get_attr(ext, attr):
@@ -105,9 +96,55 @@ jobs:
           def get_name(ext):
               return ext.rsplit(",", 1)[-1].strip()
 
-
           def category_for(name):
-              n = name.lower()
+              n = name.lower().strip()
+
+              # Exact overrides for the stubborn Other list
+              OVERRIDES = {
+                  "123go!": "Home & Food",
+                  "addictatv": "Entertainment",
+                  "aliwko": "Entertainment",
+                  "american gladiators by mgm": "Sports",
+                  "animation+": "Kids",
+                  "asiancrush": "Movies",
+                  "bizaar": "Entertainment",
+                  "blackpix": "Entertainment",
+                  "boot": "Entertainment",
+                  "camp spoopy": "Kids",
+                  "circle country": "Music",
+                  "combatv": "Entertainment",
+                  "ctv gets real": "Entertainment",
+                  "ctv gridlock": "Entertainment",
+                  "entertains": "Entertainment",
+                  "fashiontv": "Entertainment",
+                  "galxy tv": "Entertainment",
+                  "life+style": "Entertainment",
+                  "lone star": "Drama",
+                  "mst3k": "Sci-Fi & Horror",
+                  "pickletv": "Sports",
+                  "pink panther": "Kids",
+                  "pll network": "Drama",
+                  "rcm": "Music",
+                  "rig tv": "Entertainment",
+                  "robot wars by mech+": "Entertainment",
+                  "skwad": "Kids",
+                  "super channel hearties": "Drama",
+                  "super channel uncovered": "Documentary",
+                  "swerve combat": "Sports",
+                  "tarima tv": "Music",
+                  "teen wolf by mgm": "Sci-Fi & Horror",
+                  "the mightiest by ctv": "Entertainment",
+                  "the wicked tuna channel": "Sports",
+                  "trailers from hell": "Movies",
+                  "untold stories of the er": "Documentary",
+                  "xtreme caution": "Sports",
+                  "xtreme outdoor": "Nature & Science",
+                  "watch it scream": "Sci-Fi & Horror",
+                  "wipeoutxtra": "Comedy",
+                  "wipeout xtra": "Comedy",
+              }
+              if n in OVERRIDES:
+                  return OVERRIDES[n]
 
               # SOUTH PARK
               if "south park" in n:
@@ -185,7 +222,7 @@ jobs:
               ]):
                   return "News & Weather"
 
-              # SPORTS - expanded
+              # SPORTS
               if any(x in n for x in [
                   "sports", "nfl", "nba", "nhl", "mlb", "nascar", "racing",
                   "golf", "tennis", "soccer", "football", "basketball",
@@ -195,44 +232,44 @@ jobs:
                   "glory kickboxing", "pfl mma", "one championship", "xfc tv",
                   "nhra", "racer select", "speed sport", "speedvision",
                   "slvr sports", "willow sports", "sportsgrid", "sports illustrated",
-                  "tennis+", "golfpass", "tnawrestling", "tna wrestling", "ufc",
-                  "pac-12", "victory+", "fuel tv", "game & fish", "waypoint tv",
+                  "tennis+", "golfpass", "tnawrestling", "tna wrestling", "pac-12",
+                  "victory+", "fuel tv", "game & fish", "waypoint tv",
                   "powernation", "wired2fish", "world billiards", "world surf",
                   "strongman", "hard knocks", "acl cornhole", "cricket gold",
                   "hong kong fight", "powder tv", "slopes", "ski", "surf league",
                   "sail", "sailing", "poker night", "pokergo", "triton poker",
                   "world poker", "fight network", "el conflicto", "lucha plus",
                   "itv deportes", "tsn the ocho", "willow", "ftf sports",
-                  "swERVE", "swerve women", "swERVE combat", "xfc", "pursuitup",
+                  "swerve", "xfc", "pursuitup", "pickle", "wicked tuna", "xtreme",
               ]):
                   return "Sports"
 
-              # KIDS - expanded
+              # KIDS
               if any(x in n for x in [
                   "kids", "kid's", "children", "nick", "nickelodeon", "cartoon",
                   "baby", "junior", "paw patrol", "pbs kids", "teletubbies",
                   "baby shark", "baby einstein", "my little pony", "power rangers",
                   "transformers", "sonic the hedgehog", "beyblade", "strawberry shortcake",
-                  "my little pony", "arthur", "wiggles", "brat tv", "kidoodle",
-                  "ninja kidz", "ryan and friends", "toon goggles", "preston & brianna",
-                  "pocket.watch", "power rangers", "sonic tv", "tg junior", "kidoodle",
-                  "watch it kid",
+                  "arthur", "wiggles", "brat tv", "kidoodle", "ninja kidz",
+                  "ryan and friends", "toon goggles", "preston & brianna",
+                  "pocket.watch", "sonic tv", "tg junior", "watch it kid",
+                  "123go", "animation", "pink panther", "skwad", "camp spoopy",
               ]):
                   return "Kids"
 
-              # MUSIC - expanded for XITE and Stingray
+              # MUSIC
               if any(x in n for x in [
                   "music", "vevo", "concert", "mtv", "vh1", "country music",
                   "rock music", "music videos", "qello", "xite", "stingray",
-                  "trace ", "trace brazuca", "trace urban", "trace uk",
-                  "classic rock", "smooth jazz", "easy listening", "hip-hop",
-                  "k-pop", "kpop", "new k-pop", "today's k-pop", "metal.rocks",
-                  "qwest tv", "djazz", "classica", "karaoke", "soul storm",
-                  "greatest hits", "hot country", "holidayscapes", "zenlife",
-                  "rock x metal", "r&b", "rap game", "reggae vibes", "gospel",
-                  "christian hits", "celebrates", "80s flashback", "90s throwback",
-                  "60s & 70s", "euro hits", "non-stop '90s", "nothin' but 90s",
-                  "y2k", "flashback 70s", "remember the", "alternative", "indie",
+                  "trace", "classic rock", "smooth jazz", "easy listening",
+                  "hip-hop", "k-pop", "kpop", "new k-pop", "today's k-pop",
+                  "metal.rocks", "qwest tv", "djazz", "classica", "karaoke",
+                  "soul storm", "greatest hits", "hot country", "holidayscapes",
+                  "zenlife", "rock x metal", "r&b", "rap game", "reggae vibes",
+                  "gospel", "christian hits", "celebrates", "80s flashback",
+                  "90s throwback", "60s & 70s", "euro hits", "non-stop '90s",
+                  "nothin' but 90s", "y2k", "flashback 70s", "remember the",
+                  "alternative", "circle country", "rcm", "tarima",
               ]):
                   return "Music"
 
@@ -248,11 +285,11 @@ jobs:
                   "bob ross", "martha stewart", "emeril lagasse", "iron chef",
                   "antiques road", "antiques roadshow", "antiques road trip",
                   "garden with monty", "made it myself", "flipping nation",
-                  "million dollar dream", "ctv @home", "journy",
+                  "million dollar dream", "ctv @home", "journy", "123go",
               ]):
                   return "Home & Food"
 
-              # CRIME - expanded
+              # CRIME
               if any(x in n for x in [
                   "crime", "true crime", "murder", "killer", "forensic",
                   "cold case", "investigation", "law & order", "law and order",
@@ -277,7 +314,7 @@ jobs:
               if any(x in n for x in [
                   "documentary", "documentaries", "biography", "docuseries",
                   "documenting", "documentary+", "factual", "get.factual",
-                  "modern marvels",
+                  "modern marvels", "super channel uncovered", "untold stories",
               ]):
                   return "Documentary"
 
@@ -290,8 +327,8 @@ jobs:
                   "history hit", "magellantv wildest", "popular science",
                   "real wild", "true history", "wildearth", "cosmic frontiers",
                   "unidentified", "unxplained zone", "survivorman", "life down under",
-                  "ax men", "bassmaster", "bondi rescue", "ice pilots", "scream",
-                  "how to heaven", "pet collective",
+                  "ax men", "bassmaster", "bondi rescue", "ice pilots", "pet collective",
+                  "xtreme outdoor",
               ]):
                   return "Nature & Science"
 
@@ -300,11 +337,11 @@ jobs:
                   "sci-fi", "sci fi", "scifi", "science fiction", "horror",
                   "paranormal", "supernatural", "twilight zone", "monster",
                   "stargate", "farscape", "andromeda", "continuum", "outer limits",
-                  "outpost", "andromeda", "haunttv", "most haunted", "ghost hunters",
+                  "outpost", "haunttv", "most haunted", "ghost hunters",
                   "frightflix", "scream factory", "screambox", "midnight pulp",
                   "river monsters", "beyond belief", "beyond paranormal",
                   "classic doctor who", "x nation", "z nation", "walking dead",
-                  "unidentified", "unexplained",
+                  "teen wolf", "mst3k", "scream", "wipeout",
               ]):
                   return "Sci-Fi & Horror"
 
@@ -312,8 +349,7 @@ jobs:
               if any(x in n for x in [
                   "comedy", "comedies", "funny", "laugh", "always funny",
                   "stand up", "stand-up", "comedy dynamics", "cbc comedy",
-                  "ctv laughs", "failarmy", "people are awesome",
-                  "hot ones", "impractical", "wipeoutxtra",
+                  "ctv laughs", "failarmy", "people are awesome", "hot ones",
               ]):
                   return "Comedy"
 
@@ -326,27 +362,27 @@ jobs:
                   "action hollywood", "new k.movies", "movieitaly", "tribeca channel",
                   "shout! tv", "stories by amc", "midnight pulp", "screambox",
                   "wu tang collection", "shemaroo", "retrocrush", "asian crush",
-                  "rakuten viki", "cinepride", "24 hour free movies",
+                  "rakuten viki", "cinepride", "24 hour free movies", "trailers from hell",
+                  "asiancrush", "pink panther",
               ]):
                   return "Movies"
 
-              # DRAMA - catch many named dramas
+              # DRAMA
               if any(x in n for x in [
                   "drama", "dramatic", "soap", "bold and beautiful", "all my children",
                   "primetime soaps", "asian drama", "k-drama", "romcom k-drama",
                   "21 jump street", "nash bridges", "hunter", "baywatch",
                   "highway to heaven", "heartland", "mcleods daughters", "nashville",
                   "nip/tuck", "weeds", "the conners", "degrassi", "legacy",
-                  "mi-5", "nash bridges", "nolly africa", "the outpost",
-                  "the outer limits", "continuum", "farscape", "andromeda",
-                  "stargate", "in the heat of the night", "bon voyage",
-                  "that girl", "mythical", "my little pony", "are we there yet",
-                  "anger management", "schitts creek", "three's company",
-                  "the bold and the beautiful", "tvb pearl drama",
+                  "mi-5", "nolly africa", "the outpost", "the outer limits",
+                  "in the heat of the night", "bon voyage", "that girl",
+                  "are we there yet", "anger management", "schitts creek",
+                  "three's company", "the bold and the beautiful", "tvb pearl drama",
+                  "lone star", "super channel hearties", "pll network",
               ]):
                   return "Drama"
 
-              # ENTERTAINMENT / REALITY - broad catch
+              # ENTERTAINMENT
               if any(x in n for x in [
                   "entertainment", "reality", "celebrity", "lifestyle", "pop culture",
                   "tyler perry", "dance moms", "duck dynasty", "little women",
@@ -355,17 +391,18 @@ jobs:
                   "hardcore pawn", "pawn", "american pickers", "top gear",
                   "fifth gear", "made in hollywood", "powernation", "barbecue",
                   "travel", "bbc travel", "pbs travel", "travel escapes", "bon voyage",
-                  "beyond belief", "beyond belief", "revry", "outflix", "qwest",
-                  "joysauce", "afroland", "amasian", "complex tv", "creator television",
-                  "glewed", "hit list", "hit sitcoms", "pop adult", "so... real",
-                  "spark tv", "so real", "cheddar", "everyday", "wonder", "dove",
-                  "heartland", "more u", "mythical", "unbeaten", "unspeakable",
-                  "dude perfect", "mythical 24/7", "mythical", "failarmy",
+                  "revry", "outflix", "qwest", "joysauce", "afroland", "amasian",
+                  "complex tv", "creator television", "glewed", "hit list", "hit sitcoms",
+                  "pop adult", "so... real", "spark tv", "cheddar", "everyday",
+                  "wonder", "dove", "heartland", "more u", "mythical", "unbeaten",
+                  "unspeakable", "dude perfect", "failarmy", "fashion", "rig tv",
+                  "robot wars", "ctv gets real", "ctv gridlock", "life+style",
+                  "entertains", "addicta", "aliwko", "bizaar", "blackpix", "combatv",
+                  "galxy", "mightiest", "boot",
               ]):
                   return "Entertainment"
 
-              return "Other"
-
+              return "Entertainment"
 
           # ============================================================
           # LOAD PLAYLIST
@@ -536,13 +573,13 @@ jobs:
 
           print()
           print("====================================================")
-          print("                 PLEX CA BUILD")
+          print(" PLEX CA BUILD")
           print("====================================================")
-          print(f"Final channels:       {len(entries)}")
-          print(f"Duplicates removed:   {duplicate_count}")
-          print(f"Language removed:     {removed_language}")
-          print(f"Number range:         6500-{channel_number - 1}")
-          print(f"Categories used:      {len(category_counts)}")
+          print(f"Final channels: {len(entries)}")
+          print(f"Duplicates removed: {duplicate_count}")
+          print(f"Language removed: {removed_language}")
+          print(f"Number range: 6500-{channel_number - 1}")
+          print(f"Categories used: {len(category_counts)}")
           print("----------------------------------------------------")
 
           for category in CATEGORIES:
@@ -559,7 +596,7 @@ jobs:
 
           print()
           print("====================================================")
-          print("             CHANNELS CURRENTLY IN OTHER")
+          print(" CHANNELS CURRENTLY IN OTHER")
           print("====================================================")
 
           if other_channels:
