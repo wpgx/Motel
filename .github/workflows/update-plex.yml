@@ -16,12 +16,17 @@ jobs:
         with:
           ref: main
 
-      - name: Download Plex CA playlist from Cloudflare
+      - name: Download Plex CA playlist from BuddyChewChew
         run: |
           set -e
           echo "Downloading Plex CA playlist..."
+          # CF Worker source — leaving this here for later:
+          # curl -L --fail -A "Mozilla/5.0" \
+          #   "https://plex-ca.donxman.workers.dev/plex-ca.m3u" \
+          #   -o plex-ca.m3u
+
           curl -L --fail -A "Mozilla/5.0" \
-            "https://plex-ca.donxman.workers.dev/plex-ca.m3u" \
+            "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
             -o plex-ca.m3u
 
       - name: Download Plex CA guide from Matt
