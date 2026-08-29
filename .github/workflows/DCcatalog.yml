@@ -107,6 +107,33 @@ jobs:
           }
 
           # ============================================================
+          # EXISTING CATEGORIES ONLY
+          #
+          # These are the categories DCCatalog is allowed to produce.
+          # Anything else goes to Other.
+          # ============================================================
+
+          ALLOWED_CATEGORIES = {
+              "Home & Food",
+              "Crime",
+              "Comedy",
+              "Drama",
+              "Sci-Fi & Horror",
+              "Movies",
+              "Sports",
+              "Entertainment",
+              "Kids",
+              "Documentary",
+              "Nature & Science",
+              "Music",
+              "News & Weather",
+              "Ambiance",
+              "Anime & Gaming",
+              "Anime",
+              "Other",
+          }
+
+          # ============================================================
           # CATEGORIES WE NEVER WANT
           # ============================================================
 
@@ -128,45 +155,123 @@ jobs:
           }
 
           # ============================================================
+          # HELPER FUNCTIONS
+          # ============================================================
+
+          def clean_text(value):
+              value = value or ""
+              value = re.sub(r'&amp;', '&', value, flags=re.IGNORECASE)
+              value = re.sub(r'\s+', ' ', value)
+              return value.strip()
+
+          def extract_name(ext):
+              return clean_text(ext.rsplit(",", 1)[-1])
+
+          def extract_chno(ext):
+              m = re.search(
+                  r'tvg-chno="([^"]+)"',
+                  ext,
+                  re.I
+              )
+              return m.group(1).strip() if m else None
+
+          def get_group(ext):
+              m = re.search(
+                  r'group-title="([^"]+)"',
+                  ext,
+                  re.I
+              )
+              return clean_text(m.group(1)) if m else ""
+
+          # ============================================================
+          # SOURCE DETECTION
+          # ============================================================
+
+          def is_plex(ext, url):
+              text = (ext + " " + url).lower()
+
+              return (
+                  "epg.provider.plex.tv" in text
+                  or "provider-static.plex.tv" in text
+                  or 'group-title="canada"' in text
+              )
+
+          def is_roku(ext, url):
+              text = (ext + " " + url).lower()
+
+              # DCMaster's Roku pull assigns Roku tvg-ids when needed.
+              # Roku's source/category may also survive in group-title.
+              return (
+                  'group-title="roku"' in text
+                  or 'tvg-id="roku.' in text
+                  or "roku.com" in text
+                  or "rokuchannel" in text
+                  or "/roku/" in text
+              )
+
+          # ============================================================
+          # NEWS / WEATHER DETECTION
+          #
+          # These channels are being removed completely.
+          # ============================================================
+
+          def is_news_channel(ext, name, group):
+              name_l = name.lower().strip()
+              group_l = group.lower().strip()
+
+              news_names = (
+                  "the grio",
+                  "euronews",
+                  "scripps news",
+                  "fox local news",
+                  "fox weather",
+                  "cbs news",
+                  "abc news",
+                  "nbc news",
+              )
+
+              if any(x in name_l for x in news_names):
+                  return True
+
+              if "news" in name_l:
+                  return True
+
+              if "weather" in name_l:
+                  return True
+
+              if "news" in group_l:
+                  return True
+
+              if "weather" in group_l:
+                  return True
+
+              return False
+
+          # ============================================================
           # CATEGORY DETECTION
           # ============================================================
 
-          def normalize_category(raw, name=""):
-              if not raw:
-                  raw = ""
+          def normalize_category(raw, name="", plex=False, roku=False):
 
-              g = raw.strip()
-              g = re.sub(r'&amp;', '&', g, flags=re.IGNORECASE)
-              g = re.sub(r'\s+', ' ', g).strip()
+              g = clean_text(raw)
               gl = g.lower()
 
-              name_l = name.lower()
+              name_l = clean_text(name).lower()
 
               # --------------------------------------------------------
-              # NEVER create a Canada category.
-              # Plex puts everything in "Canada".
-              # We classify Plex by channel name instead.
+              # Roku ALWAYS goes to Other.
+              # --------------------------------------------------------
+
+              if roku:
+                  return "Other"
+
+              # --------------------------------------------------------
+              # Plex's generic "Canada" category is meaningless.
+              # Plex is classified by channel name instead.
               # --------------------------------------------------------
 
               if gl == "canada":
                   gl = ""
-
-              # --------------------------------------------------------
-              # NEWS / WEATHER
-              # --------------------------------------------------------
-
-              if any(x in name_l for x in (
-                  "news",
-                  "weather",
-                  "cbs news",
-                  "abc news",
-                  "nbc news",
-                  "fox weather"
-              )):
-                  return "News & Weather"
-
-              if "news" in gl or "weather" in gl:
-                  return "News & Weather"
 
               # --------------------------------------------------------
               # MOVIES
@@ -299,12 +404,13 @@ jobs:
                   "cooking channel",
                   "good eats",
                   "home & garden",
+                  "home and garden",
                   "lifestyle"
               )):
                   return "Home & Food"
 
               # --------------------------------------------------------
-              # ENTERTAINMENT
+              # ENTERTAINMENT / GAME SHOWS
               # --------------------------------------------------------
 
               if any(x in name_l for x in (
@@ -316,6 +422,12 @@ jobs:
                   "osbournes",
                   "fear factor",
                   "price is right",
+                  "the price is right",
+                  "family feud",
+                  "deal or no deal",
+                  "let's make a deal",
+                  "lets make a deal",
+                  "supermarket sweep",
                   "game show",
                   "game shows",
                   "game show network",
@@ -349,21 +461,36 @@ jobs:
               lookup = re.sub(r'\s+', ' ', lookup).strip()
 
               if lookup in MERGE:
-                  return MERGE[lookup]
+                  category = MERGE[lookup]
+
+                  if category in ALLOWED_CATEGORIES:
+                      return category
 
               for key, value in MERGE.items():
                   if key in lookup:
-                      return value
+                      if value in ALLOWED_CATEGORIES:
+                          return value
 
               # --------------------------------------------------------
-              # Plex "Canada" must NOT survive.
-              # If Plex cannot be classified, use Other.
+              # Existing category names can pass through unchanged.
               # --------------------------------------------------------
 
-              if gl == "canada" or not gl:
-                  return "Other"
+              if g in ALLOWED_CATEGORIES:
+                  return g
 
-              return g.title()
+              # Case-insensitive existing category match.
+              for allowed in ALLOWED_CATEGORIES:
+                  if allowed.lower() == gl:
+                      return allowed
+
+              # --------------------------------------------------------
+              # Plex Canada / blank / unknown = Other.
+              #
+              # This is deliberately the final fallback.
+              # DCCatalog will NEVER invent a new category.
+              # --------------------------------------------------------
+
+              return "Other"
 
           # ============================================================
           # READ MASTER PLAYLIST
@@ -379,57 +506,19 @@ jobs:
           # ============================================================
           # FIRST PASS
           #
-          # Build list while remembering which names came from
-          # non-Plex sources.
-          #
-          # Plex channels are identified by:
-          #   epg.provider.plex.tv
-          #   provider-static.plex.tv
-          #   group-title="Canada"
-          #
-          # If the same channel already exists outside Plex,
-          # the Plex copy is discarded.
+          # Remember names that exist outside Plex so Plex duplicates
+          # can be discarded.
           # ============================================================
 
           entries = []
 
           existing_names = set()
-          plex_entries = []
 
           removed_categories = Counter()
+          removed_news = Counter()
           duplicate_ids_removed = 0
           duplicate_plex_removed = 0
           removed_channels = []
-
-          def is_plex(ext, url):
-              text = (ext + " " + url).lower()
-
-              return (
-                  "epg.provider.plex.tv" in text
-                  or "provider-static.plex.tv" in text
-                  or 'group-title="canada"' in text
-              )
-
-          def extract_name(ext):
-              return ext.rsplit(",", 1)[-1].strip()
-
-          def extract_chno(ext):
-              m = re.search(
-                  r'tvg-chno="([^"]+)"',
-                  ext,
-                  re.I
-              )
-
-              return m.group(1).strip() if m else None
-
-          def get_group(ext):
-              m = re.search(
-                  r'group-title="([^"]+)"',
-                  ext,
-                  re.I
-              )
-
-              return m.group(1).strip() if m else ""
 
           # ------------------------------------------------------------
           # FIRST PASS: collect non-Plex names
@@ -482,6 +571,12 @@ jobs:
                   removed_channels.append(name)
                   continue
 
+              # Remove News / Weather completely.
+              if is_news_channel(line, name, group):
+                  removed_news[group or "Name match"] += 1
+                  removed_channels.append(name)
+                  continue
+
               if not is_plex(line, url):
                   existing_names.add(name_key)
 
@@ -519,7 +614,10 @@ jobs:
               if "welcome" in name_key and "motel" in name_key:
                   continue
 
+              # --------------------------------------------------------
               # Remove French / Spanish / Latin.
+              # --------------------------------------------------------
+
               if (
                   group_lower in REMOVE_CATEGORIES
                   or any(
@@ -537,14 +635,22 @@ jobs:
               ):
                   continue
 
+              # --------------------------------------------------------
+              # Remove News / Weather.
+              # --------------------------------------------------------
+
+              if is_news_channel(line, name, group):
+                  continue
+
               plex = is_plex(line, url)
+              roku = is_roku(line, url)
 
               # --------------------------------------------------------
-              # If this is Plex and the same channel already exists
-              # outside Plex, throw the Plex copy away.
+              # Plex duplicate removal.
               # --------------------------------------------------------
 
               if plex and name_key in existing_names:
+
                   duplicate_plex_removed += 1
 
                   print(
@@ -554,23 +660,28 @@ jobs:
                   continue
 
               # --------------------------------------------------------
-              # Plex gets categorized by channel name.
-              # It does NOT retain Canada.
+              # Determine final category.
               # --------------------------------------------------------
 
               category = normalize_category(
                   group,
-                  name
+                  name,
+                  plex=plex,
+                  roku=roku
               )
 
-              chno = extract_chno(line)
+              # Safety net:
+              # absolutely nothing outside our approved categories.
+              if category not in ALLOWED_CATEGORIES:
+                  category = "Other"
 
               # --------------------------------------------------------
               # Duplicate channel IDs:
-              # keep the first one and remove the later one.
-              #
+              # keep first, remove later.
               # NO renumbering.
               # --------------------------------------------------------
+
+              chno = extract_chno(line)
 
               if chno:
 
@@ -771,6 +882,11 @@ jobs:
           )
 
           print(
+              f"NEWS/WEATHER REMOVED:    "
+              f"{sum(removed_news.values())}"
+          )
+
+          print(
               f"CATEGORIES:              "
               f"{len(counts)}"
           )
@@ -787,6 +903,21 @@ jobs:
 
               for category, count in (
                   removed_categories.items()
+              ):
+
+                  print(
+                      f"  {category}: {count}"
+                  )
+
+          if removed_news:
+
+              print()
+              print(
+                  "REMOVED NEWS / WEATHER:"
+              )
+
+              for category, count in (
+                  removed_news.items()
               ):
 
                   print(
@@ -863,6 +994,6 @@ jobs:
 
           git diff --cached --quiet && echo "No change" && exit 0
 
-          git commit -m "DCcatalog: remove Plex duplicates and categorize Plex channels"
+          git commit -m "DCcatalog: refine Plex classification and force unknown channels to Other"
 
           git push
