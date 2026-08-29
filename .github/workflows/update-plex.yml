@@ -1,38 +1,54 @@
-name: Update Plex CA from Cloudflare
+name: Update Plex CA
 
 on:
-  schedule:
-    - cron: '0 6 * * *'  # daily 6am UTC
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
-      - name: Checkout motel/main
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: main
 
-      - name: Fetch Plex CA from Cloudflare Worker
+      - name: Download Plex CA playlist from Cloudflare
         run: |
           set -e
-          echo "Fetching from https://plex-ca.donxman.workers.dev/"
-          curl -L -A "Mozilla/5.0" --fail -o plex-ca.m3u https://plex-ca.donxman.workers.dev/plex-ca.m3u
-          curl -L -A "Mozilla/5.0" --fail -o plex-ca.xml https://plex-ca.donxman.workers.dev/plex-ca.xml
-          # Also save worker source as 'plex'
-          curl -L -A "Mozilla/5.0" --fail -o plex https://plex-ca.donxman.workers.dev/  || cp plex-ca.m3u plex
-          ls -lh plex-ca.* plex
-          echo "M3U lines: $(wc -l < plex-ca.m3u)"
-          head -5 plex-ca.m3u
+          echo "Downloading Plex CA playlist..."
+          curl -L --fail -A "Mozilla/5.0" \
+            "https://plex-ca.donxman.workers.dev/plex-ca.m3u" \
+            -o plex-ca.m3u
 
-      - name: Commit and Push to main
+      - name: Download Plex CA guide from Matt
         run: |
-          git config user.name "plex-bot"
-          git config user.email "bot@donxman.workers.dev"
-          git add plex-ca.m3u plex-ca.xml plex
-          git diff --cached --quiet && echo "No changes" && exit 0
-          git commit -m "Update Plex CA - $(date -u +'%Y-%m-%d') - 995 channels"
-          git push origin main
+          set -e
+          echo "Downloading Plex CA EPG..."
+          curl -L --fail -A "Mozilla/5.0" \
+            "https://github.com/matthuisman/i.mjh.nz/raw/master/Plex/ca.xml.gz" \
+            -o plex-ca.xml.gz
+
+      - name: Check downloaded files
+        run: |
+          echo "===== PLAYLIST ====="
+          ls -lh plex-ca.m3u
+          echo "M3U channels:"
+          grep -c '^#EXTINF:' plex-ca.m3u || true
+
+          echo "===== EPG ====="
+          ls -lh plex-ca.xml.gz
+          echo "EPG compressed size:"
+          du -h plex-ca.xml.gz
+
+          echo "===== M3U HEADER ====="
+          head -3 plex-ca.m3u
+
+      - name: Commit Plex files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Plex CA playlist and EPG"
+          file_pattern: "plex-ca.m3u plex-ca.xml.gz"
