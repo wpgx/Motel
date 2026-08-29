@@ -1,0 +1,36 @@
+name: Update Plex CA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-plex:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Plex Canada playlist
+        run: |
+          curl -L "https://i.mjh.nz/Plex/ca.m3u" -o plex-ca.m3u
+
+      - name: Download Plex Canada EPG
+        run: |
+          curl -L "https://i.mjh.nz/Plex/ca.xml.gz" -o plex-ca.xml.gz
+
+      - name: Show playlist info
+        run: |
+          echo "Plex playlist:"
+          wc -l plex-ca.m3u
+          echo "Channels:"
+          grep -c '^#EXTINF:' plex-ca.m3u || true
+
+      - name: Commit Plex files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Plex CA playlist and EPG"
+          file_pattern: "plex-ca.m3u plex-ca.xml.gz"
