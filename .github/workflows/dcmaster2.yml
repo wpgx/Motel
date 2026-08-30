@@ -1,314 +1,125 @@
 name: dcmaster2
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build DCMASTER2
+      - name: Build DCMASTER2 - Plex first + namespaced dcfull
         run: |
           python3 << 'PY'
-          import os
-          import gzip
-          import re
+          import os, gzip, re, shutil
 
-          # ============================================================
-          # DCMaster2 - PLEX + DCFULL
-          #
-          # Plex M3U:
-          #   Copy exactly as supplied.
-          #
-          # Plex guide:
-          #   Import plex-ca.xml.gz exactly as before.
-          #
-          # dcfull M3U:
-          #   Add exactly as supplied.
-          #
-          # dcfull guide:
-          #   Add dcfull.xml exactly as supplied.
-          #
-          # Tubi/Roku is NOT included in this test.
-          # ============================================================
+          def load_m3u_clean(path):
+              ch=[]
+              with open(path,encoding='utf-8',errors='ignore') as f:
+                  lines=f.read().splitlines()
+              for i,line in enumerate(lines):
+                  if line.startswith('#EXTINF') and i+1 < len(lines):
+                      url=lines[i+1].strip()
+                      if url.startswith('http'):
+                          ch.append((line,url))
+              print(f"{path} -> {len(ch)} ch")
+              return ch
 
-          # ============================================================
-          # FIND PLEX PLAYLIST
-          # ============================================================
+          def extract_tv(path):
+              if not path or not os.path.exists(path):
+                  print(f"Missing: {path}")
+                  return ''
+              if path.endswith('.gz'):
+                  text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
+              else:
+                  # auto-detect gz even if named.xml
+                  with open(path,'rb') as fb:
+                      is_gz=fb.read(3)==b'\x1f\x8b\x08'
+                  if is_gz:
+                      text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
+                  else:
+                      text=open(path,encoding='utf-8',errors='ignore').read()
+              text=re.sub(r'<\?xml[^?]*\?>','',text,flags=re.I)
+              text=re.sub(r'<!DOCTYPE[^>]*>','',text,flags=re.I)
+              m=re.search(r'<tv[^>]*>(.*)</tv>',text,flags=re.I|re.S)
+              return m.group(1) if m else ''
 
-          if os.path.exists('plex-ca.m3u8'):
-              plex_playlist_path = 'plex-ca.m3u8'
-          elif os.path.exists('plex-ca.m3u'):
-              plex_playlist_path = 'plex-ca.m3u'
-          else:
-              print("ERROR: No Plex CA playlist found")
-              raise SystemExit(1)
+          def prefix_source(m3u_list, xml_text, prefix):
+              # prefix tvg-id in M3U
+              new_m3u=[]
+              for extinf,url in m3u_list:
+                  if 'tvg-id="' in extinf:
+                      extinf=re.sub(r'tvg-id="', f'tvg-id="{prefix}-', extinf)
+                  else:
+                      # add tvg-id if missing to avoid collision
+                      extinf=extinf.replace('#EXTINF:', f'#EXTINF: tvg-id="{prefix}-{len(new_m3u)}" ',1)
+                  new_m3u.append((extinf,url))
+              # prefix XML channel id and programme channel
+              xml_text=re.sub(r'<channel id="', f'<channel id="{prefix}-', xml_text, flags=re.I)
+              xml_text=re.sub(r'<programme[^>]*channel="', lambda m: m.group(0).replace('channel="', f'channel="{prefix}-',1), xml_text, flags=re.I)
+              # also channel=" generic
+              xml_text=re.sub(r' channel="', f' channel="{prefix}-', xml_text)
+              # fix double prefix if we ran twice
+              xml_text=xml_text.replace(f'{prefix}-{prefix}-', f'{prefix}-')
+              return new_m3u, xml_text
 
-          print(f"Plex M3U: {plex_playlist_path}")
+          def find_m3u(base):
+              for ext in ['.m3u8','.m3u']:
+                  p=base+ext
+                  if os.path.exists(p):
+                      return p
+              return None
 
-          # ============================================================
-          # COPY PLEX PLAYLIST
-          # ============================================================
+          def find_xml(base):
+              if base=='plex-ca' and os.path.exists('plex-ca.xml.gz'):
+                  return 'plex-ca.xml.gz'
+              if os.path.exists(base+'.xml'):
+                  return base+'.xml'
+              if os.path.exists(base+'.xml.gz'):
+                  return base+'.xml.gz'
+              return None
 
-          with open(
-              plex_playlist_path,
-              'rb'
-          ) as f:
-              plex_playlist_data = f.read()
+          # --- Plex FIRST - keep clean ---
+          plex_m3u_path=find_m3u('plex-ca')
+          plex_xml_path=find_xml('plex-ca')
+          plex_m3u=load_m3u_clean(plex_m3u_path) if plex_m3u_path else []
+          plex_xml=extract_tv(plex_xml_path)
 
-          # ============================================================
-          # FIND DCFULL PLAYLIST
-          # ============================================================
+          # --- dcfull SECOND - prefix to avoid same id!= same channel ---
+          dcfull_m3u_path=find_m3u('dcfull')
+          dcfull_xml_path=find_xml('dcfull')
+          dcfull_m3u_raw=load_m3u_clean(dcfull_m3u_path) if dcfull_m3u_path else []
+          dcfull_xml_raw=extract_tv(dcfull_xml_path)
 
-          if os.path.exists('dcfull.m3u8'):
-              dcfull_playlist_path = 'dcfull.m3u8'
-          elif os.path.exists('dcfull.m3u'):
-              dcfull_playlist_path = 'dcfull.m3u'
-          else:
-              print("ERROR: No dcfull playlist found")
-              raise SystemExit(1)
+          dcfull_m3u, dcfull_xml = prefix_source(dcfull_m3u_raw, dcfull_xml_raw, 'dc')
 
-          print(f"dcfull M3U: {dcfull_playlist_path}")
+          merged = plex_m3u + dcfull_m3u
+          xml_body = plex_xml + '\n' + dcfull_xml
 
-          with open(
-              dcfull_playlist_path,
-              'rb'
-          ) as f:
-              dcfull_playlist_data = f.read()
+          # fix & so XML valid
+          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',xml_body)
 
-          # ============================================================
-          # COMBINE PLAYLISTS
-          #
-          # Plex playlist is kept exactly as supplied.
-          # dcfull entries are appended.
-          # ============================================================
+          m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster2.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
+          open('dcmaster2.m3u8','w',encoding='utf-8').write(m3u_out)
+          open('dcmaster2.m3u','w',encoding='utf-8').write(m3u_out)
 
-          plex_lines = plex_playlist_data.splitlines()
+          final_xml='<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n' + xml_body + '\n</tv>\n'
+          open('dcmaster2.xml','w',encoding='utf-8').write(final_xml)
+          with open('dcmaster2.xml','rb') as fin:
+              with gzip.open('dcmaster2.xml.gz','wb') as fout:
+                  shutil.copyfileobj(fin,fout)
 
-          if not plex_lines:
-              print("ERROR: Plex playlist is empty")
-              raise SystemExit(1)
-
-          plex_header = plex_lines[0]
-
-          dcfull_lines = dcfull_playlist_data.splitlines()
-
-          if dcfull_lines and dcfull_lines[0].startswith(b'#EXTM3U'):
-              dcfull_lines = dcfull_lines[1:]
-
-          combined_playlist = (
-              b'\n'.join(
-                  [plex_header] +
-                  plex_lines[1:] +
-                  dcfull_lines
-              )
-              +
-              b'\n'
-          )
-
-          with open(
-              'dcmaster2.m3u8',
-              'wb'
-          ) as f:
-              f.write(combined_playlist)
-
-          with open(
-              'dcmaster2.m3u',
-              'wb'
-          ) as f:
-              f.write(combined_playlist)
-
-          # ============================================================
-          # PLEX GUIDE
-          #
-          # THIS IS THE KNOWN-GOOD PLEX IMPORT.
-          # ============================================================
-
-          if not os.path.exists('plex-ca.xml.gz'):
-              print("ERROR: plex-ca.xml.gz not found")
-              raise SystemExit(1)
-
-          print("Plex guide: plex-ca.xml.gz")
-
-          with gzip.open(
-              'plex-ca.xml.gz',
-              'rb'
-          ) as source_file:
-              plex_guide_data = source_file.read()
-
-          # ============================================================
-          # DCFULL GUIDE
-          #
-          # dcfull.xml is already a normal XMLTV <tv> document.
-          # Do not modify its channel IDs or programme data.
-          # ============================================================
-
-          if not os.path.exists('dcfull.xml'):
-              print("ERROR: dcfull.xml not found")
-              raise SystemExit(1)
-
-          print("dcfull guide: dcfull.xml")
-
-          with open(
-              'dcfull.xml',
-              'rb'
-          ) as source_file:
-              dcfull_guide_data = source_file.read()
-
-          # ============================================================
-          # REMOVE ONLY THE OUTER XMLTV WRAPPERS
-          #
-          # The actual channel/programme data is left untouched.
-          # ============================================================
-
-          def extract_tv_contents(data):
-
-              text = data.decode(
-                  'utf-8',
-                  errors='ignore'
-              )
-
-              text = re.sub(
-                  r'<\?xml[^?]*\?>',
-                  '',
-                  text,
-                  count=1,
-                  flags=re.I
-              )
-
-              match = re.search(
-                  r'<tv\b[^>]*>(.*)</tv\s*>',
-                  text,
-                  flags=re.I | re.S
-              )
-
-              if not match:
-                  print("ERROR: Could not find <tv>...</tv>")
-                  raise SystemExit(1)
-
-              return match.group(1)
-
-          plex_content = extract_tv_contents(
-              plex_guide_data
-          )
-
-          dcfull_content = extract_tv_contents(
-              dcfull_guide_data
-          )
-
-          # ============================================================
-          # COMBINED GUIDE
-          # ============================================================
-
-          final_xml = (
-              '<?xml version="1.0" encoding="UTF-8"?>\n'
-              '<tv>\n'
-              +
-              plex_content
-              +
-              '\n'
-              +
-              dcfull_content
-              +
-              '\n</tv>\n'
-          )
-
-          with open(
-              'dcmaster2.xml',
-              'w',
-              encoding='utf-8'
-          ) as f:
-              f.write(final_xml)
-
-          # ============================================================
-          # REPORT
-          # ============================================================
-
-          print('')
-          print('==========================================')
-          print('DCMASTER2 PLEX + DCFULL')
-          print('==========================================')
-
-          print(
-              f'Plex M3U channels: '
-              f'{plex_playlist_data.count(b"#EXTINF")}'
-          )
-
-          print(
-              f'dcfull M3U channels: '
-              f'{dcfull_playlist_data.count(b"#EXTINF")}'
-          )
-
-          print(
-              f'Total M3U channels: '
-              f'{combined_playlist.count(b"#EXTINF")}'
-          )
-
-          print(
-              f'Plex XML channels: '
-              f'{plex_guide_data.count(b"<channel ")}'
-          )
-
-          print(
-              f'dcfull XML channels: '
-              f'{dcfull_guide_data.count(b"<channel ")}'
-          )
-
-          print(
-              f'Combined XML channels: '
-              f'{final_xml.count("<channel ")}'
-          )
-
-          print(
-              f'Combined XML programmes: '
-              f'{final_xml.count("<programme ")}'
-          )
-
-          print(
-              f'XML size: '
-              f'{len(final_xml)} bytes'
-          )
-
-          print('==========================================')
+          print(f"\nFINAL M3U {len(merged)} (plex {len(plex_m3u)} + dc {len(dcfull_m3u)})")
+          print(f"FINAL XML {final_xml.count('<channel ')} ch / {final_xml.count('<programme')} prog")
           PY
-
-      - name: Validate
+      - name: Validate XML
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libxml2-utils
-
-          echo "===== VALIDATING DCMaster2 XML ====="
+          sudo apt-get update -y && sudo apt-get install -y libxml2-utils
           xmllint --noout dcmaster2.xml
-          echo "dcmaster2.xml OK"
-
-          echo "===== FINAL COUNTS ====="
-          echo "M3U channels: $(grep -c '^#EXTINF' dcmaster2.m3u8 || true)"
-          echo "XML channels: $(grep -c '<channel ' dcmaster2.xml || true)"
-          echo "XML programmes: $(grep -c '<programme ' dcmaster2.xml || true)"
-
-          echo "===== M3U HEADER ====="
-          head -1 dcmaster2.m3u8
-
-      - name: Push to repo
+          echo "OK"
+      - name: Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add \
-            dcmaster2.m3u8 \
-            dcmaster2.m3u \
-            dcmaster2.xml \
-            -f
-
-          if git diff --cached --quiet; then
-            echo "No changes"
-            exit 0
-          fi
-
-          git commit -m "dcmaster2 add dcfull guide"
-          git push
+          git add dcmaster2.m3u8 dcmaster2.m3u dcmaster2.xml dcmaster2.xml.gz -f
+          git diff --cached --quiet || (git commit -m "dcmaster2 plex first + dc namespaced fix same id collision" && git push)
