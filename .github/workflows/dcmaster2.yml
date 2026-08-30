@@ -17,201 +17,81 @@ jobs:
           python3 << 'PY'
           import os
           import gzip
-          import re
 
           # ============================================================
-          # DCMaster2 - TEST VERSION
+          # DCMaster2 - PLEX ONLY TEST
           #
-          # CURRENT TEST:
-          # Plex CA ONLY
+          # plex-ca.xml.gz is decompressed and copied directly to
+          # dcmaster2.xml.
           #
-          # Original DCMaster is NOT changed.
-          # ============================================================
-
-          # ============================================================
-          # FIND ONE PLAYLIST
+          # NO XML parsing
+          # NO XML rebuilding
+          # NO filtering
+          # NO deduplication
           # ============================================================
 
           def find_m3u(base):
               if os.path.exists(base + '.m3u8'):
                   return base + '.m3u8'
-
               if os.path.exists(base + '.m3u'):
                   return base + '.m3u'
-
               return None
-
-          # ============================================================
-          # FIND ONE GUIDE
-          #
-          # Plex CA is normally plex-ca.xml.gz.
-          # It is read directly and decompressed in memory.
-          # ============================================================
 
           def find_xml(base):
               if os.path.exists(base + '.xml'):
                   return base + '.xml'
-
               if os.path.exists(base + '.xml.gz'):
                   return base + '.xml.gz'
-
               return None
 
           # ============================================================
-          # LOAD M3U
+          # LOAD PLEX M3U
           # ============================================================
 
-          def load_m3u(path):
-              channels = []
+          playlist_path = find_m3u('plex-ca')
 
-              try:
-                  with open(
-                      path,
-                      encoding='utf-8',
-                      errors='ignore'
-                  ) as f:
-                      lines = f.read().splitlines()
+          if not playlist_path:
+              print("ERROR: No Plex CA playlist found")
+              raise SystemExit(1)
 
-                  for i, line in enumerate(lines):
+          channels = []
 
-                      if (
-                          line.startswith('#EXTINF')
-                          and i + 1 < len(lines)
-                      ):
-                          url = lines[i + 1].strip()
+          with open(
+              playlist_path,
+              encoding='utf-8',
+              errors='ignore'
+          ) as f:
+              lines = f.read().splitlines()
 
-                          if url.startswith('http'):
-                              channels.append((line, url))
+          for i, line in enumerate(lines):
 
-                  print(
-                      f"M3U: {path} -> "
-                      f"{len(channels)} channels"
-                  )
+              if (
+                  line.startswith('#EXTINF')
+                  and i + 1 < len(lines)
+              ):
 
-              except Exception as e:
-                  print(
-                      f"M3U ERROR: {path}: {e}"
-                  )
+                  url = lines[i + 1].strip()
 
-              return channels
-
-          # ============================================================
-          # LOAD XML
-          # ============================================================
-
-          def load_xml(path):
-
-              try:
-
-                  if path.endswith('.gz'):
-
-                      print(
-                          f"Reading compressed guide: {path}"
+                  if url.startswith('http'):
+                      channels.append(
+                          (line, url)
                       )
 
-                      with gzip.open(
-                          path,
-                          'rt',
-                          encoding='utf-8',
-                          errors='ignore'
-                      ) as f:
-                          text = f.read()
-
-                  else:
-
-                      with open(
-                          path,
-                          encoding='utf-8',
-                          errors='ignore'
-                      ) as f:
-                          text = f.read()
-
-                  text = re.sub(
-                      r'<\?xml[^?]*\?>',
-                      '',
-                      text,
-                      flags=re.I
-                  )
-
-                  text = re.sub(
-                      r'<!DOCTYPE[^>]*>',
-                      '',
-                      text,
-                      flags=re.I
-                  )
-
-                  start = re.search(
-                      r'<tv[^>]*>',
-                      text,
-                      flags=re.I
-                  )
-
-                  end = re.search(
-                      r'</tv\s*>',
-                      text,
-                      flags=re.I
-                  )
-
-                  if start and end:
-                      text = text[
-                          start.end():end.start()
-                      ]
-
-                  print(
-                      f"XML: {path} -> "
-                      f"{len(text)} chars, "
-                      f"{text.count('<channel ')} channels, "
-                      f"{text.count('<programme')} programmes"
-                  )
-
-                  return text
-
-              except Exception as e:
-
-                  print(
-                      f"XML ERROR: {path}: {e}"
-                  )
-
-                  return ''
-
-          # ============================================================
-          # BUILD M3U
-          #
-          # PLEX CA ONLY FOR THIS TEST.
-          #
-          # NO DEDUPLICATION.
-          # NO SORTING.
-          # NO MODIFICATION.
-          # ============================================================
-
-          merged = []
-
-          for source in [
-              'plex-ca'
-          ]:
-
-              path = find_m3u(source)
-
-              if not path:
-                  print(
-                      f"WARNING: No M3U found for {source}"
-                  )
-                  continue
-
-              merged.extend(
-                  load_m3u(path)
-              )
-
           print(
-              f"TOTAL M3U CHANNELS: {len(merged)}"
+              f"M3U: {playlist_path} -> "
+              f"{len(channels)} channels"
           )
+
+          # ============================================================
+          # WRITE PLEX M3U
+          # ============================================================
 
           m3u_content = (
               '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster2.xml"\n'
               +
               '\n'.join(
                   f'{extinf}\n{url}'
-                  for extinf, url in merged
+                  for extinf, url in channels
               )
               +
               '\n'
@@ -232,83 +112,76 @@ jobs:
               f.write(m3u_content)
 
           # ============================================================
-          # BUILD XML
-          #
-          # PLEX CA ONLY FOR THIS TEST.
-          #
-          # The complete Plex guide is copied into the final XML.
+          # DIRECT PLEX GUIDE IMPORT
           # ============================================================
 
-          path = find_xml('plex-ca')
+          guide_path = find_xml('plex-ca')
 
-          if not path:
-
-              print(
-                  "ERROR: No Plex CA guide found"
-              )
-
+          if not guide_path:
+              print("ERROR: No Plex CA guide found")
               raise SystemExit(1)
 
-          plex_xml = load_xml(path)
-
-          if not plex_xml:
-
-              print(
-                  "ERROR: Plex CA guide is empty"
-              )
-
-              raise SystemExit(1)
-
-          final_xml = (
-              '<?xml version="1.0" encoding="UTF-8"?>\n'
-              '<tv>\n'
-              +
-              plex_xml
-              +
-              '\n</tv>\n'
+          print(
+              f"Guide source: {guide_path}"
           )
 
+          if guide_path.endswith('.gz'):
+
+              print(
+                  "Decompressing Plex guide directly..."
+              )
+
+              with gzip.open(
+                  guide_path,
+                  'rb'
+              ) as source_file:
+                  guide_data = source_file.read()
+
+          else:
+
+              with open(
+                  guide_path,
+                  'rb'
+              ) as source_file:
+                  guide_data = source_file.read()
+
+          print(
+              f"Guide size: {len(guide_data)} bytes"
+          )
+
+          # DIRECT COPY - NOTHING ELSE
           with open(
               'dcmaster2.xml',
-              'w',
-              encoding='utf-8'
-          ) as f:
-              f.write(final_xml)
+              'wb'
+          ) as output_file:
+              output_file.write(guide_data)
+
+          print("Plex guide copied directly")
 
           # ============================================================
-          # FINAL REPORT
+          # REPORT
           # ============================================================
 
           print('')
           print('==========================================')
-          print('DCMASTER2 PLEX-ONLY TEST COMPLETE')
+          print('DCMASTER2 BUILD COMPLETE')
           print('==========================================')
-
           print(
               f'M3U channels: '
-              f'{len(merged)}'
+              f'{len(channels)}'
           )
-
           print(
               f'XML channels: '
-              f'{final_xml.count("<channel ")}'
+              f'{guide_data.count(b"<channel ")}'
           )
-
           print(
               f'XML programmes: '
-              f'{final_xml.count("<programme ")}'
+              f'{guide_data.count(b"<programme ")}'
           )
-
           print(
               f'XML size: '
-              f'{len(final_xml)} bytes'
+              f'{len(guide_data)} bytes'
           )
-
-          print(
-              'EPG URL: '
-              'https://motel.deecee.ca/dcmaster2.xml'
-          )
-
           print('==========================================')
           PY
 
@@ -342,5 +215,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "dcmaster2 Plex-only guide test"
+          git commit -m "dcmaster2 direct Plex guide import test"
           git push
