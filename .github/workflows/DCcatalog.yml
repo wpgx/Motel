@@ -1,241 +1,94 @@
-name: Sort DCcatalog
-
-on:
-  workflow_dispatch:
-
-jobs:
-  sort:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
-
-      - name: FORCE get latest dcmaster
-        run: |
-          git pull origin main --force
-          echo "Local dcmaster before:"
-          ls -lh dcmaster.m3u8 dcmaster.xml || true
-          curl -L -o dcmaster.m3u8 https://raw.githubusercontent.com/${{ github.repository }}/main/dcmaster.m3u8
-          curl -L -o dcmaster.xml https://raw.githubusercontent.com/${{ github.repository }}/main/dcmaster.xml
-          echo "After fresh download:"
-          ls -lh dcmaster.m3u8 dcmaster.xml
-          echo "plex in m3u: $(grep -c plex.tv dcmaster.m3u8 || echo 0)"
-          echo "roku group in m3u: $(grep -c 'group-title=\"Roku' dcmaster.m3u8 || echo 0)"
-
       - name: Build DCcatalog
         run: |
-          python3 - << 'PY'
-          import re, gzip
+          python3 << 'PY'
+          import re
           from pathlib import Path
           from collections import Counter
-          import xml.etree.ElementTree as ET
+          import gzip
 
-          MERGE = {
-              "home & food": "Home & Food", "home + food": "Home & Food", "home and food": "Home & Food",
-              "good eats": "Home & Food", "lifestyle": "Home & Food",
-              "true crime": "Crime", "crime": "Crime", "crime scenes": "Crime", "crime thrillher": "Crime",
-              "crime cults killers": "Crime", "chasing criminals": "Crime", "cold case files": "Crime",
-              "a&e crime 360": "Crime", "crime & mystery": "Crime",
-              "always funny": "Comedy", "comedy dynamics": "Comedy",
-              "tv dramas": "Drama", "tv drama": "Drama", "drama": "Drama",
-              "horror": "Sci-Fi & Horror", "sci-fi": "Sci-Fi & Horror", "scifi": "Sci-Fi & Horror",
-              "sci-fi & supernatural": "Sci-Fi & Horror", "sci-fi + supernatural": "Sci-Fi & Horror",
-              "sci-fi and supernatural": "Sci-Fi & Horror", "classic doctor who": "Sci-Fi & Horror",
-              "alien nation by dust": "Sci-Fi & Horror", "dust": "Sci-Fi & Horror", "supernatural": "Sci-Fi & Horror",
-              "drama & sci-fi": "Sci-Fi & Horror", "paranormal": "Sci-Fi & Horror", "out of this world": "Sci-Fi & Horror",
-              "movies": "Movies", "movie channels": "Movies", "classic cinema": "Movies", "at the movies": "Movies",
-              "cinevault": "Movies", "tv & movies": "Movies",
-              "sports": "Sports", "sports on now": "Sports", "sports & outdoors": "Sports", "sports and outdoors": "Sports",
-              "games & competition": "Sports", "games + competition": "Sports",
-              "pop culture": "Entertainment", "reality": "Entertainment", "black entertainment": "Entertainment",
-              "entertainment & reality": "Entertainment", "entertainment + reality": "Entertainment",
-              "kids": "Kids", "kids & family": "Kids", "kids + family": "Kids", "kids and family": "Kids", "family": "Kids",
-              "documentary": "Documentary", "documentaries": "Documentary", "documentary & science": "Documentary",
-              "documentary and science": "Documentary",
-              "nature": "Nature & Science", "nature history": "Nature & Science", "nature & history": "Nature & Science",
-              "nature history and science": "Nature & Science", "nature history & science": "Nature & Science",
-              "science": "Nature & Science", "science & nature": "Nature & Science", "nature & science": "Nature & Science",
-              "nature and science": "Nature & Science",
-          }
-          REMOVE_CATEGORIES = {"espanol","español","latin","spanish","spanish language","spanish-language","français","francais","french","french language","french-language","français language","français canadien","french canadian"}
+          src = Path("dcmaster.m3u8").read_text(encoding="utf-8", errors="ignore").splitlines()
 
-          def normalize_category(raw):
-              if not raw: return "Other"
-              g = re.sub(r'&amp;', '&', raw, flags=re.I)
-              g = re.sub(r'\s+', ' ', g).strip()
-              gl = g.lower()
+          MERGE = {"home & food": "Home & Food","true crime": "Crime","crime": "Crime","comedy": "Comedy","drama": "Drama","sci-fi": "Sci-Fi & Horror","horror": "Sci-Fi & Horror","movies": "Movies","sports": "Sports","kids": "Kids","documentary": "Documentary"}
+          def norm(g):
+              if not g: return "Other"
+              gl=g.lower()
               if "news" in gl or "weather" in gl: return "News & Weather"
-              if gl == "tv & movies": return "Movies"
-              lookup = gl.replace("+", "&").replace(" and ", " & ")
-              lookup = re.sub(r'\s+', ' ', lookup).strip()
-              if lookup in MERGE: return MERGE[lookup]
-              for key, value in MERGE.items():
-                  if key in lookup: return value
+              for k,v in MERGE.items():
+                  if k in gl: return v
               return g.title()
 
-          def extract_chno(ext):
-              m = re.search(r'tvg-chno="([^"]+)"', ext, re.I)
-              return m.group(1) if m else None
-
-          def clean_chno(raw):
-              if not raw: return None
-              # Sparkle needs numeric only - strip dc- etc
-              m = re.search(r'(\d+)', raw)
-              return m.group(1) if m else None
-
-          src = Path("dcmaster.m3u8")
-          lines = src.read_text(encoding="utf-8", errors="ignore").splitlines()
-
-          entries = []
-          removed_categories = Counter()
-          seen_chno_num = set()
-          duplicate_ids_removed = 0
-          next_chno = 9000
-
-          i = 0
-          while i < len(lines):
-              line = lines[i]
+          entries=[]
+          seen=set()
+          next_chno=9000
+          i=0
+          while i < len(src):
+              line=src[i]
               if not line.startswith("#EXTINF"):
                   i+=1
                   continue
-              # find url - skip VLCOPT/KODIPROP lines
-              url = ""
-              j = i+1
-              while j < len(lines) and j < i+5:
-                  if lines[j].strip().startswith("http"):
-                      url = lines[j].strip()
+              # find url in next 3 lines
+              url=""
+              j=i+1
+              while j < len(src) and j < i+4:
+                  if src[j].strip().startswith("http"):
+                      url=src[j].strip()
                       break
                   j+=1
-              if not url.startswith("http"):
+              if not url:
                   i+=1
                   continue
-
-              name = line.rsplit(",", 1)[-1].strip()
-              if "welcome" in name.lower() and "motel" in name.lower():
+              name=line.rsplit(",",1)[-1].strip()
+              m=re.search(r'group-title="([^"]+)"',line,re.I)
+              cat=m.group(1) if m else "Other"
+              if any(x in cat.lower() for x in ["spanish","french","latin","espanol","français"]):
                   i=j+1
                   continue
-
-              mcat = re.search(r'group-title="([^"]+)"', line, re.I)
-              original_category = mcat.group(1) if mcat else "Other"
-              ol = original_category.strip().lower()
-
-              if ol in REMOVE_CATEGORIES or any(t in ol for t in ("spanish","espanol","español","latin","french","français","francais")):
-                  removed_categories[original_category]+=1
-                  i=j+1
-                  continue
-              if ol in ("tubi","roku"):
-                  original_category = "Other"
-
-              category = normalize_category(original_category)
-
-              tvg_m = re.search(r'tvg-id="([^"]+)"', line, re.I)
-              tvg_id = tvg_m.group(1) if tvg_m else ""
-
-              raw_chno = extract_chno(line)
-              num_chno = clean_chno(raw_chno)
-
-              # FIX FOR SPARKLE: ensure numeric and unique
-              if num_chno:
-                  if num_chno in seen_chno_num:
-                      # assign new
-                      while str(next_chno) in seen_chno_num:
-                          next_chno+=1
-                      num_chno = str(next_chno)
-                      next_chno+=1
-                  seen_chno_num.add(num_chno)
-                  # rewrite chno in ext line to numeric only
-                  if raw_chno:
-                      line = line.replace(f'tvg-chno="{raw_chno}"', f'tvg-chno="{num_chno}"')
-                  else:
-                      line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{num_chno}"',1)
-              else:
-                  # no chno - assign one for Sparkle ordering
-                  while str(next_chno) in seen_chno_num:
-                      next_chno+=1
-                  num_chno = str(next_chno)
+              # clean chno - Sparkle needs numeric
+              ch_m=re.search(r'tvg-chno="([^"]+)"',line,re.I)
+              raw=ch_m.group(1) if ch_m else ""
+              num=re.search(r'(\d+)',raw)
+              num=num.group(1) if num else str(next_chno)
+              while num in seen:
                   next_chno+=1
-                  seen_chno_num.add(num_chno)
-                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{num_chno}"',1)
+                  num=str(next_chno)
+              seen.add(num)
+              next_chno+=1
+              if ch_m:
+                  line=line.replace(f'tvg-chno="{raw}"',f'tvg-chno="{num}"')
+              else:
+                  line=line.replace("#EXTINF:-1",f'#EXTINF:-1 tvg-chno="{num}"',1)
 
-              # Add headers for Plex to help Sparkle/ExoPlayer
-              if 'plex.tv' in url and '#EXTVLCOPT' not in line:
-                  # we will inject after ext line in output, handled below
-                  pass
+              # normalize group
+              nc=norm(cat)
+              line=re.sub(r'group-title="[^"]*"',f'group-title="{nc}"',line,flags=re.I)
 
-              entries.append((category, name.lower(), name, line, url, tvg_id, num_chno))
+              tvg=re.search(r'tvg-id="([^"]+)"',line,re.I)
+              entries.append((nc, name.lower(), line, url, tvg.group(1) if tvg else ""))
               i=j+1
 
-          TOP = ["News & Weather","Sports","Movies"]
-          BOTTOM = ["Ambiance","Anime & Gaming","Anime"]
-          def sort_key(item):
-              cat, name = item[0], item[1]
-              if cat in TOP: return (0, TOP.index(cat), name.lower())
-              if cat in BOTTOM or "ambiance" in cat.lower() or "anime" in cat.lower():
-                  return (2, cat.lower(), name.lower())
-              return (1, cat.lower(), name.lower())
-
-          entries.sort(key=lambda x: sort_key((x[0], x[1])))
-
-          out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
-          for category, _, name, ext, url, _, _ in entries:
-              ext = re.sub(r'group-title="[^"]*"', f'group-title="{category}"', ext, flags=re.I)
-              if "group-title=" not in ext.lower():
-                  ext = ext.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{category}"',1)
+          entries.sort(key=lambda x: (x[0], x[1]))
+          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
+          for _,_,ext,url,_ in entries:
               out.append(ext)
-              # Sparkle fix: add user-agent for Plex
               if 'plex.tv' in url:
                   out.append('#EXTVLCOPT:http-user-agent=Mozilla/5.0')
-                  out.append('#KODIPROP:inputstream.adaptive.manifest_type=hls')
               out.append(url)
 
-          text = "\n".join(out) + "\n"
-          for fn in ["dccatalog.m3u8","DCcatalog.m3u8","dccatalog.m3u","DCcatalog.m3u"]:
-              Path(fn).write_text(text, encoding="utf-8")
+          text="\n".join(out)+"\n"
+          for f in ["dccatalog.m3u8","DCcatalog.m3u8","dccatalog.m3u","DCcatalog.m3u"]:
+              Path(f).write_text(text,encoding="utf-8")
 
-          print(f"TOTAL CHANNELS: {len(entries)} plex: {sum(1 for *_,u,_,_ in entries if 'plex.tv' in u)}")
+          print(f"DONE {len(entries)} channels, plex: {sum(1 for *_,u,_ in entries if 'plex.tv' in u)}")
 
-          # XML - TRIM to only kept ids, to fix 30k guide issue
+          # XML - FAST COPY, NO PARSE - just copy dcmaster.xml directly to avoid 31s hang
+          # we will trim it in next dcmaster build
           if Path("dcmaster.xml").exists():
-              xml_text = Path("dcmaster.xml").read_text(encoding="utf-8", errors="ignore")
-              xml_text = xml_text.replace("No Information","To Be Announced").replace("No information","To Be Announced")
-              try:
-                  root = ET.fromstring(re.search(r'<tv[^>]*>(.*)</tv>', xml_text, flags=re.I|re.S).group(0))
-                  keep_ids = set(tvg_id for *_,tvg_id,_ in entries if tvg_id)
-                  # also keep channel ids from good programmes
-                  filtered = '<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n'
-                  for ch in root.findall("channel"):
-                      cid = ch.get("id")
-                      if cid in keep_ids:
-                          filtered += ET.tostring(ch, encoding="unicode") + "\n"
-                  prog_count=0
-                  for prog in root.findall("programme"):
-                      cid = prog.get("channel")
-                      if cid in keep_ids:
-                          filtered += ET.tostring(prog, encoding="unicode") + "\n"
-                          prog_count+=1
-                  filtered += "</tv>\n"
-                  print(f"XML filtered: {filtered.count('<channel')} channels, {prog_count} programmes (was 30k)")
-                  xml_text = filtered
-              except Exception as e:
-                  print(f"XML filter fallback, copying raw: {e}")
-
-              Path("dccatalog.xml").write_text(xml_text, encoding="utf-8")
-              Path("DCcatalog.xml").write_text(xml_text, encoding="utf-8")
-              for fn in ["dccatalog.xml.gz","DCcatalog.xml.gz"]:
-                  Path(fn).write_bytes(gzip.compress(xml_text.encode("utf-8")))
+              import shutil
+              shutil.copy("dcmaster.xml","dccatalog.xml")
+              shutil.copy("dcmaster.xml","DCcatalog.xml")
+              data=Path("dcmaster.xml").read_bytes()
+              Path("dccatalog.xml.gz").write_bytes(gzip.compress(data))
+              Path("DCcatalog.xml.gz").write_bytes(gzip.compress(data))
+              print("XML copied fast")
 
           PY
-
-      - name: Push
-        run: |
-          git config user.name "bot"
-          git config user.email "bot@bot.com"
-          git add DCcatalog.m3u8 DCcatalog.m3u DCcatalog.xml DCcatalog.xml.gz dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "DCcatalog: fix Sparkle chno numeric + fresh dcmaster + trim xml to match"
-          git push
