@@ -1,18 +1,14 @@
 name: dcmaster
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build DCMASTER2 - Plex first + dcmaster base + Roku
+      - name: Build DCMASTER - dcfull + plex + tubiroku + Roku scrape
         run: |
           python3 << 'PY'
           import os, gzip, re, shutil, requests
@@ -26,9 +22,7 @@ jobs:
               return None
 
           def find_xml(base):
-              if base=='plex-ca' and os.path.exists('plex-ca.xml.gz'):
-                  return 'plex-ca.xml.gz'
-              for ext in ['.xml','.xml.gz']:
+              for ext in ['.xml.gz','.xml']:
                   p=base+ext
                   if os.path.exists(p):
                       return p
@@ -37,7 +31,7 @@ jobs:
 
           def load_m3u_clean(path):
               if not path or not os.path.exists(path):
-                  print(f"SKIP missing m3u {path}")
+                  print(f"SKIP {path}")
                   return []
               ch=[]
               with open(path,encoding='utf-8',errors='ignore') as f:
@@ -51,255 +45,114 @@ jobs:
               return ch
 
           def load_blocks(text):
-              blocks=[]
-              cur=[]
+              blocks=[]; cur=[]
               for l in text.replace("\r","").split("\n"):
                   l=l.strip()
-                  if not l:
-                      continue
+                  if not l: continue
                   if l.startswith("#EXTINF"):
-                      if cur:
-                          blocks.append(cur)
+                      if cur: blocks.append(cur)
                       cur=[l]
                   elif l.startswith("http"):
-                      cur.append(l)
-                      blocks.append(cur)
-                      cur=[]
+                      cur.append(l); blocks.append(cur); cur=[]
               return blocks
 
           def extract_tv(path):
               if not path or not os.path.exists(path):
-                  print(f"SKIP missing xml {path}")
+                  print(f"SKIP xml {path}")
                   return ''
-              if path.endswith('.gz'):
-                  text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
-              else:
-                  with open(path,'rb') as fb:
-                      is_gz=fb.read(3)==b'\x1f\x8b\x08'
-                  if is_gz:
-                      text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
-                  else:
-                      text=open(path,encoding='utf-8',errors='ignore').read()
-              text=re.sub(r'<\?xml[^?]*\?>','',text,flags=re.I)
-              text=re.sub(r'<!DOCTYPE[^>]*>','',text,flags=re.I)
-              m=re.search(r'<tv[^>]*>(.*)</tv>',text,flags=re.I|re.S)
+              txt=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read() if path.endswith('.gz') else open(path,encoding='utf-8',errors='ignore').read()
+              txt=re.sub(r'<\?xml[^?]*\?>','',txt,flags=re.I)
+              txt=re.sub(r'<!DOCTYPE[^>]*>','',txt,flags=re.I)
+              m=re.search(r'<tv[^>]*>(.*)</tv>',txt,flags=re.I|re.S)
               return m.group(1) if m else ''
 
-          # Plex FIRST - clean, no prefix
-          plex_m3u_path=find_m3u('plex-ca')
-          plex_xml_path=find_xml('plex-ca')
-          plex_m3u=load_m3u_clean(plex_m3u_path)
-          plex_xml=extract_tv(plex_xml_path)
-          print(f"Plex loaded: {len(plex_m3u)}")
+          # === 1. PLEX FIRST - CLEAN NO PREFIX ===
+          plex_m3u=load_m3u_clean(find_m3u('plex-ca'))
+          plex_xml=extract_tv(find_xml('plex-ca'))
+          print(f"Plex: {len(plex_m3u)}")
 
-          # dcmaster base = whatever worked in dcmaster (fallback to dcfull)
-          dc_m3u_path=find_m3u('dcmaster') or find_m3u('dcfull')
-          dc_xml_path=find_xml('dcmaster') or find_xml('dcfull')
-          dc_m3u_raw=load_m3u_clean(dc_m3u_path)
-          dc_xml_raw=extract_tv(dc_xml_path)
-          print(f"DC base loaded: {len(dc_m3u_raw)}")
+          # === 2. DCFULL + TUBIROKU - PREFIXED dc- ===
+          base_sources = ['dcfull', 'tubiroku'] # your original combo
+          base_m3u_raw=[]
+          base_xml_raw=''
+          for src in base_sources:
+              base_m3u_raw += load_m3u_clean(find_m3u(src))
+              base_xml_raw += '\n' + extract_tv(find_xml(src))
 
-          # namespace DC base to avoid same id!= same channel
+          print(f"Base raw dcfull+tubiroku: {len(base_m3u_raw)}")
+
+          # namespace to avoid same id!= same channel
           dc_m3u=[]
-          for extinf,url in dc_m3u_raw:
+          for extinf,url in base_m3u_raw:
               if 'tvg-id="' in extinf:
                   extinf=re.sub(r'tvg-id="', 'tvg-id="dc-', extinf)
               dc_m3u.append((extinf,url))
-          dc_xml=dc_xml_raw.replace('<channel id="', '<channel id="dc-').replace(' channel="', ' channel="dc-').replace('dc-dc-','dc-')
+          dc_xml=base_xml_raw.replace('<channel id="', '<channel id="dc-').replace(' channel="', ' channel="dc-').replace('dc-dc-','dc-')
 
-          # ============================================================
-          # ROKU
-          #
-          # THIS IS THE ONLY NEW SOURCE BEING ADDED.
-          # Plex and dcmaster handling above is unchanged.
-          # ============================================================
-
+          # === 3. ROKU SCRAPE 5600-5999 ===
           roku_blocks=[]
           sources = [
               "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
               "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
           ]
-
           for src in sources:
               try:
-                  r=requests.get(
-                      src,
-                      timeout=20,
-                      headers={'User-Agent':'Mozilla/5.0'}
-                  )
-
+                  r=requests.get(src,timeout=20,headers={'User-Agent':'Mozilla/5.0'})
                   if r.ok and "#EXTINF" in r.text:
                       tmp=load_blocks(r.text)
-
                       if len(tmp)>10:
                           roku_blocks=tmp
-                          print(f"ROKU scraped {len(tmp)} from {src}")
+                          print(f"ROKU {len(tmp)} from {src}")
                           break
-
               except Exception as e:
                   print(f"ROKU fail {src}: {e}")
 
-          # Roku gets 5600-5999
-          roku_m3u=[]
-          chno=5600
-
+          roku_m3u=[]; chno=5600; roku_extra=""
           for b in roku_blocks:
-
-              if chno > 5999:
-                  print("ERROR: Roku exceeds 5600-5999 range")
-                  raise SystemExit(1)
-
-              if not b:
-                  continue
-
-              extinf=b[0]
-              url=b[-1]
-
-              m=re.search(r'tvg-id="([^"]+)"',extinf)
-              tid=m.group(1) if m else ""
-
+              if chno>5999: break
+              if not b: continue
+              extinf=b[0]; url=b[-1]
+              m=re.search(r'tvg-id="([^"]+)"',extinf); tid=m.group(1) if m else ""
               if not tid:
                   name=extinf.split(",")[-1].strip()
-                  tid="roku."+re.sub(
-                      r'[^a-z0-9]+',
-                      '-',
-                      name.lower()
-                  ).strip("-")
-
-                  extinf=re.sub(
-                      r'tvg-id="[^"]*"',
-                      '',
-                      extinf
-                  )
-
-                  extinf=extinf.replace(
-                      "#EXTINF:-1",
-                      f'#EXTINF:-1 tvg-id="{tid}"',
-                      1
-                  )
-
-              extinf=re.sub(
-                  r'tvg-chno="[^"]*"',
-                  '',
-                  extinf
-              )
-
+                  tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
+                  extinf=re.sub(r'tvg-id="[^"]*"','',extinf)
+                  extinf=extinf.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
+              extinf=re.sub(r'tvg-chno="[^"]*"','',extinf)
               if 'group-title=' not in extinf.lower():
-                  extinf=extinf.replace(
-                      "#EXTINF:-1",
-                      f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',
-                      1
-                  )
+                  extinf=extinf.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
               else:
-                  extinf=extinf.replace(
-                      "#EXTINF:-1",
-                      f'#EXTINF:-1 tvg-chno="{chno}"',
-                      1
-                  )
-
+                  extinf=extinf.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
               roku_m3u.append((extinf,url))
+              name=extinf.split(",")[-1].strip()
+              roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n'
+              roku_extra+=f'<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
               chno+=1
 
-          print(
-              f"Roku M3U added: {len(roku_m3u)} "
-              f"(5600-{chno-1})"
-          )
-
-          # ============================================================
-          # MERGE
-          #
-          # Plex is still first and completely unchanged.
-          # dcmaster is unchanged.
-          # Roku is simply appended.
-          # ============================================================
-
+          # === 4. MERGE Plex first ===
           merged=plex_m3u + dc_m3u + roku_m3u
-
-          # ============================================================
-          # ROKU GUIDE
-          # ============================================================
-
-          roku_extra=""
-
-          for extinf,url in roku_m3u:
-
-              mm=re.search(
-                  r'tvg-id="([^"]+)"',
-                  extinf
-              )
-
-              tid=mm.group(1) if mm else ""
-
-              name=extinf.split(",")[-1].strip()
-
-              if tid:
-                  roku_extra += (
-                      f'<channel id="{tid}">'
-                      f'<display-name>{name}</display-name>'
-                      f'</channel>\n'
-                  )
-
-                  roku_extra += (
-                      f'<programme '
-                      f'start="20260101000000 +0000" '
-                      f'stop="20261231235959 +0000" '
-                      f'channel="{tid}">'
-                      f'<title>{name}</title>'
-                      f'<desc>Live on Roku Channel</desc>'
-                      f'</programme>\n'
-                  )
-
-          # ============================================================
-          # EVERYTHING BELOW HERE IS THE WORKING VERSION
-          # WITH ROKU ADDED TO THE XML.
-          # ============================================================
-
           xml_body=plex_xml + '\n' + dc_xml + '\n' + roku_extra
+          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',xml_body)
 
-          xml_body=re.sub(
-              r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)',
-              '&amp;',
-              xml_body
-          )
+          m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
+          open('dcmaster.m3u8','w',encoding='utf-8').write(m3u_out)
+          open('dcmaster.m3u','w',encoding='utf-8').write(m3u_out)
 
-          m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster2.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
+          final_xml='<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n'+xml_body+'\n</tv>\n'
+          open('dcmaster.xml','w',encoding='utf-8').write(final_xml)
+          with gzip.open('dcmaster.xml.gz','wb') as f:
+              f.write(final_xml.encode('utf-8'))
 
-          open(
-              'dcmaster2.m3u8',
-              'w',
-              encoding='utf-8'
-          ).write(m3u_out)
-
-          open(
-              'dcmaster2.m3u',
-              'w',
-              encoding='utf-8'
-          ).write(m3u_out)
-
-          final_xml='<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n' + xml_body + '\n</tv>\n'
-
-          open(
-              'dcmaster2.xml',
-              'w',
-              encoding='utf-8'
-          ).write(final_xml)
-
-          with open('dcmaster2.xml','rb') as fin:
-              with gzip.open('dcmaster2.xml.gz','wb') as fout:
-                  shutil.copyfileobj(fin,fout)
-
-          print(f"\nFINAL M3U {len(merged)} (plex {len(plex_m3u)} + dc {len(dc_m3u)} + roku {len(roku_m3u)})")
-          print(f"FINAL XML {final_xml.count('<channel ')} ch / {final_xml.count('<programme')} prog")
+          print(f"\nFINAL dcmaster {len(merged)} (plex {len(plex_m3u)} + dcfull+tubiroku {len(dc_m3u)} + roku {len(roku_m3u)})")
+          print(f"XML {final_xml.count('<channel ')} ch / {final_xml.count('<programme')} prog")
           PY
-
       - name: Validate XML
         run: |
           sudo apt-get update -y && sudo apt-get install -y libxml2-utils
-          xmllint --noout dcmaster2.xml && echo "XML OK"
-
+          xmllint --noout dcmaster.xml && echo "XML OK"
       - name: Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dcmaster2.m3u8 dcmaster2.m3u dcmaster2.xml dcmaster2.xml.gz -f
-          git diff --cached --quiet || (git commit -m "dcmaster2 add Roku only" && git push)
+          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml dcmaster.xml.gz -f
+          git diff --cached --quiet || (git commit -m "dcmaster fixed - dcfull+tubiroku + plex first + roku 5600-5999 id fixed" && git push)
