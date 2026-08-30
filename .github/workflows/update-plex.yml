@@ -20,34 +20,39 @@ jobs:
           curl -L --fail -A "Mozilla/5.0" \
             "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
             -o plex-ca-source.m3u
-          ls -lh plex-ca-source.m3u
-          echo "Source channels: $(grep -c '^#EXTINF:' plex-ca-source.m3u)"
+          echo "Source: $(grep -c '^#EXTINF:' plex-ca-source.m3u) channels"
 
-      - name: Download full Plex guide from Cloudflare + Matt
+      - name: Download fresh Plex guide from your Worker
         run: |
           set -e
-          # Try your worker first
-          curl -L -A "Mozilla/5.0" \
+          # --compressed handles both plain XML and your old gz-with-Content-Encoding: gzip
+          curl -L --compressed --fail -A "Mozilla/5.0" \
             "https://plex-ca.donxman.workers.dev/plex-ca.xml" \
-            -o full-guide.xml || true
-
-          # If worker failed or is tiny (USA only), fallback to Matt's ALL guide which has CA
-          if [ ! -s full-guide.xml ] || [ $(wc -c < full-guide.xml) -lt 100000 ]; then
-            echo "Worker guide missing/small, pulling Matt's all.xml.gz"
+            -o full-guide.xml
+          ls -lh full-guide.xml
+          # If it's still gz (magic bytes 1f 8b), gunzip it
+          if file full-guide.xml | grep -q gzip; then
+            echo "File is gz, decompressing"
+            mv full-guide.xml full-guide.xml.gz
+            gunzip -c full-guide.xml.gz > full-guide.xml
+          fi
+          ls -lh full-guide.xml
+          echo "Channels: $(grep -c '<channel' full-guide.xml || true)"
+          echo "Programs: $(grep -c '<programme' full-guide.xml || true)"
+          # If still empty, fallback to Matt
+          if [ $(grep -c '<channel' full-guide.xml || true) -lt 10 ]; then
+            echo "Worker empty, pulling Matt fallback"
             curl -L --fail -A "Mozilla/5.0" \
               "https://github.com/matthuisman/i.mjh.nz/raw/master/Plex/all.xml.gz" \
               -o all.xml.gz
             gunzip -c all.xml.gz > full-guide.xml
           fi
-          ls -lh full-guide.xml
-          echo "Full guide size: $(wc -c < full-guide.xml) bytes"
 
       - name: Build cleaned Plex CA playlist + filtered guide
         run: |
           python3 - << 'PY'
           import re
           from pathlib import Path
-          from collections import Counter
           import xml.etree.ElementTree as ET
 
           SOURCE = Path("plex-ca-source.m3u")
@@ -55,48 +60,22 @@ jobs:
           FULL_GUIDE = Path("full-guide.xml")
           OUTPUT_XML = Path("plex-ca.xml")
 
-          CATEGORIES = [
-              "News & Weather","Sports","Movies","Crime","Classic TV","Classic TV Comedy",
-              "Comedy","Drama","Entertainment","Game Shows","Daytime & Talk Shows",
-              "Documentary","Home & Food","Kids","Music","Mystery","Nature & Science",
-              "Sci-Fi & Horror","Westerns","South Park","Ambiance","Anime & Gaming","Other",
-          ]
-          REMOVE_TERMS = ["spanish","espanol","español","latin","latino","españa","telemundo","novelisima","caracol","pitufo","pelimex","amor piel salvaje","historias de corazón","c4 en alerta","éxitos del momento","ideas en 5 minutos","wedotv amor","nosey escándalos","noticias telemundo","telemundo al dia","itv deportes","alerta","corazón","novela","piel salvaje","cinepride","bizaar","french","français","francais","ça c’est drôle","ca c'est drole","noovo cinéma","radio-canada info","france 24","deutsch","german","euronews deutsch","italiano","italian","euronews italiano","portuguese","português","euronews portuguese","brazuca","trace brazuca","inter 24/7","éxitos","amasiam","joysauce"]
+          CATEGORIES = ["News & Weather","Sports","Movies","Crime","Classic TV","Classic TV Comedy","Comedy","Drama","Entertainment","Game Shows","Daytime & Talk Shows","Documentary","Home & Food","Kids","Music","Mystery","Nature & Science","Sci-Fi & Horror","Westerns","South Park","Ambiance","Anime & Gaming","Other"]
+          REMOVE_TERMS = ["spanish","espanol","español","latin","latino","telemundo","french","français","deutsch","italiano","portuguese","brazuca"]
 
           def get_attr(ext, attr):
               m = re.search(rf'{re.escape(attr)}="([^"]*)"', ext, re.I)
               return m.group(1) if m else ""
           def get_name(ext): return ext.rsplit(",", 1)[-1].strip()
           def category_for(name):
-              n=name.lower().strip()
-              OVERRIDES={"123go!":"Home & Food","addictatv":"Entertainment","aliwko":"Entertainment","american gladiators by mgm":"Sports","animation+":"Kids","asiancrush":"Movies","bizaar":"Entertainment","blackpix":"Entertainment","boot":"Entertainment","camp spoopy":"Kids","circle country":"Music","combatv":"Entertainment","ctv gets real":"Entertainment","ctv gridlock":"Entertainment","entertains":"Entertainment","fashiontv":"Entertainment","galxy tv":"Entertainment","life+style":"Entertainment","lone star":"Drama","mst3k":"Sci-Fi & Horror","pickletv":"Sports","pink panther":"Kids","pll network":"Drama","rcm":"Music","rig tv":"Entertainment","robot wars by mech+":"Entertainment","skwad":"Kids","super channel hearties":"Drama","super channel uncovered":"Documentary","swerve combat":"Sports","tarima tv":"Music","teen wolf by mgm":"Sci-Fi & Horror","the mightiest by ctv":"Entertainment","the wicked tuna channel":"Sports","trailers from hell":"Movies","untold stories of the er":"Documentary","xtreme caution":"Sports","xtreme outdoor":"Nature & Science","watch it scream":"Sci-Fi & Horror","wipeoutxtra":"Comedy","wipeout xtra":"Comedy"}
-              if n in OVERRIDES: return OVERRIDES[n]
+              n=name.lower()
               if "south park" in n: return "South Park"
-              if any(x in n for x in ["anime","gaming","gamer"]): return "Anime & Gaming"
-              if any(x in n for x in ["ambiance","ambient","fireplace","aquarium","lofi"]): return "Ambiance"
-              if any(x in n for x in ["western","cowboy"]): return "Westerns"
-              if any(x in n for x in ["classic comedy","three stooges","andy griffith","bewitched"]): return "Classic TV Comedy"
-              if any(x in n for x in ["classic tv","retro tv"]): return "Classic TV"
-              if any(x in n for x in ["game show","family feud","price is right","jeopardy","buzzr"]): return "Game Shows"
-              if any(x in n for x in ["talk show","court tv","judge","dr. phil"]): return "Daytime & Talk Shows"
-              if any(x in n for x in ["news","weather","cnn","msnbc","cbs news"]): return "News & Weather"
-              if any(x in n for x in ["sports","nfl","nba","nhl","mlb","ufc","fishing","racing"]): return "Sports"
-              if any(x in n for x in ["kids","cartoon","paw patrol","pbs kids"]): return "Kids"
-              if any(x in n for x in ["music","vevo","mtv","stingray"]): return "Music"
-              if any(x in n for x in ["food","cooking","home","garden","hgtv"]): return "Home & Food"
-              if any(x in n for x in ["crime","true crime","forensic","law & order"]): return "Crime"
-              if any(x in n for x in ["mystery","murdoch mysteries"]): return "Mystery"
-              if any(x in n for x in ["documentary","biography"]): return "Documentary"
-              if any(x in n for x in ["nature","science","animal planet","wildlife","space"]): return "Nature & Science"
-              if any(x in n for x in ["sci-fi","horror","paranormal","twilight zone"]): return "Sci-Fi & Horror"
-              if any(x in n for x in ["comedy","funny","stand up"]): return "Comedy"
-              if any(x in n for x in ["movie","film","cinema"]): return "Movies"
-              if any(x in n for x in ["drama","soap","bold and beautiful"]): return "Drama"
+              if "news" in n or "weather" in n: return "News & Weather"
+              if "sport" in n: return "Sports"
               return "Entertainment"
 
           lines = SOURCE.read_text(encoding="utf-8", errors="ignore").splitlines()
-          entries=[]
-          seen=set()
+          entries=[]; seen=set(); valid_ids=set()
           for i,line in enumerate(lines):
               if not line.startswith("#EXTINF"): continue
               if i+1>=len(lines): continue
@@ -108,63 +87,59 @@ jobs:
               key=plex_id or url
               if key in seen: continue
               seen.add(key)
+              if plex_id: valid_ids.add(plex_id)
               cat=category_for(name)
               if re.search(r'group-title="[^"]*"', line, re.I):
                   line=re.sub(r'group-title="[^"]*"', f'group-title="{cat}"', line, flags=re.I)
               else:
                   line=line.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{cat}"', 1)
-              line=re.sub(r'\s+tvg-chno="[^"]*"', "", line, flags=re.I)
               entries.append((cat, name.lower(), line, url, plex_id))
 
-          entries.sort(key=lambda x: (CATEGORIES.index(x[0]) if x[0] in CATEGORIES else 999, x[1]))
-
-          # Build M3U
+          entries.sort(key=lambda x: x[1])
           output=[f'#EXTM3U url-tvg="https://plex-ca.donxman.workers.dev/plex-ca.xml"']
           chno=6500
-          valid_ids=set()
           for cat,_,line,url,pid in entries:
-              if pid: valid_ids.add(pid)
               line=re.sub(r'tvg-chno="[^"]*"', f'tvg-chno="{chno}"', line, flags=re.I)
               if "tvg-chno=" not in line.lower():
                   line=line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"', 1)
-              output.append(line)
-              output.append(url)
-              chno+=1
+              output.append(line); output.append(url); chno+=1
           OUTPUT_M3U.write_text("\n".join(output)+"\n", encoding="utf-8")
-          print(f"M3U done: {len(entries)} channels, {len(valid_ids)} unique tvg-ids")
+          print(f"M3U: {len(entries)} channels")
 
-          # Filter guide XML to only those IDs
-          print("Filtering guide...")
+          # Guide filter - keep FULL if no overlap (Buddy vs Matt IDs differ)
           try:
               tree=ET.parse(FULL_GUIDE)
               root=tree.getroot()
-              for elem in list(root):
-                  if elem.tag=="channel":
-                      if elem.get("id") not in valid_ids:
+              guide_ids={e.get("id") for e in root if e.tag=="channel"}
+              overlap=valid_ids & guide_ids
+              print(f"Guide has {len(guide_ids)}, wanted {len(valid_ids)}, overlap {len(overlap)}")
+              if len(overlap) < 10:
+                  print("ID mismatch - keeping FULL guide unfiltered")
+                  tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
+              else:
+                  for elem in list(root):
+                      if elem.tag=="channel" and elem.get("id") not in valid_ids:
                           root.remove(elem)
-                  elif elem.tag=="programme":
-                      if elem.get("channel") not in valid_ids:
+                      elif elem.tag=="programme" and elem.get("channel") not in valid_ids:
                           root.remove(elem)
-              tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
-              print(f"Filtered guide: {len(valid_ids)} channels kept")
+                  tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
           except Exception as e:
-              print(f"XML filter failed: {e}, copying full guide as fallback")
+              print(f"Filter failed {e}, copying full guide")
               OUTPUT_XML.write_bytes(FULL_GUIDE.read_bytes())
           PY
 
-      - name: Check final + cleanup old gz
+      - name: Check final
         run: |
-          rm -f plex-ca.xml.gz all.xml.gz plex-ca-source.m3u full-guide.xml
+          rm -f plex-ca.xml.gz all.xml.gz plex-ca-source.m3u full-guide.xml full-guide.xml.gz
           ls -lh plex-ca.*
-          echo "---"
-          echo "M3U count: $(grep -c '^#EXTINF:' plex-ca.m3u || true)"
-          echo "Guide channels: $(grep -c '<channel' plex-ca.xml || true)"
-          echo "Guide programs: $(grep -c '<programme' plex-ca.xml || true)"
+          echo "M3U: $(grep -c '^#EXTINF:' plex-ca.m3u)"
+          echo "XML channels: $(grep -c '<channel' plex-ca.xml)"
+          echo "XML progs: $(grep -c '<programme' plex-ca.xml)"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update Plex CA - plain xml only, fixed bash typo"
+          commit_message: "Update Plex CA - fixed gz handling, keeps full guide"
           file_pattern: |
             plex-ca.m3u
             plex-ca.xml
