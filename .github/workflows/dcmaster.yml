@@ -2,6 +2,8 @@ name: Build DCMASTER
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 6,18 * * *' # your 6am + 6pm build
 
 jobs:
   build:
@@ -16,104 +18,61 @@ jobs:
         run: |
           python3 << 'PY'
           import re, glob, gzip, shutil
-          from pathlib import Path
 
           def get_inner(path):
-              # handles.xml that is actually gz bytes, and.xml.gz
               if path.endswith('.gz'):
                   with gzip.open(path, 'rt', encoding='utf-8', errors='ignore') as f:
                       t = f.read()
               else:
-                  try:
-                      data = Path(path).read_bytes()[:3]
-                      if data == b'\x1f\x8b\x08': # gz magic bytes saved as.xml
-                          print(f"{path} is gz bytes but named.xml - decompressing")
-                          with gzip.open(path, 'rt', encoding='utf-8', errors='ignore') as f:
-                              t = f.read()
-                      else:
-                          t = open(path, encoding='utf-8', errors='ignore').read()
-                  except Exception as e:
-                      print(f"read fail {path}: {e}")
-                      return ""
-
+                  t = open(path, encoding='utf-8', errors='ignore').read()
               t = re.sub(r'<\?xml[^?]*\?>', '', t, flags=re.I)
               t = re.sub(r'<!DOCTYPE[^>]*>', '', t, flags=re.I)
               m1 = re.search(r'<tv[^>]*>', t, re.I)
               m2 = re.search(r'</tv\s*>', t, re.I)
               if m1 and m2:
                   t = t[m1.end():m2.start()]
-              # fix stray &
               t = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)', '&amp;', t)
               return t
 
           def load_m3u(patterns):
               out = []
-              seen_url = set()
               for pat in patterns:
                   for f in glob.glob(pat):
                       if 'dcmaster' in f or 'dccatalog' in f:
-                          continue
-                      if f.endswith('.gz'):
                           continue
                       try:
                           lines = open(f, encoding='utf-8', errors='ignore').read().splitlines()
                           for i, l in enumerate(lines):
                               if l.startswith('#EXTINF') and i + 1 < len(lines):
                                   url = lines[i + 1].strip()
-                                  if url.startswith('http') and url not in seen_url:
-                                      seen_url.add(url)
+                                  if url.startswith('http'):
                                       out.append((l, url))
                       except Exception as e:
                           print(f"skip {f} {e}")
               return out
 
-          # ---- M3U ----
-          # keep your original file names, but dedup by URL
-          merged = load_m3u(['dcfull.m3u', 'plex-ca.m3u', 'tubiroku.m3u'])
-          # fallback to wildcard if exact not found
-          if len(merged) < 100:
-              merged = load_m3u(['dcfull.m3u*', 'plex-ca.m3u*', 'tubiroku.m3u*'])
-
+          merged = load_m3u(['dcfull.m3u*', 'plex-ca.m3u*', 'tubiroku.m3u*'])
           print(f"MERGED: {len(merged)} channels")
-
           m3u_content = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml.gz"\n' + "\n".join([f"{a}\n{b}" for a, b in merged]) + "\n"
           open('dcmaster.m3u8', 'w', encoding='utf-8').write(m3u_content)
           open('dcmaster.m3u', 'w', encoding='utf-8').write(m3u_content)
 
-          # ---- XML ----
           xml_parts = []
-          for pat in ['dcfull.xml', 'plex-ca.xml', 'tubiroku.xml']:
-              files = []
-              # prefer.xml, fallback to.xml.gz
-              if Path(pat).exists():
-                  files = [pat]
-              elif Path(pat + '.gz').exists():
-                  files = [pat + '.gz']
-              else:
-                  files = glob.glob(pat + '*')
-
-              for f in files:
+          for pat in ['dcfull.xml*', 'plex-ca.xml*', 'tubiroku.xml*']:
+              for f in glob.glob(pat):
                   if 'dcmaster' in f or 'dccatalog' in f:
                       continue
                   if f.endswith('.m3u') or f.endswith('.m3u8'):
                       continue
-                  # don't load both.xml and.xml.gz of same source
-                  if f.endswith('.gz') and Path(f.replace('.gz','')).exists():
-                      print(f"skip {f} - have uncompressed version")
-                      continue
                   part = get_inner(f)
-                  if part:
-                      xml_parts.append(part)
-                      print(f"added {f} -> {len(part)} chars, channels {part.count('<channel ')} prog {part.count('<programme')}")
+                  xml_parts.append(part)
+                  print(f"added {f} -> {len(part)} chars, channels {part.count('<channel ')} prog {part.count('<programme')}")
 
           final_xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{"".join(xml_parts)}\n</tv>\n'
           open('dcmaster.xml', 'w', encoding='utf-8').write(final_xml)
-
-          # also write gz version for motel.deecee.ca
           with open('dcmaster.xml', 'rb') as fin:
               with gzip.open('dcmaster.xml.gz', 'wb') as fout:
                   shutil.copyfileobj(fin, fout)
-
           print(f"FINAL: {final_xml.count('<channel ')} channels, {final_xml.count('<programme ')} programmes, {len(final_xml)} bytes")
           PY
 
@@ -132,5 +91,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml dcmaster.xml.gz -f
           git diff --cached --quiet && echo "no changes" && exit 0
-          git commit -m "fix: dcmaster include plex-ca.xml.gz - dedup + gz detection"
+          git commit -m "restore working dcmaster with schedule"
           git push
