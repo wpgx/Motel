@@ -87,10 +87,15 @@ jobs:
 
       - name: Check
         run: |
-          grep -c '^#EXTINF:' dcmaster.m3u8
-          grep -c '<channel ' dcmaster.xml
-          grep -c '<programme ' dcmaster.xml
-          xmllint --noout dcmaster.xml && echo "dcmaster.xml OK"
+          sudo apt-get update -y
+          sudo apt-get install -y libxml2-utils
+          echo "M3U channels:"
+          grep -c '^#EXTINF:' dcmaster.m3u8 || echo 0
+          echo "XML channels:"
+          grep -c '<channel ' dcmaster.xml || echo 0
+          echo "XML programmes:"
+          grep -c '<programme ' dcmaster.xml || echo 0
+          xmllint --noout dcmaster.xml && echo "dcmaster.xml OK" || (echo "BROKEN" && exit 1)
 
       - name: Push
         run: |
