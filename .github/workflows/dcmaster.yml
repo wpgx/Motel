@@ -1,127 +1,143 @@
-name: dcmaster
+name: Build DCmaster
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCMASTER
-        run: |
-          cat > /tmp/build.py << 'PY'
-          import re, requests, os, shutil
-
-          def load_blocks(text):
-              blocks=[]; cur=[]
-              for l in text.replace("\r","").split("\n"):
-                  l=l.strip()
-                  if not l: continue
-                  if l.startswith("#EXTINF"):
-                      if cur: blocks.append(cur)
-                      cur=[l]
-                  elif l.startswith("http"):
-                      cur.append(l); blocks.append(cur); cur=[]
-              return blocks
-
-          def load_file(f):
-              if not os.path.exists(f): return []
-              return load_blocks(open(f,encoding='utf-8',errors='ignore').read())
-
-          def get_group(b):
-              m=re.search(r'group-title=["\']([^"\']+)["\']', b[0], re.I)
-              return m.group(1).lower() if m else ""
-
-          def get_inner(path):
-              if not os.path.exists(path): return ""
-              txt=open(path,encoding='utf-8',errors='ignore').read()
-              return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
-
-          dcfull_blocks = load_file("dcfull.m3u8") or load_file("dcfull.m3u")
-          all_ch = [b for b in dcfull_blocks if 'all channel' in get_group(b)]
-          favs = [b for b in dcfull_blocks if 'favor' in get_group(b)]
-          rest = [b for b in dcfull_blocks if b not in all_ch and b not in favs]
-          dcfull_blocks = all_ch + favs + rest
-          print(f"DCFULL: All {len(all_ch)} + Fav {len(favs)} + Rest {len(rest)} = {len(dcfull_blocks)}")
-
-          tubi_blocks = load_file("tubiroku.m3u") or load_file("tubiroku.m3u8")
-          print(f"TUBI (from tubiroku): {len(tubi_blocks)}")
-
-          roku_blocks=[]
-          sources = [
-              "https://i.mjh.nz/Roku/us.m3u8",
-              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u"
-          ]
-          for src in sources:
-              try:
-                  r=requests.get(src, timeout=20, headers={'User-Agent':'Mozilla/5.0'})
-                  if r.ok and "#EXTINF" in r.text:
-                      tmp=load_blocks(r.text)
-                      if len(tmp)>10:
-                          roku_blocks=tmp
-                          print(f"ROKU scraped {len(tmp)} from {src}")
-                          break
-              except Exception as e:
-                  print(f"ROKU fail {src}: {e}")
-
-          final=[]
-          seen=set()
-          for b in dcfull_blocks:
-              url=b[-1]
-              if url not in seen:
-                  seen.add(url)
-                  final.append(b)
-
-          chno=5000
-          for b in tubi_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              if 'group-title=' not in b[0].lower():
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
-              else:
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
-
-          chno=8000
-          for b in roku_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              m=re.search(r'tvg-id="([^"]+)"',b[0]); tid=m.group(1) if m else ""
-              if not tid:
-                  name=b[0].split(",")[-1].strip()
-                  tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
-                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              if 'group-title=' not in b[0].lower():
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
-              else:
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
-
-          with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
-              for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
-          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
-
-          dcfull_xml = get_inner("dcfull.xml")
-          tubi_xml = get_inner("tubiroku.xml")
-          roku_extra=""
-          all_so_far = dcfull_xml + tubi_xml
-          for b in roku_blocks:
-              mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""
-              name=b[0].split(",")[-1].strip()
-              if tid and tid not in all_so_far:
-                  roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
-
-          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
-          print(f"DONE: dcfull {len(dcfull_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)} unique")
-          PY
-          python3 /tmp/build.py
-      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "dcmaster: dcfull + tubi 5000 + roku 8000 + plex 6500 (keep categories)"
-          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
+          fetch-depth: 0
+
+      - name: Get all sources fresh
+        run: |
+          curl -L --retry 3 -o plex-ca.m3u8 https://i.mjh.nz/Plex/ca.m3u8
+          curl -L --retry 3 -o plex-ca.xml https://i.mjh.nz/Plex/ca.xml
+          curl -L --retry 3 -o roku.m3u8 https://i.mjh.nz/Roku/us.m3u8
+          curl -L --retry 3 -o tubi.m3u8 https://i.mjh.nz/Tubi/us.m3u8
+          
+          # keep your old tubiroku file as fallback
+          if [ ! -f dcfull.m3u8 ]; then curl -L -o dcfull.m3u8 https://motel.deecee.ca/dcfull.m3u8; fi
+          if [ ! -f tubiroku.m3u ] && [ ! -f tubiroku.m3u8 ]; then
+            echo "using fresh tubi as tubiroku"
+            cp tubi.m3u8 tubiroku.m3u8
+          fi
+          
+          echo "dcfull=$(grep -c EXTINF dcfull.m3u8 2>/dev/null || echo 0) plex=$(grep -c EXTINF plex-ca.m3u8 2>/dev/null || echo 0) tubi=$(grep -c EXTINF tubi.m3u8 2>/dev/null || echo 0) roku=$(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0) tubiroku=$(grep -c EXTINF tubiroku.m3u 2>/dev/null; grep -c EXTINF tubiroku.m3u8 2>/dev/null || echo 0)"
+
+      - name: Build dcmaster - Plex 6500 + Tubi 5000 + Roku 8000
+        run: |
+          python3 << 'PY'
+          import os, re
+          def load_m3u(path):
+              if not os.path.exists(path) or os.path.getsize(path)==0: return []
+              lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
+              out=[]
+              for i,l in enumerate(lines):
+                  if l.startswith('#EXTINF') and i+1 < len(lines):
+                      u=lines[i+1].strip()
+                      if u.startswith('http'): out.append((l,u))
+              return out
+          def extract_xml_body(path):
+              import gzip, re
+              if not os.path.exists(path) or os.path.getsize(path)==0: return ''
+              txt=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read() if path.endswith('.gz') else open(path,encoding='utf-8',errors='ignore').read()
+              m=re.search(r'<tv[^>]*>(.*)</tv>',txt,flags=re.I|re.S)
+              return m.group(1) if m else txt
+
+          merged=[]; xml_body=''
+
+          # 1. PLEX FIRST - 6500 UNTOUCHED
+          plex_data=[]
+          for f in ['plex-ca.m3u8','plex-ca.m3u','plex.m3u8']:
+              if os.path.exists(f):
+                  d=load_m3u(f)
+                  if len(d)>50:
+                      plex_data=d; break
+          if not plex_data:
+              print("FATAL NO PLEX"); exit(1)
+          merged.extend(plex_data)
+          print(f"PLEX: {len(plex_data)}")
+
+          for f in ['plex-ca.xml','plex-ca.xml.gz','plex.xml']:
+              if os.path.exists(f):
+                  xml_body+=extract_xml_body(f)+'\n'; break
+
+          # 2. DCFULL (your main)
+          dcfull=load_m3u('dcfull.m3u8') or load_m3u('dcfull.m3u')
+          dc_added=0
+          for extinf,url in dcfull:
+              if any(url==u for _,u in merged): continue
+              # add dc- to tvg-id
+              if 'tvg-id="' in extinf and 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf and 'tvg-id="roku-' not in extinf:
+                  extinf=extinf.replace('tvg-id="','tvg-id="dc-')
+              merged.append((extinf,url)); dc_added+=1
+          print(f"DCFULL added {dc_added}")
+
+          # 3. TUBI - 5000
+          tubi_raw = load_m3u('tubiroku.m3u') or load_m3u('tubiroku.m3u8') or load_m3u('tubi.m3u8')
+          chno=5000; tubi_added=0
+          for extinf,url in tubi_raw:
+              if any(url==u for _,u in merged): continue
+              extinf=re.sub(r'tvg-chno="[^"]*"','',extinf)
+              if 'group-title=' not in extinf.lower():
+                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
+              else:
+                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-chno="{chno}"',1)
+              if 'tvg-id="' in extinf and 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf:
+                  extinf=extinf.replace('tvg-id="','tvg-id="dc-')
+              merged.append((extinf,url)); chno+=1; tubi_added+=1
+          print(f"TUBI 5000 range: {tubi_added}")
+
+          # 4. ROKU - 8000
+          roku_raw = load_m3u('roku.m3u8')
+          chno=8000; roku_added=0
+          for extinf,url in roku_raw:
+              if any(url==u for _,u in merged): continue
+              extinf=re.sub(r'tvg-chno="[^"]*"','',extinf)
+              if 'group-title=' not in extinf.lower():
+                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
+              else:
+                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-chno="{chno}"',1)
+              if 'tvg-id="' in extinf:
+                  if 'tvg-id="roku-' not in extinf:
+                      extinf=re.sub(r'tvg-id="[^"]*"',f'tvg-id="roku-{chno}"',extinf)
+              else:
+                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-id="roku-{chno}"')
+              merged.append((extinf,url)); chno+=1; roku_added+=1
+          print(f"ROKU 8000 range: {roku_added}")
+
+          # XML merge
+          for base in ['dcfull','tubiroku','free2view']:
+              for ext in ['.xml','.xml.gz']:
+                  if os.path.exists(base+ext):
+                      t=extract_xml_body(base+ext)
+                      t=re.sub(r'<channel id="(?!dc-|plex-|roku-)','<channel id="dc-',t)
+                      t=re.sub(r' channel="(?!dc-|plex-|roku-)',' channel="dc-',t)
+                      xml_body+=t+'\n'; break
+
+          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',xml_body)
+
+          if len(merged)<2000:
+              print(f"ABORT only {len(merged)} channels"); exit(1)
+          if sum(1 for _,u in merged if 'plex.tv' in u)<50:
+              print("ABORT plex missing"); exit(1)
+
+          m3u_text='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n'+'\n'.join(f"{a}\n{b}" for a,b in merged)+'\n'
+          open('dcmaster.m3u8','w',encoding='utf-8').write(m3u_text)
+          open('dcmaster.m3u','w',encoding='utf-8').write(m3u_text)
+          open('dcmaster.xml','w',encoding='utf-8').write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_body}\n</tv>\n')
+          print(f"FINAL {len(merged)} = dcfull {dc_added} + plex {len(plex_data)} + tubi {tubi_added} + roku {roku_added}")
+          PY
+
+      - name: Push
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "dcmaster: plex 6500 + tubi 5000 + roku 8000 restored"
+          git push
