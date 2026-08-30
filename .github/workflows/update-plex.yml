@@ -21,6 +21,7 @@ jobs:
             "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
             -o plex-ca-source.m3u
           ls -lh plex-ca-source.m3u
+          echo "Source channels: $(grep -c '^#EXTINF:' plex-ca-source.m3u)"
 
       - name: Download full Plex guide from Cloudflare + Matt
         run: |
@@ -31,7 +32,7 @@ jobs:
             -o full-guide.xml || true
 
           # If worker failed or is tiny (USA only), fallback to Matt's ALL guide which has CA
-          if [! -s full-guide.xml ] || [ $(wc -c < full-guide.xml) -lt 100000 ]; then
+          if [ ! -s full-guide.xml ] || [ $(wc -c < full-guide.xml) -lt 100000 ]; then
             echo "Worker guide missing/small, pulling Matt's all.xml.gz"
             curl -L --fail -A "Mozilla/5.0" \
               "https://github.com/matthuisman/i.mjh.nz/raw/master/Plex/all.xml.gz" \
@@ -39,6 +40,7 @@ jobs:
             gunzip -c all.xml.gz > full-guide.xml
           fi
           ls -lh full-guide.xml
+          echo "Full guide size: $(wc -c < full-guide.xml) bytes"
 
       - name: Build cleaned Plex CA playlist + filtered guide
         run: |
@@ -136,7 +138,6 @@ jobs:
           try:
               tree=ET.parse(FULL_GUIDE)
               root=tree.getroot()
-              # Keep only channels where id in valid_ids
               for elem in list(root):
                   if elem.tag=="channel":
                       if elem.get("id") not in valid_ids:
@@ -146,25 +147,24 @@ jobs:
                           root.remove(elem)
               tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
               print(f"Filtered guide: {len(valid_ids)} channels kept")
-              # Count
-              import subprocess
-              subprocess.run(["sh","-c", f"grep -c '<programme' {OUTPUT_XML} || true"])
           except Exception as e:
               print(f"XML filter failed: {e}, copying full guide as fallback")
               OUTPUT_XML.write_bytes(FULL_GUIDE.read_bytes())
           PY
 
-      - name: Check final
+      - name: Check final + cleanup old gz
         run: |
-          ls -lh plex-ca.m3u plex-ca.xml
-          echo "M3U count:"; grep -c '^#EXTINF:' plex-ca.m3u
-          echo "Guide channels:"; grep -c '<channel' plex-ca.xml || true
-          echo "Guide programs:"; grep -c '<programme' plex-ca.xml || true
+          rm -f plex-ca.xml.gz all.xml.gz plex-ca-source.m3u full-guide.xml
+          ls -lh plex-ca.*
+          echo "---"
+          echo "M3U count: $(grep -c '^#EXTINF:' plex-ca.m3u || true)"
+          echo "Guide channels: $(grep -c '<channel' plex-ca.xml || true)"
+          echo "Guide programs: $(grep -c '<programme' plex-ca.xml || true)"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update Plex CA playlist + filtered CA guide from Cloudflare"
+          commit_message: "Update Plex CA - plain xml only, fixed bash typo"
           file_pattern: |
             plex-ca.m3u
             plex-ca.xml
