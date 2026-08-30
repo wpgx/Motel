@@ -12,12 +12,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get Roku
+      - name: Get Roku with backup
         run: |
-          curl -L -A "Mozilla/5.0" -o roku.m3u8 https://i.mjh.nz/Roku/us.m3u8
-          echo "roku=$(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0)"
+          curl -L -A "Mozilla/5.0" --retry 3 -o roku.m3u8 https://i.mjh.nz/Roku/us.m3u8
+          if [ ! -s roku.m3u8 ] || [ $(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0) -lt 10 ]; then
+            echo "i.mjh.nz blocked, trying raw github"
+            curl -L -o roku.m3u8 https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/us.m3u8
+          fi
+          echo "roku=$(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0) plex=$(grep -c EXTINF plex-ca.m3u 2>/dev/null || echo 0) dcfull=$(grep -c EXTINF dcfull.m3u8 2>/dev/null || echo 0)"
 
-      - name: Build dcmaster - Plex clean + dc- on tvg-id only for Sparkle + Roku 6000
+      - name: Build dcmaster - Plex clean + dc- on tvg-id only for Sparkle
         run: |
           python3 << 'PY'
           import os, re, gzip
@@ -45,12 +49,13 @@ jobs:
           xml_body = ''
 
           # 1. PLEX-CA - 100% UNTOUCHED
-          for f in ['plex-ca.m3u8', 'plex-ca.m3u']:
+          for f in ['plex-ca.m3u8', 'plex-ca.m3u', 'plex-ca.m3u8']:
               if os.path.exists(f):
                   data = load_m3u(f)
-                  merged.extend(data)
-                  print(f"PLEX {f}: {len(data)}")
-                  break
+                  if len(data)>0:
+                      merged.extend(data)
+                      print(f"PLEX {f}: {len(data)}")
+                      break
 
           for f in ['plex-ca.xml', 'plex-ca.xml.gz']:
               if os.path.exists(f):
@@ -58,7 +63,7 @@ jobs:
                   print(f"PLEX XML {f}")
                   break
 
-          # 2. DCFULL + TUBIROKU + FREE2VIEW - dc- tvg-id only
+          # 2. EVERYTHING ELSE - ADD dc- to tvg-id ONLY
           for base in ['dcfull', 'tubiroku', 'free2view']:
               mp = None
               for ext in ['.m3u8', '.m3u']:
@@ -93,10 +98,12 @@ jobs:
                   t = t.replace('dc-dc-', 'dc-').replace('dc-plex-', 'plex-').replace('dc-roku-', 'roku-')
                   xml_body += t + '\n'
 
-          # 3. ROKU - 6000-6499 - same style as your file
+          # 3. ROKU - 6000-6499
           mp = 'roku.m3u8' if os.path.exists('roku.m3u8') else None
+          roku_added = 0
           if mp:
               raw = load_m3u(mp)
+              print(f"ROKU file found: {len(raw)} raw")
               fixed = []
               chno = 6000
               for extinf, url in raw:
@@ -104,25 +111,23 @@ jobs:
                       continue
                   if chno >= 6500:
                       break
-                  # roku- prefix
                   if 'tvg-id="' in extinf:
                       if 'tvg-id="roku-' not in extinf:
                           extinf = re.sub(r'tvg-id="[^"]*"', f'tvg-id="roku-{chno}"', extinf)
                   else:
                       extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-id="roku-{chno}"')
-                  # set chno 6000-6499
                   extinf = re.sub(r'tvg-chno="[^"]*"', '', extinf)
                   extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"')
-                  
                   fixed.append((extinf, url))
                   chno += 1
               
               merged.extend(fixed)
-              print(f"roku: {len(fixed)} with roku- tvg-id, chno 6000-6499")
+              roku_added = len(fixed)
+              print(f"roku: {roku_added} with roku- tvg-id, chno 6000-6499")
+          else:
+              print("roku.m3u8 not found")
 
-          # Clean xml entities
           xml_body = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)', '&amp;', xml_body)
-
           m3u_text = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a, b in merged) + '\n'
 
           open('dcmaster.m3u8', 'w', encoding='utf-8').write(m3u_text)
@@ -131,7 +136,7 @@ jobs:
 
           print(f"\nFINAL dcmaster: {len(merged)} channels")
           print(f"PLEX in final: {sum(1 for _,u in merged if 'plex.tv' in u)}")
-          print(f"ROKU in final: {sum(1 for _,u in merged if 'roku-' in a.lower() or 'roku' in a.lower())}")
+          print(f"ROKU in final: {roku_added}")
           PY
 
       - name: Push dcmaster
@@ -140,5 +145,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcmaster: plex clean + roku 6000-6499"
+          git commit -m "dcmaster: plex clean + roku 6000 fixed"
           git push
