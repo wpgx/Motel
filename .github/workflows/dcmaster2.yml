@@ -1,0 +1,573 @@
+name: dcmaster2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build DCMASTER2
+        run: |
+          python3 << 'PY'
+          import os
+          import gzip
+          import re
+
+          # ============================================================
+          # DCMaster2
+          #
+          # Experimental copy of DCMaster.
+          #
+          # ORIGINAL DCMaster files are NOT touched.
+          #
+          # Output:
+          #   dcmaster2.m3u
+          #   dcmaster2.m3u8
+          #   dcmaster2.xml
+          #
+          # M3U:
+          #   EXACTLY the same as DCMaster.
+          #   NO deduplication.
+          #
+          # XML:
+          #   Plex channel IDs get priority.
+          #   Duplicate channel IDs from other guides are removed.
+          #   Programmes belonging to removed duplicate IDs are removed.
+          # ============================================================
+
+          # ============================================================
+          # FIND ONE PLAYLIST PER SOURCE
+          # Prefer .m3u8, then .m3u.
+          # ============================================================
+
+          def find_m3u(base):
+              if os.path.exists(base + '.m3u8'):
+                  return base + '.m3u8'
+
+              if os.path.exists(base + '.m3u'):
+                  return base + '.m3u'
+
+              return None
+
+          # ============================================================
+          # FIND ONE GUIDE PER SOURCE
+          #
+          # Plex CA exists as plex-ca.xml.gz.
+          # It is decompressed in memory only.
+          # ============================================================
+
+          def find_xml(base):
+              if os.path.exists(base + '.xml'):
+                  return base + '.xml'
+
+              if os.path.exists(base + '.xml.gz'):
+                  return base + '.xml.gz'
+
+              return None
+
+          # ============================================================
+          # LOAD M3U
+          # ============================================================
+
+          def load_m3u(path):
+              channels = []
+
+              try:
+                  with open(
+                      path,
+                      encoding='utf-8',
+                      errors='ignore'
+                  ) as f:
+                      lines = f.read().splitlines()
+
+                  for i, line in enumerate(lines):
+
+                      if (
+                          line.startswith('#EXTINF')
+                          and i + 1 < len(lines)
+                      ):
+                          url = lines[i + 1].strip()
+
+                          if url.startswith('http'):
+                              channels.append((line, url))
+
+                  print(
+                      f"M3U: {path} -> "
+                      f"{len(channels)} channels"
+                  )
+
+              except Exception as e:
+                  print(
+                      f"M3U ERROR: {path}: {e}"
+                  )
+
+              return channels
+
+          # ============================================================
+          # LOAD XML
+          #
+          # Returns the contents inside <tv>...</tv>.
+          # ============================================================
+
+          def load_xml(path):
+
+              try:
+
+                  if path.endswith('.gz'):
+
+                      print(
+                          f"Reading compressed guide: {path}"
+                      )
+
+                      with gzip.open(
+                          path,
+                          'rt',
+                          encoding='utf-8',
+                          errors='ignore'
+                      ) as f:
+                          text = f.read()
+
+                  else:
+
+                      with open(
+                          path,
+                          encoding='utf-8',
+                          errors='ignore'
+                      ) as f:
+                          text = f.read()
+
+                  text = re.sub(
+                      r'<\?xml[^?]*\?>',
+                      '',
+                      text,
+                      flags=re.I
+                  )
+
+                  text = re.sub(
+                      r'<!DOCTYPE[^>]*>',
+                      '',
+                      text,
+                      flags=re.I
+                  )
+
+                  start = re.search(
+                      r'<tv[^>]*>',
+                      text,
+                      flags=re.I
+                  )
+
+                  end = re.search(
+                      r'</tv\s*>',
+                      text,
+                      flags=re.I
+                  )
+
+                  if start and end:
+                      text = text[
+                          start.end():end.start()
+                      ]
+
+                  print(
+                      f"XML: {path} -> "
+                      f"{len(text)} chars, "
+                      f"{text.count('<channel ')} channels, "
+                      f"{text.count('<programme')} programmes"
+                  )
+
+                  return text
+
+              except Exception as e:
+
+                  print(
+                      f"XML ERROR: {path}: {e}"
+                  )
+
+                  return ''
+
+          # ============================================================
+          # BUILD M3U
+          #
+          # EXACTLY LIKE ORIGINAL DCMaster.
+          # NO DEDUPLICATION.
+          # ============================================================
+
+          merged = []
+
+          for source in [
+              'dcfull',
+              'plex-ca',
+              'tubiroku'
+          ]:
+
+              path = find_m3u(source)
+
+              if not path:
+                  print(
+                      f"WARNING: No M3U found for {source}"
+                  )
+                  continue
+
+              merged.extend(
+                  load_m3u(path)
+              )
+
+          print(
+              f"TOTAL M3U CHANNELS: {len(merged)}"
+          )
+
+          m3u_content = (
+              '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster2.xml"\n'
+              +
+              '\n'.join(
+                  f'{extinf}\n{url}'
+                  for extinf, url in merged
+              )
+              +
+              '\n'
+          )
+
+          with open(
+              'dcmaster2.m3u8',
+              'w',
+              encoding='utf-8'
+          ) as f:
+              f.write(m3u_content)
+
+          with open(
+              'dcmaster2.m3u',
+              'w',
+              encoding='utf-8'
+          ) as f:
+              f.write(m3u_content)
+
+          # ============================================================
+          # LOAD THE THREE GUIDES
+          # ============================================================
+
+          guides = {}
+
+          for source in [
+              'dcfull',
+              'plex-ca',
+              'tubiroku'
+          ]:
+
+              path = find_xml(source)
+
+              if not path:
+                  print(
+                      f"WARNING: No XML guide found for {source}"
+                  )
+                  guides[source] = ''
+                  continue
+
+              guides[source] = load_xml(path)
+
+          # ============================================================
+          # EXTRACT CHANNELS + PROGRAMMES
+          #
+          # We use simple XMLTV element extraction so we can control
+          # duplicate channel IDs without changing the source data.
+          # ============================================================
+
+          def extract_elements(text, tag):
+
+              if not text:
+                  return []
+
+              if tag == 'channel':
+
+                  pattern = (
+                      r'<channel\b[^>]*>.*?</channel\s*>'
+                  )
+
+              else:
+
+                  pattern = (
+                      r'<programme\b[^>]*>.*?</programme\s*>'
+                  )
+
+              return re.findall(
+                  pattern,
+                  text,
+                  flags=re.I | re.S
+              )
+
+          def get_channel_id(element):
+
+              m = re.search(
+                  r'<channel\b[^>]*\bid="([^"]+)"',
+                  element,
+                  flags=re.I
+              )
+
+              return m.group(1).strip() if m else ''
+
+          def get_programme_channel(element):
+
+              m = re.search(
+                  r'<programme\b[^>]*\bchannel="([^"]+)"',
+                  element,
+                  flags=re.I
+              )
+
+              return (
+                  m.group(1).strip()
+                  if m
+                  else ''
+              )
+
+          # ============================================================
+          # FIRST PASS
+          #
+          # Plex gets priority.
+          #
+          # This means a Plex ID is protected from duplicate IDs in
+          # dcfull or tubiroku.
+          # ============================================================
+
+          plex_channels = extract_elements(
+              guides.get('plex-ca', ''),
+              'channel'
+          )
+
+          plex_ids = set()
+
+          for channel in plex_channels:
+
+              cid = get_channel_id(channel)
+
+              if cid:
+                  plex_ids.add(cid)
+
+          print('')
+          print('==========================================')
+          print('PLEX GUIDE IDS')
+          print('==========================================')
+          print(
+              f'Plex guide channels: {len(plex_ids)}'
+          )
+
+          # ============================================================
+          # BUILD FINAL CHANNEL LIST
+          #
+          # Plex first.
+          # Then dcfull.
+          # Then tubiroku.
+          #
+          # First occurrence wins.
+          # ============================================================
+
+          final_channels = []
+          used_ids = set()
+
+          duplicate_counts = {
+              'plex-ca': 0,
+              'dcfull': 0,
+              'tubiroku': 0
+          }
+
+          for source in [
+              'plex-ca',
+              'dcfull',
+              'tubiroku'
+          ]:
+
+              channels = extract_elements(
+                  guides.get(source, ''),
+                  'channel'
+              )
+
+              for channel in channels:
+
+                  cid = get_channel_id(channel)
+
+                  if not cid:
+                      continue
+
+                  if cid in used_ids:
+
+                      duplicate_counts[source] += 1
+
+                      print(
+                          f"DUPLICATE CHANNEL ID "
+                          f"[{source}]: {cid}"
+                      )
+
+                      continue
+
+                  used_ids.add(cid)
+                  final_channels.append(channel)
+
+          # ============================================================
+          # KEEP PROGRAMMES ONLY FOR THE CHANNEL DEFINITION THAT WON.
+          #
+          # Since Plex was processed first, Plex wins any collision.
+          # ============================================================
+
+          final_programmes = []
+
+          for source in [
+              'plex-ca',
+              'dcfull',
+              'tubiroku'
+          ]:
+
+              programmes = extract_elements(
+                  guides.get(source, ''),
+                  'programme'
+              )
+
+              for programme in programmes:
+
+                  cid = get_programme_channel(
+                      programme
+                  )
+
+                  if not cid:
+                      continue
+
+                  # ----------------------------------------------------
+                  # Only accept programmes whose channel ID belongs
+                  # to the source that owns the channel.
+                  #
+                  # Plex IDs are protected.
+                  # ----------------------------------------------------
+
+                  if source == 'plex-ca':
+
+                      if cid in plex_ids:
+                          final_programmes.append(
+                              programme
+                          )
+
+                  else:
+
+                      if (
+                          cid in used_ids
+                          and cid not in plex_ids
+                      ):
+                          final_programmes.append(
+                              programme
+                          )
+
+          # ============================================================
+          # BUILD FINAL XML
+          # ============================================================
+
+          final_xml = (
+              '<?xml version="1.0" encoding="UTF-8"?>\n'
+              '<tv>\n'
+              +
+              '\n'.join(final_channels)
+              +
+              '\n'
+              +
+              '\n'.join(final_programmes)
+              +
+              '\n</tv>\n'
+          )
+
+          with open(
+              'dcmaster2.xml',
+              'w',
+              encoding='utf-8'
+          ) as f:
+              f.write(final_xml)
+
+          # ============================================================
+          # REPORT
+          # ============================================================
+
+          print('')
+          print('==========================================')
+          print('DCMASTER2 BUILD COMPLETE')
+          print('==========================================')
+
+          print(
+              f'M3U channels: '
+              f'{len(merged)}'
+          )
+
+          print(
+              f'XML channels: '
+              f'{len(final_channels)}'
+          )
+
+          print(
+              f'XML programmes: '
+              f'{len(final_programmes)}'
+          )
+
+          print(
+              f'Plex duplicate IDs skipped: '
+              f'{duplicate_counts["plex-ca"]}'
+          )
+
+          print(
+              f'DCFull duplicate IDs skipped: '
+              f'{duplicate_counts["dcfull"]}'
+          )
+
+          print(
+              f'TubiRoku duplicate IDs skipped: '
+              f'{duplicate_counts["tubiroku"]}'
+          )
+
+          print(
+              f'XML size: '
+              f'{len(final_xml)} bytes'
+          )
+
+          print(
+              'EPG URL: '
+              'https://motel.deecee.ca/dcmaster2.xml'
+          )
+
+          print('==========================================')
+          PY
+
+      - name: Validate
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libxml2-utils
+
+          echo "===== VALIDATING DCMaster2 XML ====="
+          xmllint --noout dcmaster2.xml
+          echo "dcmaster2.xml OK"
+
+          echo "===== FINAL COUNTS ====="
+          echo "M3U channels: $(grep -c '^#EXTINF' dcmaster2.m3u8)"
+          echo "XML channels: $(grep -c '<channel ' dcmaster2.xml)"
+          echo "XML programmes: $(grep -c '<programme ' dcmaster2.xml)"
+
+          echo "===== DUPLICATE CHANNEL IDS ====="
+          grep -o '<channel id="[^"]*"' dcmaster2.xml \
+            | sort \
+            | uniq -d \
+            | head -50 || true
+
+      - name: Push to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            dcmaster2.m3u8 \
+            dcmaster2.m3u \
+            dcmaster2.xml \
+            -f
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "experimental dcmaster2 guide merge"
+          git push
