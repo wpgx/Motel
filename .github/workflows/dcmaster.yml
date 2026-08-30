@@ -20,23 +20,113 @@ jobs:
           import shutil
           import os
 
+          # ============================================================
+          # FIND ONE SOURCE FILE
+          # Prefer .m3u8 / .xml.
+          # Fall back to .m3u / .xml.gz.
+          # NEVER load both versions.
+          # ============================================================
+
+          def find_m3u(base):
+              for path in (base + '.m3u8', base + '.m3u'):
+                  if os.path.exists(path):
+                      return path
+              return None
+
+          def find_xml(base):
+              for path in (base + '.xml', base + '.xml.gz'):
+                  if os.path.exists(path):
+                      return path
+              return None
+
+          # ============================================================
+          # LOAD M3U
+          # ============================================================
+
+          def load_m3u(path):
+              out = []
+
+              try:
+                  with open(
+                      path,
+                      encoding='utf-8',
+                      errors='ignore'
+                  ) as f:
+                      lines = f.read().splitlines()
+
+                  for i, line in enumerate(lines):
+                      if line.startswith('#EXTINF') and i + 1 < len(lines):
+                          url = lines[i + 1].strip()
+
+                          if url.startswith('http'):
+                              out.append((line, url))
+
+                  print(f"M3U added: {path} -> {len(out)} channels")
+
+              except Exception as e:
+                  print(f"M3U ERROR {path}: {e}")
+
+              return out
+
+          # ============================================================
+          # LOAD XML / XML.GZ
+          #
+          # Plex CA currently supplies plex-ca.xml.gz.
+          # Decompress it here and use its XML contents.
+          # ============================================================
+
           def get_inner(path):
               if path.endswith('.gz'):
-                  with gzip.open(path, 'rt', encoding='utf-8', errors='ignore') as f:
+                  print(f"Decompressing guide: {path}")
+
+                  with gzip.open(
+                      path,
+                      'rt',
+                      encoding='utf-8',
+                      errors='ignore'
+                  ) as f:
                       t = f.read()
               else:
-                  with open(path, encoding='utf-8', errors='ignore') as f:
+                  with open(
+                      path,
+                      encoding='utf-8',
+                      errors='ignore'
+                  ) as f:
                       t = f.read()
 
-              t = re.sub(r'<\?xml[^?]*\?>', '', t, flags=re.I)
-              t = re.sub(r'<!DOCTYPE[^>]*>', '', t, flags=re.I)
+              # Remove XML declaration.
+              t = re.sub(
+                  r'<\?xml[^?]*\?>',
+                  '',
+                  t,
+                  flags=re.I
+              )
 
-              m1 = re.search(r'<tv[^>]*>', t, re.I)
-              m2 = re.search(r'</tv\s*>', t, re.I)
+              # Remove DOCTYPE if present.
+              t = re.sub(
+                  r'<!DOCTYPE[^>]*>',
+                  '',
+                  t,
+                  flags=re.I
+              )
+
+              # Extract everything inside <tv>...</tv>.
+              m1 = re.search(
+                  r'<tv[^>]*>',
+                  t,
+                  flags=re.I
+              )
+
+              m2 = re.search(
+                  r'</tv\s*>',
+                  t,
+                  flags=re.I
+              )
 
               if m1 and m2:
                   t = t[m1.end():m2.start()]
 
+              # Escape bare ampersands without damaging valid XML entities.
               t = re.sub(
                   r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)',
                   '&amp;',
@@ -45,64 +135,28 @@ jobs:
 
               return t
 
-          def load_m3u(files):
-              out = []
-
-              for f in files:
-                  if not os.path.exists(f):
-                      continue
-
-                  try:
-                      lines = open(
-                          f,
-                          encoding='utf-8',
-                          errors='ignore'
-                      ).read().splitlines()
-
-                      for i, line in enumerate(lines):
-                          if line.startswith('#EXTINF') and i + 1 < len(lines):
-                              url = lines[i + 1].strip()
-
-                              if url.startswith('http'):
-                                  out.append((line, url))
-
-                      print(f"M3U added: {f}")
-
-                  except Exception as e:
-                      print(f"M3U ERROR {f}: {e}")
-
-              return out
-
-          def find_xml(base):
-              normal = base + '.xml'
-
-              if os.path.exists(normal):
-                  return normal
-
-              gz = base + '.xml.gz'
-
-              if os.path.exists(gz):
-                  return gz
-
-              return None
-
           # ============================================================
           # BUILD M3U
+          #
           # NO CHANNEL DEDUPLICATION.
-          # DCCATALOG HANDLES CHANNEL REPLACEMENT/DROPPING.
+          # DCCATALOG handles channel replacement/drop logic.
           # ============================================================
 
-          merged = load_m3u([
-              'dcfull.m3u',
-              'dcfull.m3u8',
-              'plex-ca.m3u',
-              'plex-ca.m3u8',
-              'tubiroku.m3u',
-              'tubiroku.m3u8'
-          ])
+          merged = []
+
+          for base in ['dcfull', 'plex-ca', 'tubiroku']:
+              path = find_m3u(base)
+
+              if not path:
+                  print(f"WARNING: No M3U found for {base}")
+                  continue
+
+              merged.extend(load_m3u(path))
 
           print(f"MERGED M3U: {len(merged)} channels")
 
+          # IMPORTANT:
+          # Sparkle receives normal XML, not the compressed XML.
           m3u_content = (
               '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n'
               + '\n'.join(
@@ -112,16 +166,31 @@ jobs:
               + '\n'
           )
 
-          with open('dcmaster.m3u8', 'w', encoding='utf-8') as f:
+          with open(
+              'dcmaster.m3u8',
+              'w',
+              encoding='utf-8'
+          ) as f:
               f.write(m3u_content)
 
-          with open('dcmaster.m3u', 'w', encoding='utf-8') as f:
+          with open(
+              'dcmaster.m3u',
+              'w',
+              encoding='utf-8'
+          ) as f:
               f.write(m3u_content)
 
           # ============================================================
           # BUILD XML
-          # EACH SOURCE IS INCLUDED ONCE.
-          # NO CHANNEL/PROGRAMME DEDUPLICATION.
+          #
+          # ONE GUIDE FILE PER SOURCE.
+          #
+          # Plex CA:
+          #   plex-ca.xml.gz
+          #
+          # is automatically decompressed by get_inner().
+          #
+          # NO CHANNEL OR PROGRAMME DEDUPLICATION.
           # ============================================================
 
           xml_parts = []
@@ -130,7 +199,7 @@ jobs:
               path = find_xml(base)
 
               if not path:
-                  print(f"WARNING: No guide found for {base}")
+                  print(f"WARNING: No XML guide found for {base}")
                   continue
 
               try:
@@ -154,21 +223,36 @@ jobs:
               + '\n</tv>\n'
           )
 
-          with open('dcmaster.xml', 'w', encoding='utf-8') as f:
+          with open(
+              'dcmaster.xml',
+              'w',
+              encoding='utf-8'
+          ) as f:
               f.write(final_xml)
 
-          # Create gzip copy, but Sparkle uses normal XML.
+          # ============================================================
+          # CREATE GZIP COPY
+          #
+          # Kept for later use.
+          # Sparkle currently points to dcmaster.xml.
+          # ============================================================
+
           with open('dcmaster.xml', 'rb') as fin:
               with gzip.open('dcmaster.xml.gz', 'wb') as fout:
                   shutil.copyfileobj(fin, fout)
 
+          # ============================================================
+          # FINAL REPORT
+          # ============================================================
+
           print('========================================')
           print('DCMASTER COMPLETE')
-          print(f"M3U channels: {len(merged)}")
-          print(f"XML channels: {final_xml.count('<channel ')}")
-          print(f"XML programmes: {final_xml.count('<programme ')}")
-          print(f"XML bytes: {len(final_xml)}")
-          print('EPG URL: https://motel.deecee.ca/dcmaster.xml')
+          print(f"M3U channels:     {len(merged)}")
+          print(f"XML channels:     {final_xml.count('<channel ')}")
+          print(f"XML programmes:   {final_xml.count('<programme ')}")
+          print(f"XML bytes:        {len(final_xml)}")
+          print('EPG URL:')
+          print('https://motel.deecee.ca/dcmaster.xml')
           print('========================================')
           PY
 
@@ -207,5 +291,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "restore dcmaster EPG"
+          git commit -m "fix dcmaster guide sources"
           git push
