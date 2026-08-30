@@ -26,10 +26,13 @@ jobs:
           #   Copy exactly as supplied.
           #
           # Plex guide:
-          #   Import exactly as before.
+          #   Import plex-ca.xml.gz exactly as before.
           #
-          # dcfull:
-          #   Added to the combined playlist and guide.
+          # dcfull M3U:
+          #   Add exactly as supplied.
+          #
+          # dcfull guide:
+          #   Add dcfull.xml.
           #
           # Tubi/Roku is NOT included in this test.
           # ============================================================
@@ -81,7 +84,7 @@ jobs:
           # ============================================================
           # COMBINE PLAYLISTS
           #
-          # Plex remains byte-for-byte unchanged.
+          # Plex remains exactly as supplied.
           # Only the dcfull entries are appended.
           # ============================================================
 
@@ -131,7 +134,7 @@ jobs:
           print("Plex guide: plex-ca.xml.gz")
 
           # ============================================================
-          # IMPORT PLEX GUIDE EXACTLY AS BEFORE
+          # IMPORT PLEX XML.GZ EXACTLY AS BEFORE
           # ============================================================
 
           with gzip.open(
@@ -144,45 +147,25 @@ jobs:
           # FIND DCFULL GUIDE
           # ============================================================
 
-          if os.path.exists('dcfull.xml'):
-              dcfull_guide_path = 'dcfull.xml'
-
-          elif os.path.exists('dcfull.xml.gz'):
-              dcfull_guide_path = 'dcfull.xml.gz'
-
-          else:
-              print("ERROR: No dcfull guide found")
+          if not os.path.exists('dcfull.xml'):
+              print("ERROR: dcfull.xml not found")
               raise SystemExit(1)
 
-          print(f"dcfull guide: {dcfull_guide_path}")
+          print("dcfull guide: dcfull.xml")
 
-          # ============================================================
-          # LOAD DCFULL GUIDE
-          # ============================================================
-
-          if dcfull_guide_path.endswith('.gz'):
-
-              with gzip.open(
-                  dcfull_guide_path,
-                  'rb'
-              ) as source_file:
-                  dcfull_guide_data = source_file.read()
-
-          else:
-
-              with open(
-                  dcfull_guide_path,
-                  'rb'
-              ) as source_file:
-                  dcfull_guide_data = source_file.read()
+          with open(
+              'dcfull.xml',
+              'rb'
+          ) as source_file:
+              dcfull_guide_data = source_file.read()
 
           # ============================================================
           # COMBINE GUIDES
           #
-          # Keep the actual Plex guide content intact.
-          # Keep the dcfull guide content intact.
-          # Remove only the outer XML declaration/DOCTYPE/tv wrapper
-          # required to place both guides under one <tv> root.
+          # Plex guide remains intact.
+          # dcfull guide remains intact.
+          # Only the outer XML wrappers are removed so both guides
+          # can exist inside one <tv> document.
           # ============================================================
 
           def extract_tv_contents(data):
@@ -330,5 +313,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "dcmaster2 add dcfull"
+          git commit -m "dcmaster2 add dcfull guide"
           git push
