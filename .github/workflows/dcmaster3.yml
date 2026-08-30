@@ -1,0 +1,115 @@
+name: dcmaster3
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build DCMASTER3 - Plex first + dcmaster base
+        run: |
+          python3 << 'PY'
+          import os, gzip, re, shutil
+
+          def find_m3u(base):
+              for ext in ['.m3u8','.m3u']:
+                  p=base+ext
+                  if os.path.exists(p):
+                      return p
+              print(f"NOT FOUND m3u for {base}")
+              return None
+
+          def find_xml(base):
+              if base=='plex-ca' and os.path.exists('plex-ca.xml.gz'):
+                  return 'plex-ca.xml.gz'
+              for ext in ['.xml','.xml.gz']:
+                  p=base+ext
+                  if os.path.exists(p):
+                      return p
+              print(f"NOT FOUND xml for {base}")
+              return None
+
+          def load_m3u_clean(path):
+              if not path or not os.path.exists(path):
+                  print(f"SKIP missing m3u {path}")
+                  return []
+              ch=[]
+              with open(path,encoding='utf-8',errors='ignore') as f:
+                  lines=f.read().splitlines()
+              for i,line in enumerate(lines):
+                  if line.startswith('#EXTINF') and i+1 < len(lines):
+                      url=lines[i+1].strip()
+                      if url.startswith('http'):
+                          ch.append((line,url))
+              print(f"{path} -> {len(ch)} ch")
+              return ch
+
+          def extract_tv(path):
+              if not path or not os.path.exists(path):
+                  print(f"SKIP missing xml {path}")
+                  return ''
+              if path.endswith('.gz'):
+                  text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
+              else:
+                  with open(path,'rb') as fb:
+                      is_gz=fb.read(3)==b'\x1f\x8b\x08'
+                  if is_gz:
+                      text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
+                  else:
+                      text=open(path,encoding='utf-8',errors='ignore').read()
+              text=re.sub(r'<\?xml[^?]*\?>','',text,flags=re.I)
+              text=re.sub(r'<!DOCTYPE[^>]*>','',text,flags=re.I)
+              m=re.search(r'<tv[^>]*>(.*)</tv>',text,flags=re.I|re.S)
+              return m.group(1) if m else ''
+
+          # Plex FIRST - clean, no prefix
+          plex_m3u_path=find_m3u('plex-ca')
+          plex_xml_path=find_xml('plex-ca')
+          plex_m3u=load_m3u_clean(plex_m3u_path)
+          plex_xml=extract_tv(plex_xml_path)
+          print(f"Plex loaded: {len(plex_m3u)}")
+
+          # dcmaster base = whatever worked in dcmaster (fallback to dcfull)
+          dc_m3u_path=find_m3u('dcmaster') or find_m3u('dcfull')
+          dc_xml_path=find_xml('dcmaster') or find_xml('dcfull')
+          dc_m3u_raw=load_m3u_clean(dc_m3u_path)
+          dc_xml_raw=extract_tv(dc_xml_path)
+          print(f"DC base loaded: {len(dc_m3u_raw)}")
+
+          # namespace DC base to avoid same id!= same channel
+          dc_m3u=[]
+          for extinf,url in dc_m3u_raw:
+              if 'tvg-id="' in extinf:
+                  extinf=re.sub(r'tvg-id="', 'tvg-id="dc-', extinf)
+              dc_m3u.append((extinf,url))
+          dc_xml=dc_xml_raw.replace('<channel id="', '<channel id="dc-').replace(' channel="', ' channel="dc-').replace('dc-dc-','dc-')
+
+          merged=plex_m3u + dc_m3u
+          xml_body=plex_xml + '\n' + dc_xml
+          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',xml_body)
+
+          m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster3.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
+          open('dcmaster3.m3u8','w',encoding='utf-8').write(m3u_out)
+          open('dcmaster3.m3u','w',encoding='utf-8').write(m3u_out)
+
+          final_xml='<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n' + xml_body + '\n</tv>\n'
+          open('dcmaster3.xml','w',encoding='utf-8').write(final_xml)
+          with open('dcmaster3.xml','rb') as fin:
+              with gzip.open('dcmaster3.xml.gz','wb') as fout:
+                  shutil.copyfileobj(fin,fout)
+
+          print(f"\nFINAL M3U {len(merged)} (plex {len(plex_m3u)} + dc {len(dc_m3u)})")
+          print(f"FINAL XML {final_xml.count('<channel ')} ch / {final_xml.count('<programme')} prog")
+          PY
+      - name: Validate XML
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y libxml2-utils
+          xmllint --noout dcmaster3.xml && echo "XML OK"
+      - name: Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dcmaster3.m3u8 dcmaster3.m3u dcmaster3.xml dcmaster3.xml.gz -f
+          git diff --cached --quiet || (git commit -m "dcmaster3 plex first + dcmaster base namespaced fixed FileNotFound" && git push)
