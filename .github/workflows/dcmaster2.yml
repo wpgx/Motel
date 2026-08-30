@@ -20,30 +20,16 @@ jobs:
           import re
 
           # ============================================================
-          # DCMaster2
+          # DCMaster2 - TEST VERSION
           #
-          # Experimental copy of DCMaster.
+          # CURRENT TEST:
+          # Plex CA ONLY
           #
-          # ORIGINAL DCMaster files are NOT touched.
-          #
-          # Output:
-          #   dcmaster2.m3u
-          #   dcmaster2.m3u8
-          #   dcmaster2.xml
-          #
-          # M3U:
-          #   EXACTLY the same as DCMaster.
-          #   NO deduplication.
-          #
-          # XML:
-          #   Plex channel IDs get priority.
-          #   Duplicate channel IDs from other guides are removed.
-          #   Programmes belonging to removed duplicate IDs are removed.
+          # Original DCMaster is NOT changed.
           # ============================================================
 
           # ============================================================
-          # FIND ONE PLAYLIST PER SOURCE
-          # Prefer .m3u8, then .m3u.
+          # FIND ONE PLAYLIST
           # ============================================================
 
           def find_m3u(base):
@@ -56,10 +42,10 @@ jobs:
               return None
 
           # ============================================================
-          # FIND ONE GUIDE PER SOURCE
+          # FIND ONE GUIDE
           #
-          # Plex CA exists as plex-ca.xml.gz.
-          # It is decompressed in memory only.
+          # Plex CA is normally plex-ca.xml.gz.
+          # It is read directly and decompressed in memory.
           # ============================================================
 
           def find_xml(base):
@@ -111,8 +97,6 @@ jobs:
 
           # ============================================================
           # LOAD XML
-          #
-          # Returns the contents inside <tv>...</tv>.
           # ============================================================
 
           def load_xml(path):
@@ -193,16 +177,17 @@ jobs:
           # ============================================================
           # BUILD M3U
           #
-          # EXACTLY LIKE ORIGINAL DCMaster.
+          # PLEX CA ONLY FOR THIS TEST.
+          #
           # NO DEDUPLICATION.
+          # NO SORTING.
+          # NO MODIFICATION.
           # ============================================================
 
           merged = []
 
           for source in [
-              'dcfull',
-              'plex-ca',
-              'tubiroku'
+              'plex-ca'
           ]:
 
               path = find_m3u(source)
@@ -247,229 +232,38 @@ jobs:
               f.write(m3u_content)
 
           # ============================================================
-          # LOAD THE THREE GUIDES
-          # ============================================================
-
-          guides = {}
-
-          for source in [
-              'dcfull',
-              'plex-ca',
-              'tubiroku'
-          ]:
-
-              path = find_xml(source)
-
-              if not path:
-                  print(
-                      f"WARNING: No XML guide found for {source}"
-                  )
-                  guides[source] = ''
-                  continue
-
-              guides[source] = load_xml(path)
-
-          # ============================================================
-          # EXTRACT CHANNELS + PROGRAMMES
+          # BUILD XML
           #
-          # We use simple XMLTV element extraction so we can control
-          # duplicate channel IDs without changing the source data.
+          # PLEX CA ONLY FOR THIS TEST.
+          #
+          # The complete Plex guide is copied into the final XML.
           # ============================================================
 
-          def extract_elements(text, tag):
+          path = find_xml('plex-ca')
 
-              if not text:
-                  return []
+          if not path:
 
-              if tag == 'channel':
-
-                  pattern = (
-                      r'<channel\b[^>]*>.*?</channel\s*>'
-                  )
-
-              else:
-
-                  pattern = (
-                      r'<programme\b[^>]*>.*?</programme\s*>'
-                  )
-
-              return re.findall(
-                  pattern,
-                  text,
-                  flags=re.I | re.S
+              print(
+                  "ERROR: No Plex CA guide found"
               )
 
-          def get_channel_id(element):
+              raise SystemExit(1)
 
-              m = re.search(
-                  r'<channel\b[^>]*\bid="([^"]+)"',
-                  element,
-                  flags=re.I
+          plex_xml = load_xml(path)
+
+          if not plex_xml:
+
+              print(
+                  "ERROR: Plex CA guide is empty"
               )
 
-              return m.group(1).strip() if m else ''
-
-          def get_programme_channel(element):
-
-              m = re.search(
-                  r'<programme\b[^>]*\bchannel="([^"]+)"',
-                  element,
-                  flags=re.I
-              )
-
-              return (
-                  m.group(1).strip()
-                  if m
-                  else ''
-              )
-
-          # ============================================================
-          # FIRST PASS
-          #
-          # Plex gets priority.
-          #
-          # This means a Plex ID is protected from duplicate IDs in
-          # dcfull or tubiroku.
-          # ============================================================
-
-          plex_channels = extract_elements(
-              guides.get('plex-ca', ''),
-              'channel'
-          )
-
-          plex_ids = set()
-
-          for channel in plex_channels:
-
-              cid = get_channel_id(channel)
-
-              if cid:
-                  plex_ids.add(cid)
-
-          print('')
-          print('==========================================')
-          print('PLEX GUIDE IDS')
-          print('==========================================')
-          print(
-              f'Plex guide channels: {len(plex_ids)}'
-          )
-
-          # ============================================================
-          # BUILD FINAL CHANNEL LIST
-          #
-          # Plex first.
-          # Then dcfull.
-          # Then tubiroku.
-          #
-          # First occurrence wins.
-          # ============================================================
-
-          final_channels = []
-          used_ids = set()
-
-          duplicate_counts = {
-              'plex-ca': 0,
-              'dcfull': 0,
-              'tubiroku': 0
-          }
-
-          for source in [
-              'plex-ca',
-              'dcfull',
-              'tubiroku'
-          ]:
-
-              channels = extract_elements(
-                  guides.get(source, ''),
-                  'channel'
-              )
-
-              for channel in channels:
-
-                  cid = get_channel_id(channel)
-
-                  if not cid:
-                      continue
-
-                  if cid in used_ids:
-
-                      duplicate_counts[source] += 1
-
-                      print(
-                          f"DUPLICATE CHANNEL ID "
-                          f"[{source}]: {cid}"
-                      )
-
-                      continue
-
-                  used_ids.add(cid)
-                  final_channels.append(channel)
-
-          # ============================================================
-          # KEEP PROGRAMMES ONLY FOR THE CHANNEL DEFINITION THAT WON.
-          #
-          # Since Plex was processed first, Plex wins any collision.
-          # ============================================================
-
-          final_programmes = []
-
-          for source in [
-              'plex-ca',
-              'dcfull',
-              'tubiroku'
-          ]:
-
-              programmes = extract_elements(
-                  guides.get(source, ''),
-                  'programme'
-              )
-
-              for programme in programmes:
-
-                  cid = get_programme_channel(
-                      programme
-                  )
-
-                  if not cid:
-                      continue
-
-                  # ----------------------------------------------------
-                  # Only accept programmes whose channel ID belongs
-                  # to the source that owns the channel.
-                  #
-                  # Plex IDs are protected.
-                  # ----------------------------------------------------
-
-                  if source == 'plex-ca':
-
-                      if cid in plex_ids:
-                          final_programmes.append(
-                              programme
-                          )
-
-                  else:
-
-                      if (
-                          cid in used_ids
-                          and cid not in plex_ids
-                      ):
-                          final_programmes.append(
-                              programme
-                          )
-
-          # ============================================================
-          # BUILD FINAL XML
-          # ============================================================
+              raise SystemExit(1)
 
           final_xml = (
               '<?xml version="1.0" encoding="UTF-8"?>\n'
               '<tv>\n'
               +
-              '\n'.join(final_channels)
-              +
-              '\n'
-              +
-              '\n'.join(final_programmes)
+              plex_xml
               +
               '\n</tv>\n'
           )
@@ -482,12 +276,12 @@ jobs:
               f.write(final_xml)
 
           # ============================================================
-          # REPORT
+          # FINAL REPORT
           # ============================================================
 
           print('')
           print('==========================================')
-          print('DCMASTER2 BUILD COMPLETE')
+          print('DCMASTER2 PLEX-ONLY TEST COMPLETE')
           print('==========================================')
 
           print(
@@ -497,27 +291,12 @@ jobs:
 
           print(
               f'XML channels: '
-              f'{len(final_channels)}'
+              f'{final_xml.count("<channel ")}'
           )
 
           print(
               f'XML programmes: '
-              f'{len(final_programmes)}'
-          )
-
-          print(
-              f'Plex duplicate IDs skipped: '
-              f'{duplicate_counts["plex-ca"]}'
-          )
-
-          print(
-              f'DCFull duplicate IDs skipped: '
-              f'{duplicate_counts["dcfull"]}'
-          )
-
-          print(
-              f'TubiRoku duplicate IDs skipped: '
-              f'{duplicate_counts["tubiroku"]}'
+              f'{final_xml.count("<programme ")}'
           )
 
           print(
@@ -547,12 +326,6 @@ jobs:
           echo "XML channels: $(grep -c '<channel ' dcmaster2.xml)"
           echo "XML programmes: $(grep -c '<programme ' dcmaster2.xml)"
 
-          echo "===== DUPLICATE CHANNEL IDS ====="
-          grep -o '<channel id="[^"]*"' dcmaster2.xml \
-            | sort \
-            | uniq -d \
-            | head -50 || true
-
       - name: Push to repo
         run: |
           git config user.name "github-actions[bot]"
@@ -569,5 +342,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "experimental dcmaster2 guide merge"
+          git commit -m "dcmaster2 Plex-only guide test"
           git push
