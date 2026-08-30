@@ -20,6 +20,21 @@ jobs:
           def fix_amp(t):
               return re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',t)
 
+          def clean_xml_inner(text):
+              # remove XML declarations and DOCTYPE wherever they are
+              text = re.sub(r'<\?xml[^?]*\?>', '', text, flags=re.I)
+              text = re.sub(r'<!DOCTYPE[^>]*>', '', text, flags=re.I)
+              # extract inside <tv> if present
+              if "<tv>" in text.lower():
+                  # case-insensitive split
+                  m = re.search(r'<tv[^>]*>', text, re.I)
+                  if m:
+                      text = text[m.end():]
+                  if "</tv>" in text.lower():
+                      text = re.split(r'</tv>', text, flags=re.I)[0]
+              text = fix_amp(text)
+              return text
+
           def load(patterns):
               pairs=[]
               for pat in patterns:
@@ -42,9 +57,7 @@ jobs:
                       if 'dcfull' in f or 'dcmaster' in f or 'dccatalog' in f: continue
                       try:
                           t=open(f,encoding='utf-8',errors='ignore').read()
-                          if "<tv>" in t:
-                              t=t.split("<tv>",1)[-1].rsplit("</tv>",1)[0]
-                          t=fix_amp(t)
+                          t=clean_xml_inner(t)
                           txt+=t+"\n"
                       except: pass
               return txt
@@ -92,7 +105,6 @@ jobs:
               roku_extra+=f'<channel id="{tid}"><display-name>{dname}</display-name></channel>\n'
 
           final=f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_inner}\n{roku_extra}\n</tv>\n'
-          final=fix_amp(final)
           open('dcmaster.xml','w',encoding='utf-8').write(final)
           print(f"dcmaster.xml {len(final)} bytes")
           PY
@@ -112,5 +124,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
           git diff --cached --quiet && exit 0
-          git commit -m "dcmaster direct: samsung+pluto+lg+plex+tubi+roku no dcfull"
+          git commit -m "dcmaster direct fixed xml headers"
           git push
