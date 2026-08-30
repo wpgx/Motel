@@ -14,25 +14,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build DCmaster
+      - name: Build DCmaster - Plex gz + FAST xml
         run: |
           python3 - << 'PY'
-          import os, re, gzip, shutil
+          import os, re, gzip
           from pathlib import Path
 
-          def find_m3u(base):
-              for ext in ['.m3u8','.m3u']:
-                  p = base + ext
-                  if os.path.exists(p):
-                      return p
+          def find_xml(base):
+              candidates = [
+                  f"{base}.xml",
+                  f"{base}.xml.gz",
+                  f"{base}.m3u8.xml",
+                  f"{base.capitalize()}.xml",
+                  f"{base.capitalize()}.xml.gz",
+                  f"{base.upper()}.xml",
+              ]
+              for name in candidates:
+                  if os.path.exists(name):
+                      print(f"FOUND XML {base} -> {name}")
+                      return name
+              print(f"NOT FOUND XML {base}")
               return None
 
-          def find_xml(base):
-              for ext in ['.xml.gz','.xml']:
-                  p = base + ext
-                  if os.path.exists(p):
-                      return p
-              print(f"XML NOT FOUND for {base}")
+          def find_m3u(base):
+              for name in [f"{base}.m3u8", f"{base}.m3u", f"{base.capitalize()}.m3u8", f"{base.upper()}.m3u8"]:
+                  if os.path.exists(name):
+                      print(f"FOUND M3U {base} -> {name}")
+                      return name
+              print(f"NOT FOUND M3U {base}")
               return None
 
           def load_m3u(path):
@@ -41,146 +50,117 @@ jobs:
                   return ch
               with open(path,encoding='utf-8',errors='ignore') as f:
                   lines=f.read().splitlines()
-              for i,line in enumerate(lines):
-                  if line.startswith('#EXTINF') and i+1 < len(lines):
+              for i,l in enumerate(lines):
+                  if l.startswith('#EXTINF') and i+1 < len(lines):
                       url=lines[i+1].strip()
                       if url.startswith('http'):
-                          ch.append((line,url))
-              print(f"{path} -> {len(ch)} ch")
+                          ch.append((l,url))
+              print(f"  {path} = {len(ch)} channels")
               return ch
 
           def extract_tv(path):
               if not path or not os.path.exists(path):
                   return ''
-              txt = gzip.open(path,'rt',encoding='utf-8',errors='ignore').read() if path.endswith('.gz') else open(path,encoding='utf-8',errors='ignore').read()
-              txt = re.sub(r'<\?xml[^?]*\?>','',txt,flags=re.I)
-              txt = re.sub(r'<!DOCTYPE[^>]*>','',txt,flags=re.I)
-              m = re.search(r'<tv[^>]*>(.*)</tv>', txt, flags=re.I|re.S)
-              return m.group(1) if m else ''
+              try:
+                  if path.endswith('.gz'):
+                      txt = gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
+                  else:
+                      txt = open(path,encoding='utf-8',errors='ignore').read()
+              except Exception as e:
+                  print(f"  READ FAIL {path}: {e}")
+                  return ''
+              low = txt.lower()
+              s = low.find('<tv')
+              e = low.rfind('</tv>')
+              if s==-1 or e==-1:
+                  print(f"  {path} NO <tv> TAG len={len(txt)}")
+                  return ''
+              s = txt.find('>', s)+1
+              body = txt[s:e]
+              print(f"  {path} -> {body.count('<channel')} ch / {body.count('<programme')} prog / {len(body)} chars")
+              return body
 
-          # =========================
-          # 1. PLEX FIRST - CLEAN IDS
-          # =========================
-          plex_sources = ['plex-ca', 'plex']
-          plex_m3u = []
-          plex_xml_raw = ''
-          for src in plex_sources:
-              mp = find_m3u(src)
-              xp = find_xml(src)
+          # 1. PLEX - only .gz in your setup
+          plex_m3u=[]
+          plex_xml=''
+          for src in ['plex-ca','plex']:
+              mp=find_m3u(src)
               if mp:
                   plex_m3u.extend(load_m3u(mp))
+              xp=find_xml(src)
               if xp:
-                  plex_xml_raw += extract_tv(xp) + '\n'
-          print(f"PLEX TOTAL: {len(plex_m3u)} ch")
+                  plex_xml+=extract_tv(xp)+'\n'
+          print(f"\nPLEX TOTAL M3U: {len(plex_m3u)}")
 
-          # =========================
-          # 2. FAST - WILL BE PREFIXED dc-
-          # =========================
-          base_sources = ['dcfull', 'tubiroku', 'tubi']
-          base_m3u_raw = []
-          base_xml_raw = ''
-          for src in base_sources:
-              mp = find_m3u(src)
-              xp = find_xml(src)
+          # 2. FAST - .xml only in your setup
+          base_m3u_raw=[]
+          base_xml_raw=''
+          for src in ['dcfull','tubiroku','tubi','us','ca','roku']:
+              mp=find_m3u(src)
               if mp:
                   base_m3u_raw.extend(load_m3u(mp))
+              xp=find_xml(src)
               if xp:
-                  base_xml_raw += extract_tv(xp) + '\n'
+                  base_xml_raw+=extract_tv(xp)+'\n'
 
-          print(f"FAST RAW TOTAL: {len(base_m3u_raw)} ch")
+          print(f"FAST RAW M3U: {len(base_m3u_raw)}")
+          print(f"FAST RAW XML len: {len(base_xml_raw)}")
 
-          # Prefix FAST M3U tvg-id
-          base_m3u = []
-          for ext, url in base_m3u_raw:
-              # add dc- prefix if not already plex clean number and not already prefixed
-              def repl_id(m):
-                  tid = m.group(1)
-                  if tid.startswith('dc-') or tid.startswith('roku.') or tid.isdigit():
-                      # digit = plex style, but this is FAST so still prefix to avoid collision
-                      if tid.isdigit():
-                          return f'tvg-id="dc-{tid}"'
+          # Prefix FAST ids with dc- to avoid collision with Plex numeric ids
+          base_m3u=[]
+          for ext,url in base_m3u_raw:
+              def repl(m):
+                  tid=m.group(1)
+                  if tid.startswith('dc-') or tid.startswith('roku.'):
                       return m.group(0)
                   return f'tvg-id="dc-{tid}"'
-              new_ext = re.sub(r'tvg-id="([^"]+)"', repl_id, ext, flags=re.I)
-              # ensure dc-dc- fix
-              new_ext = new_ext.replace('dc-dc-','dc-')
-              # also add group if missing
-              if 'group-title=' not in new_ext.lower():
-                  new_ext = new_ext.replace('#EXTINF:-1', '#EXTINF:-1 group-title="FAST"',1)
-              base_m3u.append((new_ext, url))
+              new_ext=re.sub(r'tvg-id="([^"]+)"', repl, ext, flags=re.I)
+              new_ext=new_ext.replace('dc-dc-','dc-')
+              base_m3u.append((new_ext,url))
 
-          # Prefix FAST XML
-          dc_xml = base_xml_raw
-          # only prefix if id is not already dc- or roku.
-          dc_xml = re.sub(r'<channel id="(?!dc-)(?!roku\.)', '<channel id="dc-', dc_xml)
-          dc_xml = re.sub(r' channel="(?!dc-)(?!roku\.)', ' channel="dc-', dc_xml)
-          dc_xml = dc_xml.replace('dc-dc-','dc-')
+          base_xml=base_xml_raw.replace('<channel id="', '<channel id="dc-').replace(' channel="', ' channel="dc-')
+          base_xml=base_xml.replace('dc-dc-','dc-').replace('dc-roku.','roku.')
 
-          # =========================
-          # 3. ROKU SCRAPE (if you have roku.m3u) - kept as roku.
-          # =========================
-          roku_m3u = load_m3u(find_m3u('roku') or 'roku.m3u8')
-          roku_xml_raw = extract_tv(find_xml('roku') or 'roku.xml.gz')
-
-          # Keep roku. prefix as is, don't dc- it
-          # Build roku channel if xml missing
-          if roku_m3u and not roku_xml_raw.strip():
-              tmp=''
-              for ext,url in roku_m3u:
-                  mm=re.search(r'tvg-id="([^"]+)"',ext)
-                  tid=mm.group(1) if mm else ''
-                  if not tid: continue
-                  name=ext.rsplit(',',1)[-1]
-                  tmp+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n'
-                  tmp+=f'<programme channel="{tid}" start="20200101000000 +0000" stop="20300101000000 +0000"><title>{name}</title></programme>\n'
-              roku_xml_raw=tmp
-
-          # =========================
-          # 4. MERGE - PLEX FIRST, THEN FAST, THEN ROKU
-          # =========================
-          # Dedup by tvg-id, keep first occurrence (plex wins)
+          # Merge - Plex first wins dedup
           seen=set()
           merged=[]
-          for ext,url in plex_m3u + base_m3u + roku_m3u:
-              m=re.search(r'tvg-id="([^"]+)"',ext,flags=re.I)
+          for ext,url in plex_m3u + base_m3u:
+              m=re.search(r'tvg-id="([^"]+)"',ext,re.I)
               tid=m.group(1) if m else url
               if tid in seen:
                   continue
               seen.add(tid)
               merged.append((ext,url))
 
-          print(f"FINAL MERGED: {len(merged)} = plex {len(plex_m3u)} + fast {len(base_m3u)} + roku {len(roku_m3u)} minus dupes")
+          print(f"FINAL MERGED: {len(merged)} channels")
 
-          # Final XML merge
-          final_xml_body = plex_xml_raw + '\n' + dc_xml + '\n' + roku_xml_raw
-          # Clean broken &
-          final_xml_body = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',final_xml_body)
+          final_body = plex_xml + '\n' + base_xml
+          final_body = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',final_body)
+          final_xml = '<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n' + final_body + '\n</tv>\n'
 
-          final_xml = '<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n' + final_xml_body + '\n</tv>\n'
-
-          m3u_text = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml.gz"\n' + '\n'.join(f"{e}\n{u}" for e,u in merged) + '\n'
+          m3u_text = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{e}\n{u}" for e,u in merged) + '\n'
 
           Path("dcmaster.m3u8").write_text(m3u_text,encoding='utf-8')
           Path("dcmaster.m3u").write_text(m3u_text,encoding='utf-8')
           Path("dcmaster.xml").write_text(final_xml,encoding='utf-8')
-          with gzip.open("dcmaster.xml.gz",'wb') as f:
-              f.write(final_xml.encode('utf-8'))
-
-          # Also write upper case for your server
           Path("DCmaster.m3u8").write_text(m3u_text,encoding='utf-8')
           Path("DCmaster.m3u").write_text(m3u_text,encoding='utf-8')
           Path("DCmaster.xml").write_text(final_xml,encoding='utf-8')
+
+          # write gz too for clients that want it - you said you use xml but we write both
+          with gzip.open("dcmaster.xml.gz",'wb') as f:
+              f.write(final_xml.encode('utf-8'))
           with gzip.open("DCmaster.xml.gz",'wb') as f:
               f.write(final_xml.encode('utf-8'))
 
-          print(f"Wrote dcmaster.m3u8 {len(merged)} ch / xml {len(final_xml)} bytes")
+          print(f"DONE: wrote dcmaster.xml {len(final_xml)} bytes / {len(merged)} ch")
           PY
 
-      - name: Push
+      - name: Commit and push
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml dcmaster.xml.gz DCmaster.m3u8 DCmaster.m3u DCmaster.xml DCmaster.xml.gz -f
-          git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "DCmaster: plex first, dc- prefix FAST, fix guide"
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "DCmaster: fix Plex gz + FAST xml guide, dc- prefix"
           git push
