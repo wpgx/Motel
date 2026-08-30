@@ -32,7 +32,7 @@ jobs:
           #   Add exactly as supplied.
           #
           # dcfull guide:
-          #   Add dcfull.xml.
+          #   Add dcfull.xml exactly as supplied.
           #
           # Tubi/Roku is NOT included in this test.
           # ============================================================
@@ -52,7 +52,7 @@ jobs:
           print(f"Plex M3U: {plex_playlist_path}")
 
           # ============================================================
-          # COPY PLEX PLAYLIST EXACTLY
+          # COPY PLEX PLAYLIST
           # ============================================================
 
           with open(
@@ -84,8 +84,8 @@ jobs:
           # ============================================================
           # COMBINE PLAYLISTS
           #
-          # Plex remains exactly as supplied.
-          # Only the dcfull entries are appended.
+          # Plex playlist is kept exactly as supplied.
+          # dcfull entries are appended.
           # ============================================================
 
           plex_lines = plex_playlist_data.splitlines()
@@ -124,7 +124,9 @@ jobs:
               f.write(combined_playlist)
 
           # ============================================================
-          # FIND PLEX GUIDE
+          # PLEX GUIDE
+          #
+          # THIS IS THE KNOWN-GOOD PLEX IMPORT.
           # ============================================================
 
           if not os.path.exists('plex-ca.xml.gz'):
@@ -133,10 +135,6 @@ jobs:
 
           print("Plex guide: plex-ca.xml.gz")
 
-          # ============================================================
-          # IMPORT PLEX XML.GZ EXACTLY AS BEFORE
-          # ============================================================
-
           with gzip.open(
               'plex-ca.xml.gz',
               'rb'
@@ -144,7 +142,10 @@ jobs:
               plex_guide_data = source_file.read()
 
           # ============================================================
-          # FIND DCFULL GUIDE
+          # DCFULL GUIDE
+          #
+          # dcfull.xml is already a normal XMLTV <tv> document.
+          # Do not modify its channel IDs or programme data.
           # ============================================================
 
           if not os.path.exists('dcfull.xml'):
@@ -160,12 +161,9 @@ jobs:
               dcfull_guide_data = source_file.read()
 
           # ============================================================
-          # COMBINE GUIDES
+          # REMOVE ONLY THE OUTER XMLTV WRAPPERS
           #
-          # Plex guide remains intact.
-          # dcfull guide remains intact.
-          # Only the outer XML wrappers are removed so both guides
-          # can exist inside one <tv> document.
+          # The actual channel/programme data is left untouched.
           # ============================================================
 
           def extract_tv_contents(data):
@@ -179,26 +177,21 @@ jobs:
                   r'<\?xml[^?]*\?>',
                   '',
                   text,
-                  flags=re.I
-              )
-
-              text = re.sub(
-                  r'<!DOCTYPE[^>]*>',
-                  '',
-                  text,
+                  count=1,
                   flags=re.I
               )
 
               match = re.search(
-                  r'<tv\b[^>]*>(.*?)</tv\s*>',
+                  r'<tv\b[^>]*>(.*)</tv\s*>',
                   text,
                   flags=re.I | re.S
               )
 
-              if match:
-                  return match.group(1)
+              if not match:
+                  print("ERROR: Could not find <tv>...</tv>")
+                  raise SystemExit(1)
 
-              return text
+              return match.group(1)
 
           plex_content = extract_tv_contents(
               plex_guide_data
@@ -207,6 +200,10 @@ jobs:
           dcfull_content = extract_tv_contents(
               dcfull_guide_data
           )
+
+          # ============================================================
+          # COMBINED GUIDE
+          # ============================================================
 
           final_xml = (
               '<?xml version="1.0" encoding="UTF-8"?>\n'
