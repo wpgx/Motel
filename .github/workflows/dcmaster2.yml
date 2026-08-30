@@ -8,22 +8,33 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
-      # 1. Run your exact dcmaster build first to get dcmaster.m3u8 + dcmaster.xml
-      - name: Build dcmaster base (tubi/roku/pluto/etc whatever was in dcmaster)
-        run: |
-          # Paste your entire dcmaster build step here exactly as it was
-          # This will generate dcmaster.m3u8 and dcmaster.xml like before
-          echo "Run your dcmaster workflow steps here"
-          # If dcmaster is a separate yml, you can just call it:
-          # gh workflow run dcmaster.yml
-
-      - name: Build dcmaster2 = plex-ca + dcmaster (namespaced)
+      - name: Build DCMASTER2 - Plex first + dcmaster base
         run: |
           python3 << 'PY'
           import os, gzip, re, shutil
 
+          def find_m3u(base):
+              for ext in ['.m3u8','.m3u']:
+                  p=base+ext
+                  if os.path.exists(p):
+                      return p
+              print(f"NOT FOUND m3u for {base}")
+              return None
+
+          def find_xml(base):
+              if base=='plex-ca' and os.path.exists('plex-ca.xml.gz'):
+                  return 'plex-ca.xml.gz'
+              for ext in ['.xml','.xml.gz']:
+                  p=base+ext
+                  if os.path.exists(p):
+                      return p
+              print(f"NOT FOUND xml for {base}")
+              return None
+
           def load_m3u_clean(path):
+              if not path or not os.path.exists(path):
+                  print(f"SKIP missing m3u {path}")
+                  return []
               ch=[]
               with open(path,encoding='utf-8',errors='ignore') as f:
                   lines=f.read().splitlines()
@@ -32,32 +43,42 @@ jobs:
                       url=lines[i+1].strip()
                       if url.startswith('http'):
                           ch.append((line,url))
+              print(f"{path} -> {len(ch)} ch")
               return ch
 
           def extract_tv(path):
-              if not os.path.exists(path):
+              if not path or not os.path.exists(path):
+                  print(f"SKIP missing xml {path}")
                   return ''
               if path.endswith('.gz'):
                   text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
               else:
                   with open(path,'rb') as fb:
                       is_gz=fb.read(3)==b'\x1f\x8b\x08'
-                  text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read() if is_gz else open(path,encoding='utf-8',errors='ignore').read()
+                  if is_gz:
+                      text=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read()
+                  else:
+                      text=open(path,encoding='utf-8',errors='ignore').read()
               text=re.sub(r'<\?xml[^?]*\?>','',text,flags=re.I)
               text=re.sub(r'<!DOCTYPE[^>]*>','',text,flags=re.I)
               m=re.search(r'<tv[^>]*>(.*)</tv>',text,flags=re.I|re.S)
               return m.group(1) if m else ''
 
-          # Plex FIRST - no prefix (your working fix)
-          plex_m3u = load_m3u_clean('plex-ca.m3u8')
-          plex_xml = extract_tv('plex-ca.xml.gz' if os.path.exists('plex-ca.xml.gz') else 'plex-ca.xml')
-          print(f"Plex: {len(plex_m3u)} ch")
+          # Plex FIRST - clean, no prefix
+          plex_m3u_path=find_m3u('plex-ca')
+          plex_xml_path=find_xml('plex-ca')
+          plex_m3u=load_m3u_clean(plex_m3u_path)
+          plex_xml=extract_tv(plex_xml_path)
+          print(f"Plex loaded: {len(plex_m3u)}")
 
-          # dcmaster base - prefix to avoid same id!= same channel
-          dc_m3u_raw = load_m3u_clean('dcmaster.m3u8' if os.path.exists('dcmaster.m3u8') else 'dcfull.m3u8')
-          dc_xml_raw = extract_tv('dcmaster.xml' if os.path.exists('dcmaster.xml') else 'dcfull.xml')
+          # dcmaster base = whatever worked in dcmaster (fallback to dcfull)
+          dc_m3u_path=find_m3u('dcmaster') or find_m3u('dcfull')
+          dc_xml_path=find_xml('dcmaster') or find_xml('dcfull')
+          dc_m3u_raw=load_m3u_clean(dc_m3u_path)
+          dc_xml_raw=extract_tv(dc_xml_path)
+          print(f"DC base loaded: {len(dc_m3u_raw)}")
 
-          # namespace dcmaster as dc- (or tubi-/roku- are already inside dcmaster, keep as dc- for all FAST)
+          # namespace DC base to avoid same id!= same channel
           dc_m3u=[]
           for extinf,url in dc_m3u_raw:
               if 'tvg-id="' in extinf:
@@ -65,8 +86,8 @@ jobs:
               dc_m3u.append((extinf,url))
           dc_xml=dc_xml_raw.replace('<channel id="', '<channel id="dc-').replace(' channel="', ' channel="dc-').replace('dc-dc-','dc-')
 
-          merged = plex_m3u + dc_m3u
-          xml_body = plex_xml + '\n' + dc_xml
+          merged=plex_m3u + dc_m3u
+          xml_body=plex_xml + '\n' + dc_xml
           xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',xml_body)
 
           m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster2.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
@@ -79,17 +100,16 @@ jobs:
               with gzip.open('dcmaster2.xml.gz','wb') as fout:
                   shutil.copyfileobj(fin,fout)
 
-          print(f"FINAL {len(merged)} ch / {final_xml.count('<channel ')} xml ch / {final_xml.count('<programme')} prog")
+          print(f"\nFINAL M3U {len(merged)} (plex {len(plex_m3u)} + dc {len(dc_m3u)})")
+          print(f"FINAL XML {final_xml.count('<channel ')} ch / {final_xml.count('<programme')} prog")
           PY
-
-      - name: Validate
+      - name: Validate XML
         run: |
           sudo apt-get update -y && sudo apt-get install -y libxml2-utils
-          xmllint --noout dcmaster2.xml
-
+          xmllint --noout dcmaster2.xml && echo "XML OK"
       - name: Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dcmaster2.m3u8 dcmaster2.m3u dcmaster2.xml dcmaster2.xml.gz -f
-          git diff --cached --quiet || (git commit -m "dcmaster2 = plex first + dcmaster whatever worked namespaced" && git push)
+          git diff --cached --quiet || (git commit -m "dcmaster2 plex first + dcmaster base namespaced fixed FileNotFound" && git push)
