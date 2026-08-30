@@ -1,94 +1,124 @@
+name: Sort DCcatalog
+on:
+  workflow_dispatch:
+jobs:
+  sort:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Force latest dcmaster
+        run: |
+          git pull origin main --force
+          curl -L -o dcmaster.m3u8 https://raw.githubusercontent.com/${{ github.repository }}/main/dcmaster.m3u8
+          curl -L -o dcmaster.xml https://raw.githubusercontent.com/${{ github.repository }}/main/dcmaster.xml
+          echo "plex count: $(grep -c plex.tv dcmaster.m3u8 || echo 0)"
+
       - name: Build DCcatalog
         run: |
-          python3 << 'PY'
+          cat > /tmp/build.py << 'PYEOF'
           import re
           from pathlib import Path
-          from collections import Counter
-          import gzip
+          import gzip, shutil
 
           src = Path("dcmaster.m3u8").read_text(encoding="utf-8", errors="ignore").splitlines()
 
-          MERGE = {"home & food": "Home & Food","true crime": "Crime","crime": "Crime","comedy": "Comedy","drama": "Drama","sci-fi": "Sci-Fi & Horror","horror": "Sci-Fi & Horror","movies": "Movies","sports": "Sports","kids": "Kids","documentary": "Documentary"}
           def norm(g):
-              if not g: return "Other"
-              gl=g.lower()
-              if "news" in gl or "weather" in gl: return "News & Weather"
-              for k,v in MERGE.items():
-                  if k in gl: return v
+              if not g:
+                  return "Other"
+              gl = g.lower()
+              if "news" in gl or "weather" in gl:
+                  return "News & Weather"
+              if "true crime" in gl or gl=="crime":
+                  return "Crime"
+              if "sci-fi" in gl or "horror" in gl or "paranormal" in gl:
+                  return "Sci-Fi & Horror"
+              if "movie" in gl:
+                  return "Movies"
+              if "sport" in gl:
+                  return "Sports"
+              if "kid" in gl or "family" in gl:
+                  return "Kids"
               return g.title()
 
-          entries=[]
-          seen=set()
-          next_chno=9000
-          i=0
+          entries = []
+          seen = set()
+          next_chno = 9000
+          i = 0
           while i < len(src):
-              line=src[i]
+              line = src[i]
               if not line.startswith("#EXTINF"):
-                  i+=1
+                  i += 1
                   continue
-              # find url in next 3 lines
-              url=""
-              j=i+1
-              while j < len(src) and j < i+4:
+              url = ""
+              j = i + 1
+              while j < len(src) and j < i + 4:
                   if src[j].strip().startswith("http"):
-                      url=src[j].strip()
+                      url = src[j].strip()
                       break
-                  j+=1
-              if not url:
-                  i+=1
+                  j += 1
+              if not url.startswith("http"):
+                  i += 1
                   continue
-              name=line.rsplit(",",1)[-1].strip()
-              m=re.search(r'group-title="([^"]+)"',line,re.I)
-              cat=m.group(1) if m else "Other"
-              if any(x in cat.lower() for x in ["spanish","french","latin","espanol","français"]):
-                  i=j+1
+              name = line.rsplit(",", 1)[-1].strip()
+              mg = re.search(r'group-title="([^"]+)"', line, re.I)
+              cat = mg.group(1) if mg else "Other"
+              if any(x in cat.lower() for x in ["spanish","french","latin","espanol"]):
+                  i = j + 1
                   continue
-              # clean chno - Sparkle needs numeric
-              ch_m=re.search(r'tvg-chno="([^"]+)"',line,re.I)
-              raw=ch_m.group(1) if ch_m else ""
-              num=re.search(r'(\d+)',raw)
-              num=num.group(1) if num else str(next_chno)
+              ch_m = re.search(r'tvg-chno="([^"]+)"', line, re.I)
+              raw = ch_m.group(1) if ch_m else ""
+              mnum = re.search(r'(\d+)', raw)
+              num = mnum.group(1) if mnum else str(next_chno)
               while num in seen:
-                  next_chno+=1
-                  num=str(next_chno)
+                  next_chno += 1
+                  num = str(next_chno)
               seen.add(num)
-              next_chno+=1
+              next_chno += 1
               if ch_m:
-                  line=line.replace(f'tvg-chno="{raw}"',f'tvg-chno="{num}"')
+                  line = line.replace(f'tvg-chno="{raw}"', f'tvg-chno="{num}"')
               else:
-                  line=line.replace("#EXTINF:-1",f'#EXTINF:-1 tvg-chno="{num}"',1)
-
-              # normalize group
-              nc=norm(cat)
-              line=re.sub(r'group-title="[^"]*"',f'group-title="{nc}"',line,flags=re.I)
-
-              tvg=re.search(r'tvg-id="([^"]+)"',line,re.I)
-              entries.append((nc, name.lower(), line, url, tvg.group(1) if tvg else ""))
-              i=j+1
+                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{num}"', 1)
+              line = re.sub(r'group-title="[^"]*"', f'group-title="{norm(cat)}"', line, flags=re.I)
+              tvg = re.search(r'tvg-id="([^"]+)"', line, re.I)
+              tvgid = tvg.group(1) if tvg else ""
+              entries.append((norm(cat), name.lower(), line, url, tvgid))
+              i = j + 1
 
           entries.sort(key=lambda x: (x[0], x[1]))
-          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
+          out = ['#EXTM3U url-tvg="https://motel.deecee.ca/dccatalog.xml"']
           for _,_,ext,url,_ in entries:
               out.append(ext)
               if 'plex.tv' in url:
                   out.append('#EXTVLCOPT:http-user-agent=Mozilla/5.0')
               out.append(url)
 
-          text="\n".join(out)+"\n"
-          for f in ["dccatalog.m3u8","DCcatalog.m3u8","dccatalog.m3u","DCcatalog.m3u"]:
-              Path(f).write_text(text,encoding="utf-8")
+          text = "\n".join(out) + "\n"
+          for fn in ["dccatalog.m3u8","DCcatalog.m3u8","dccatalog.m3u","DCcatalog.m3u"]:
+              Path(fn).write_text(text, encoding="utf-8")
 
-          print(f"DONE {len(entries)} channels, plex: {sum(1 for *_,u,_ in entries if 'plex.tv' in u)}")
+          print(f"DONE {len(entries)} channels plex {sum(1 for *_,u,_ in entries if 'plex.tv' in u)}")
 
-          # XML - FAST COPY, NO PARSE - just copy dcmaster.xml directly to avoid 31s hang
-          # we will trim it in next dcmaster build
           if Path("dcmaster.xml").exists():
-              import shutil
               shutil.copy("dcmaster.xml","dccatalog.xml")
               shutil.copy("dcmaster.xml","DCcatalog.xml")
-              data=Path("dcmaster.xml").read_bytes()
+              data = Path("dcmaster.xml").read_bytes()
               Path("dccatalog.xml.gz").write_bytes(gzip.compress(data))
               Path("DCcatalog.xml.gz").write_bytes(gzip.compress(data))
-              print("XML copied fast")
+              print("XML copied")
+          PYEOF
+          python3 /tmp/build.py
 
-          PY
+      - name: Push
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add DCcatalog.m3u8 DCcatalog.m3u DCcatalog.xml DCcatalog.xml.gz dccatalog.m3u8 dccatalog.m3u dccatalog.xml dccatalog.xml.gz -f
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "DCcatalog: fix chno numeric for Sparkle"
+          git push
