@@ -1,6 +1,7 @@
-name: dcmaster
+name: Build DCmaster
 on:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,82 +9,109 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCMASTER - last night with dc- fix
+        with:
+          fetch-depth: 0
+
+      - name: Build dcmaster - Plex clean + dc- on tvg-id only for Sparkle
         run: |
           python3 << 'PY'
           import os, re, gzip
-          def load_m3u(p):
-            lines=open(p,encoding='utf-8',errors='ignore').read().splitlines()
-            out=[]
-            for i,l in enumerate(lines):
-              if l.startswith('#EXTINF') and i+1 < len(lines):
-                u=lines[i+1].strip()
-                if u.startswith('http'): out.append((l,u))
-            return out
-          def extract(p):
-            if not os.path.exists(p): return ''
-            t=gzip.open(p,'rt',encoding='utf-8',errors='ignore').read() if p.endswith('.gz') else open(p,encoding='utf-8',errors='ignore').read()
-            m=re.search(r'<tv[^>]*>(.*)</tv>',t,flags=re.I|re.S)
-            return m.group(1) if m else t
 
-          merged=[]
-          xml_body=''
+          def load_m3u(path):
+              if not os.path.exists(path):
+                  return []
+              lines = open(path, encoding='utf-8', errors='ignore').read().splitlines()
+              out = []
+              for i, l in enumerate(lines):
+                  if l.startswith('#EXTINF') and i+1 < len(lines):
+                      u = lines[i+1].strip()
+                      if u.startswith('http'):
+                          out.append((l, u))
+              return out
 
-          # PLEX - LEAVE 100% ALONE
-          for f in ['plex-ca.m3u8','plex-ca.m3u']:
-            if os.path.exists(f):
-              merged.extend(load_m3u(f))
-              print(f"PLEX {f}: {len(load_m3u(f))}")
-              break
-          for f in ['plex-ca.xml','plex-ca.xml.gz']:
-            if os.path.exists(f):
-              xml_body+=extract(f)+'\n'
-              break
+          def extract_xml_body(path):
+              if not os.path.exists(path):
+                  return ''
+              txt = gzip.open(path, 'rt', encoding='utf-8', errors='ignore').read() if path.endswith('.gz') else open(path, encoding='utf-8', errors='ignore').read()
+              m = re.search(r'<tv[^>]*>(.*)</tv>', txt, flags=re.I|re.S)
+              return m.group(1) if m else txt
 
-          # EVERYTHING ELSE - ADD dc- PREFIX
-          for base in ['dcfull','tubiroku','roku','free2view']:
-            mp=None
-            for ext in ['.m3u8','.m3u']:
-              if os.path.exists(base+ext):
-                mp=base+ext
-                break
-            if mp:
-              raw=load_m3u(mp)
-              fixed=[]
-              for extinf,url in raw:
-                if 'tvg-id="' in extinf:
-                  if 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf and 'tvg-id="roku-' not in extinf:
-                    extinf=extinf.replace('tvg-id="','tvg-id="dc-')
-                else:
-                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-id="dc-{len(merged)+len(fixed)}"')
-                # add dc- to chno to keep unique
-                extinf=re.sub(r'tvg-chno="', 'tvg-chno="dc-', extinf)
-                fixed.append((extinf,url))
+          merged = []
+          xml_body = ''
+
+          # 1. PLEX-CA - 100% UNTOUCHED
+          for f in ['plex-ca.m3u8', 'plex-ca.m3u']:
+              if os.path.exists(f):
+                  data = load_m3u(f)
+                  merged.extend(data)
+                  print(f"PLEX {f}: {len(data)}")
+                  break
+
+          for f in ['plex-ca.xml', 'plex-ca.xml.gz']:
+              if os.path.exists(f):
+                  xml_body += extract_xml_body(f) + '\n'
+                  print(f"PLEX XML {f}")
+                  break
+
+          # 2. EVERYTHING ELSE - ADD dc- to tvg-id ONLY, leave tvg-chno numeric for Sparkle
+          for base in ['dcfull', 'tubiroku', 'free2view']:
+              mp = None
+              for ext in ['.m3u8', '.m3u']:
+                  if os.path.exists(base+ext):
+                      mp = base+ext
+                      break
+              if not mp:
+                  continue
+
+              raw = load_m3u(mp)
+              fixed = []
+              for extinf, url in raw:
+                  # add dc- to tvg-id if not already prefixed
+                  if 'tvg-id="' in extinf:
+                      if 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf and 'tvg-id="roku-' not in extinf:
+                          extinf = extinf.replace('tvg-id="', 'tvg-id="dc-')
+                  else:
+                      # no tvg-id at all - create one
+                      extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-id="dc-{len(merged)+len(fixed)}"')
+                  
+                  # DO NOT TOUCH tvg-chno - Sparkle needs numeric
+                  fixed.append((extinf, url))
+              
               merged.extend(fixed)
-              print(f"{base}: {len(fixed)} with dc- prefix")
+              print(f"{base}: {len(fixed)} with dc- tvg-id only, chno kept numeric")
 
-            xp=None
-            for ext in ['.xml','.xml.gz']:
-              if os.path.exists(base+ext):
-                xp=base+ext
-                break
-            if xp:
-              t=extract(xp)
-              t=re.sub(r'<channel id="(?!dc-|plex-|roku-)', '<channel id="dc-', t)
-              t=re.sub(r' channel="(?!dc-|plex-|roku-)', ' channel="dc-', t)
-              t=t.replace('dc-dc-','dc-').replace('dc-plex-','plex-').replace('dc-roku-','roku-')
-              xml_body+=t+'\n'
+              # XML - prefix channel ids
+              xp = None
+              for ext in ['.xml', '.xml.gz']:
+                  if os.path.exists(base+ext):
+                      xp = base+ext
+                      break
+              if xp:
+                  t = extract_xml_body(xp)
+                  # prefix channel id and programme channel
+                  t = re.sub(r'<channel id="(?!dc-|plex-|roku-)', '<channel id="dc-', t)
+                  t = re.sub(r' channel="(?!dc-|plex-|roku-)', ' channel="dc-', t)
+                  t = t.replace('dc-dc-', 'dc-').replace('dc-plex-', 'plex-').replace('dc-roku-', 'roku-')
+                  xml_body += t + '\n'
 
-          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',xml_body)
-          m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
-          open('dcmaster.m3u8','w',encoding='utf-8').write(m3u_out)
-          open('dcmaster.m3u','w',encoding='utf-8').write(m3u_out)
-          open('dcmaster.xml','w',encoding='utf-8').write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_body}\n</tv>\n')
-          print(f"FINAL {len(merged)} - Plex untouched, others dc-")
+          # Clean xml entities
+          xml_body = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)', '&amp;', xml_body)
+
+          m3u_text = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a, b in merged) + '\n'
+
+          open('dcmaster.m3u8', 'w', encoding='utf-8').write(m3u_text)
+          open('dcmaster.m3u', 'w', encoding='utf-8').write(m3u_text)
+          open('dcmaster.xml', 'w', encoding='utf-8').write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_body}\n</tv>\n')
+
+          print(f"\nFINAL dcmaster: {len(merged)} channels")
+          print(f"PLEX in final: {sum(1 for _,u in merged if 'plex.tv' in u)}")
           PY
-      - name: Push
+
+      - name: Push dcmaster
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
-          git diff --cached --quiet || (git commit -m "dcmaster: last night working - plex clean + dc- prefix others" && git push)
+          git diff --cached --quiet && echo "No change" && exit 0
+          git commit -m "dcmaster: plex clean, dc- on tvg-id only, chno numeric for Sparkle"
+          git push
