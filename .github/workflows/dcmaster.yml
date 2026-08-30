@@ -12,103 +12,133 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get sources
+      - name: Get Roku
         run: |
-          curl -L -A "Mozilla/5.0" -o plex-ca.m3u8 https://i.mjh.nz/Plex/ca.m3u8
-          curl -L -A "Mozilla/5.0" -o plex-ca.xml https://i.mjh.nz/Plex/ca.xml
           curl -L -A "Mozilla/5.0" -o roku.m3u8 https://i.mjh.nz/Roku/us.m3u8
-          curl -L -A "Mozilla/5.0" -o roku2.m3u https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u
-          if [ ! -s roku.m3u8 ] || [ $(grep -c EXTINF roku.m3u8 || echo 0) -lt 10 ]; then
-            echo "roku.m3u8 empty, trying roku2"
-            cp roku2.m3u roku.m3u8
-          fi
-          curl -L -A "Mozilla/5.0" -o tubi.m3u8 https://i.mjh.nz/Tubi/us.m3u8
-          echo "plex=$(grep -c EXTINF plex-ca.m3u8 2>/dev/null || echo 0) dcfull=$(grep -c EXTINF dcfull.m3u8 2>/dev/null || echo 0) tubi=$(grep -c EXTINF tubi.m3u8 2>/dev/null || echo 0) roku=$(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0) tubiroku=$(grep -c EXTINF tubiroku.m3u 2>/dev/null; echo 0)"
+          echo "roku=$(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0)"
 
-      - name: Build
+      - name: Build dcmaster - Plex clean + dc- on tvg-id only for Sparkle + Roku 6000
         run: |
           python3 << 'PY'
-          import os, re
+          import os, re, gzip
+
           def load_m3u(path):
-              if not os.path.exists(path) or os.path.getsize(path)==0: return []
-              lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
-              out=[]
-              for i,l in enumerate(lines):
+              if not os.path.exists(path):
+                  return []
+              lines = open(path, encoding='utf-8', errors='ignore').read().splitlines()
+              out = []
+              for i, l in enumerate(lines):
                   if l.startswith('#EXTINF') and i+1 < len(lines):
-                      u=lines[i+1].strip()
-                      if u.startswith('http'): out.append((l,u))
+                      u = lines[i+1].strip()
+                      if u.startswith('http'):
+                          out.append((l, u))
               return out
+
           def extract_xml_body(path):
-              import gzip, re
-              if not os.path.exists(path) or os.path.getsize(path)==0: return ''
-              txt=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read() if path.endswith('.gz') else open(path,encoding='utf-8',errors='ignore').read()
-              m=re.search(r'<tv[^>]*>(.*)</tv>',txt,flags=re.I|re.S)
+              if not os.path.exists(path):
+                  return ''
+              txt = gzip.open(path, 'rt', encoding='utf-8', errors='ignore').read() if path.endswith('.gz') else open(path, encoding='utf-8', errors='ignore').read()
+              m = re.search(r'<tv[^>]*>(.*)</tv>', txt, flags=re.I|re.S)
               return m.group(1) if m else txt
 
-          merged=[]; xml_body=''
+          merged = []
+          xml_body = ''
 
-          # PLEX 6500 untouched
-          plex_data = load_m3u('plex-ca.m3u8')
-          if len(plex_data)<10:
-              print("FATAL NO PLEX"); exit(1)
-          merged.extend(plex_data)
-          print(f"PLEX: {len(plex_data)}")
-
-          for f in ['plex-ca.xml','plex.xml']:
+          # 1. PLEX-CA - 100% UNTOUCHED
+          for f in ['plex-ca.m3u8', 'plex-ca.m3u']:
               if os.path.exists(f):
-                  xml_body+=extract_xml_body(f)+'\n'; break
+                  data = load_m3u(f)
+                  merged.extend(data)
+                  print(f"PLEX {f}: {len(data)}")
+                  break
 
-          # DCFULL
-          dcfull=load_m3u('dcfull.m3u8') or load_m3u('dcfull.m3u')
-          for extinf,url in dcfull:
-              if any(url==u for _,u in merged): continue
-              merged.append((extinf,url))
-          print(f"DCFULL added {len(dcfull)}")
+          for f in ['plex-ca.xml', 'plex-ca.xml.gz']:
+              if os.path.exists(f):
+                  xml_body += extract_xml_body(f) + '\n'
+                  print(f"PLEX XML {f}")
+                  break
 
-          # TUBI 5000
-          tubi_raw = load_m3u('tubiroku.m3u') or load_m3u('tubiroku.m3u8') or load_m3u('tubi.m3u8')
-          chno=5000
-          for extinf,url in tubi_raw:
-              if any(url==u for _,u in merged): continue
-              extinf=re.sub(r'tvg-chno="[^"]*"','',extinf)
-              extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
-              merged.append((extinf,url)); chno+=1
-          print(f"TUBI 5000: {len(tubi_raw)} -> final chno {chno-1}")
-
-          # ROKU - 6000 to 6499 (your old way)
-          roku_raw = load_m3u('roku.m3u8')
-          chno=6000
-          for extinf,url in roku_raw:
-              if any(url==u for _,u in merged): continue
-              if chno>=6500: break # stop before Plex
-              extinf=re.sub(r'tvg-chno="[^"]*"','',extinf)
-              extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
-              merged.append((extinf,url)); chno+=1
-          print(f"ROKU 6000-6499: {len(roku_raw)} added {chno-6000}")
-
-          # xml
-          for base in ['dcfull','tubiroku']:
-              for ext in ['.xml','.xml.gz']:
+          # 2. DCFULL + TUBIROKU + FREE2VIEW - dc- tvg-id only
+          for base in ['dcfull', 'tubiroku', 'free2view']:
+              mp = None
+              for ext in ['.m3u8', '.m3u']:
                   if os.path.exists(base+ext):
-                      xml_body+=extract_xml_body(base+ext)+'\n'; break
+                      mp = base+ext
+                      break
+              if not mp:
+                  continue
 
-          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',xml_body)
+              raw = load_m3u(mp)
+              fixed = []
+              for extinf, url in raw:
+                  if 'tvg-id="' in extinf:
+                      if 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf and 'tvg-id="roku-' not in extinf:
+                          extinf = extinf.replace('tvg-id="', 'tvg-id="dc-')
+                  else:
+                      extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-id="dc-{len(merged)+len(fixed)}"')
+                  fixed.append((extinf, url))
+              
+              merged.extend(fixed)
+              print(f"{base}: {len(fixed)} with dc- tvg-id only, chno kept numeric")
 
-          print(f"FINAL {len(merged)} total")
-          if len(merged)<800:
-              print("Too small, abort"); exit(1)
+              xp = None
+              for ext in ['.xml', '.xml.gz']:
+                  if os.path.exists(base+ext):
+                      xp = base+ext
+                      break
+              if xp:
+                  t = extract_xml_body(xp)
+                  t = re.sub(r'<channel id="(?!dc-|plex-|roku-)', '<channel id="dc-', t)
+                  t = re.sub(r' channel="(?!dc-|plex-|roku-)', ' channel="dc-', t)
+                  t = t.replace('dc-dc-', 'dc-').replace('dc-plex-', 'plex-').replace('dc-roku-', 'roku-')
+                  xml_body += t + '\n'
 
-          m3u_text='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n'+'\n'.join(f"{a}\n{b}" for a,b in merged)+'\n'
-          open('dcmaster.m3u8','w',encoding='utf-8').write(m3u_text)
-          open('dcmaster.m3u','w',encoding='utf-8').write(m3u_text)
-          open('dcmaster.xml','w',encoding='utf-8').write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_body}\n</tv>\n')
+          # 3. ROKU - 6000-6499 - same style as your file
+          mp = 'roku.m3u8' if os.path.exists('roku.m3u8') else None
+          if mp:
+              raw = load_m3u(mp)
+              fixed = []
+              chno = 6000
+              for extinf, url in raw:
+                  if any(url == u for _, u in merged):
+                      continue
+                  if chno >= 6500:
+                      break
+                  # roku- prefix
+                  if 'tvg-id="' in extinf:
+                      if 'tvg-id="roku-' not in extinf:
+                          extinf = re.sub(r'tvg-id="[^"]*"', f'tvg-id="roku-{chno}"', extinf)
+                  else:
+                      extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-id="roku-{chno}"')
+                  # set chno 6000-6499
+                  extinf = re.sub(r'tvg-chno="[^"]*"', '', extinf)
+                  extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-chno="{chno}"')
+                  
+                  fixed.append((extinf, url))
+                  chno += 1
+              
+              merged.extend(fixed)
+              print(f"roku: {len(fixed)} with roku- tvg-id, chno 6000-6499")
+
+          # Clean xml entities
+          xml_body = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)', '&amp;', xml_body)
+
+          m3u_text = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a, b in merged) + '\n'
+
+          open('dcmaster.m3u8', 'w', encoding='utf-8').write(m3u_text)
+          open('dcmaster.m3u', 'w', encoding='utf-8').write(m3u_text)
+          open('dcmaster.xml', 'w', encoding='utf-8').write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_body}\n</tv>\n')
+
+          print(f"\nFINAL dcmaster: {len(merged)} channels")
+          print(f"PLEX in final: {sum(1 for _,u in merged if 'plex.tv' in u)}")
+          print(f"ROKU in final: {sum(1 for _,u in merged if 'roku-' in a.lower() or 'roku' in a.lower())}")
           PY
 
-      - name: Push
+      - name: Push dcmaster
         run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcmaster: plex 6500 + tubi 5000 + roku 6000-6499 fix"
+          git commit -m "dcmaster: plex clean + roku 6000-6499"
           git push
