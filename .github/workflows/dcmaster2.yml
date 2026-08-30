@@ -16,190 +16,145 @@ jobs:
         run: |
           python3 << 'PY'
           import os
-          import shutil
+          import gzip
 
           # ============================================================
-          # DCMaster2 - PLEX ONLY / GZIP TEST
+          # DCMaster2 - PLEX ONLY
           #
-          # Plex playlist is copied in unchanged.
+          # TESTING THE M3U IMPORT ONLY
+          #
+          # Plex M3U:
+          #   Copy the playlist entries without parsing/rebuilding them.
           #
           # Plex guide:
-          #     plex-ca.xml.gz
-          #          ↓
-          #     dcmaster2.xml.gz
+          #   Import plex-ca.xml.gz exactly as before.
           #
-          # The guide is NEVER decompressed.
-          # The guide is NEVER parsed.
-          # The guide is NEVER rebuilt.
+          # NO filtering
+          # NO sorting
+          # NO deduplication
+          # NO category changes
+          # NO channel ID changes
           # ============================================================
-
-          PLEX_GUIDE_URL = "https://motel.deecee.ca/dcmaster2.xml.gz"
 
           # ============================================================
           # FIND PLEX PLAYLIST
           # ============================================================
 
-          def find_m3u(base):
-              if os.path.exists(base + '.m3u8'):
-                  return base + '.m3u8'
+          if os.path.exists('plex-ca.m3u8'):
+              playlist_path = 'plex-ca.m3u8'
+          elif os.path.exists('plex-ca.m3u'):
+              playlist_path = 'plex-ca.m3u'
+          else:
+              print("ERROR: No Plex CA playlist found")
+              raise SystemExit(1)
 
-              if os.path.exists(base + '.m3u'):
-                  return base + '.m3u'
+          print(f"Plex M3U: {playlist_path}")
 
-              return None
+          # ============================================================
+          # COPY PLEX PLAYLIST
+          #
+          # Do NOT parse or rebuild the EXTINF entries.
+          # Keep the existing Plex playlist exactly as supplied.
+          # ============================================================
+
+          with open(
+              playlist_path,
+              'rb'
+          ) as f:
+              playlist_data = f.read()
+
+          with open(
+              'dcmaster2.m3u8',
+              'wb'
+          ) as f:
+              f.write(playlist_data)
+
+          with open(
+              'dcmaster2.m3u',
+              'wb'
+          ) as f:
+              f.write(playlist_data)
 
           # ============================================================
           # FIND PLEX GUIDE
           # ============================================================
 
-          def find_xml_gz(base):
-              path = base + '.xml.gz'
-
-              if os.path.exists(path):
-                  return path
-
-              return None
-
-          # ============================================================
-          # LOAD PLEX M3U
-          # ============================================================
-
-          playlist_path = find_m3u('plex-ca')
-
-          if not playlist_path:
-              print("ERROR: No Plex CA playlist found")
+          if not os.path.exists('plex-ca.xml.gz'):
+              print("ERROR: plex-ca.xml.gz not found")
               raise SystemExit(1)
 
-          with open(
-              playlist_path,
-              'r',
-              encoding='utf-8',
-              errors='ignore'
-          ) as f:
-              playlist_data = f.read()
+          print("Plex guide: plex-ca.xml.gz")
 
           # ============================================================
-          # WRITE DCMaster2 M3U
+          # IMPORT PLEX XML.GZ
           #
-          # Keep every EXTINF and URL exactly as supplied by Plex.
-          # Only change the top-level EPG URL for this test.
-          # ============================================================
-
-          lines = playlist_data.splitlines()
-
-          if lines and lines[0].startswith('#EXTM3U'):
-
-              lines[0] = (
-                  f'#EXTM3U url-tvg="{PLEX_GUIDE_URL}"'
-              )
-
-          else:
-
-              lines.insert(
-                  0,
-                  f'#EXTM3U url-tvg="{PLEX_GUIDE_URL}"'
-              )
-
-          m3u_content = '\n'.join(lines) + '\n'
-
-          with open(
-              'dcmaster2.m3u8',
-              'w',
-              encoding='utf-8'
-          ) as f:
-              f.write(m3u_content)
-
-          with open(
-              'dcmaster2.m3u',
-              'w',
-              encoding='utf-8'
-          ) as f:
-              f.write(m3u_content)
-
-          # ============================================================
-          # COPY PLEX GZ DIRECTLY
+          # THIS IS THE ORIGINAL XML IMPORT METHOD.
           #
-          # NO GUNZIP.
-          # NO XML PROCESSING.
-          # NO REBUILD.
+          # Decompress the Plex guide into dcmaster2.xml.
+          # No filtering or XML rebuilding.
           # ============================================================
 
-          guide_path = find_xml_gz('plex-ca')
+          with gzip.open(
+              'plex-ca.xml.gz',
+              'rb'
+          ) as source_file:
 
-          if not guide_path:
+              guide_data = source_file.read()
 
-              print(
-                  "ERROR: plex-ca.xml.gz not found"
-              )
+          with open(
+              'dcmaster2.xml',
+              'wb'
+          ) as output_file:
 
-              raise SystemExit(1)
-
-          print(
-              f"Plex guide source: {guide_path}"
-          )
-
-          shutil.copyfile(
-              guide_path,
-              'dcmaster2.xml.gz'
-          )
+              output_file.write(guide_data)
 
           # ============================================================
           # REPORT
           # ============================================================
 
-          source_size = os.path.getsize(
-              guide_path
-          )
-
-          output_size = os.path.getsize(
-              'dcmaster2.xml.gz'
-          )
-
           print('')
           print('==========================================')
-          print('DCMASTER2 GZIP TEST COMPLETE')
+          print('DCMASTER2 PLEX-ONLY M3U IMPORT TEST')
           print('==========================================')
+
           print(
-              f'Playlist: {playlist_path}'
+              f'M3U channels: '
+              f'{playlist_data.count(b"#EXTINF")}'
           )
+
           print(
-              f'Playlist size: '
-              f'{len(m3u_content)} bytes'
+              f'XML channels: '
+              f'{guide_data.count(b"<channel ")}'
           )
+
           print(
-              f'Guide source size: '
-              f'{source_size} bytes'
+              f'XML programmes: '
+              f'{guide_data.count(b"<programme ")}'
           )
+
           print(
-              f'Guide output size: '
-              f'{output_size} bytes'
+              f'XML size: '
+              f'{len(guide_data)} bytes'
           )
-          print(
-              f'Guide URL: '
-              f'{PLEX_GUIDE_URL}'
-          )
-          print('Guide copied WITHOUT decompression')
+
           print('==========================================')
           PY
 
       - name: Validate
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y gzip
+          sudo apt-get install -y libxml2-utils
 
-          echo "===== VALIDATING GZIP GUIDE ====="
-          gzip -t dcmaster2.xml.gz
-          echo "dcmaster2.xml.gz OK"
+          echo "===== VALIDATING DCMaster2 XML ====="
+          xmllint --noout dcmaster2.xml
+          echo "dcmaster2.xml OK"
 
-          echo "===== FILE SIZES ====="
-          ls -lh plex-ca.xml.gz dcmaster2.xml.gz
+          echo "===== FINAL COUNTS ====="
+          echo "M3U channels: $(grep -c '^#EXTINF' dcmaster2.m3u8 || true)"
+          echo "XML channels: $(grep -c '<channel ' dcmaster2.xml || true)"
+          echo "XML programmes: $(grep -c '<programme ' dcmaster2.xml || true)"
 
-          echo "===== SHA256 ====="
-          sha256sum plex-ca.xml.gz
-          sha256sum dcmaster2.xml.gz
-
-          echo "===== M3U ====="
-          echo "M3U channels: $(grep -c '^#EXTINF' dcmaster2.m3u8)"
+          echo "===== M3U HEADER ====="
           head -1 dcmaster2.m3u8
 
       - name: Push to repo
@@ -210,7 +165,7 @@ jobs:
           git add \
             dcmaster2.m3u8 \
             dcmaster2.m3u \
-            dcmaster2.xml.gz \
+            dcmaster2.xml \
             -f
 
           if git diff --cached --quiet; then
@@ -218,5 +173,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "dcmaster2 keep Plex guide compressed"
+          git commit -m "dcmaster2 test Plex M3U import"
           git push
