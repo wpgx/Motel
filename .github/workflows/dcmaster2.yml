@@ -17,23 +17,21 @@ jobs:
           python3 << 'PY'
           import os
           import gzip
+          import re
 
           # ============================================================
-          # DCMaster2 - PLEX ONLY
-          #
-          # TESTING THE M3U IMPORT ONLY
+          # DCMaster2 - PLEX + DCFULL
           #
           # Plex M3U:
-          #   Copy the playlist entries without parsing/rebuilding them.
+          #   Copy exactly as supplied.
           #
           # Plex guide:
-          #   Import plex-ca.xml.gz exactly as before.
+          #   Import exactly as before.
           #
-          # NO filtering
-          # NO sorting
-          # NO deduplication
-          # NO category changes
-          # NO channel ID changes
+          # dcfull:
+          #   Added to the combined playlist and guide.
+          #
+          # Tubi/Roku is NOT included in this test.
           # ============================================================
 
           # ============================================================
@@ -41,39 +39,86 @@ jobs:
           # ============================================================
 
           if os.path.exists('plex-ca.m3u8'):
-              playlist_path = 'plex-ca.m3u8'
+              plex_playlist_path = 'plex-ca.m3u8'
           elif os.path.exists('plex-ca.m3u'):
-              playlist_path = 'plex-ca.m3u'
+              plex_playlist_path = 'plex-ca.m3u'
           else:
               print("ERROR: No Plex CA playlist found")
               raise SystemExit(1)
 
-          print(f"Plex M3U: {playlist_path}")
+          print(f"Plex M3U: {plex_playlist_path}")
 
           # ============================================================
-          # COPY PLEX PLAYLIST
-          #
-          # Do NOT parse or rebuild the EXTINF entries.
-          # Keep the existing Plex playlist exactly as supplied.
+          # COPY PLEX PLAYLIST EXACTLY
           # ============================================================
 
           with open(
-              playlist_path,
+              plex_playlist_path,
               'rb'
           ) as f:
-              playlist_data = f.read()
+              plex_playlist_data = f.read()
+
+          # ============================================================
+          # FIND DCFULL PLAYLIST
+          # ============================================================
+
+          if os.path.exists('dcfull.m3u8'):
+              dcfull_playlist_path = 'dcfull.m3u8'
+          elif os.path.exists('dcfull.m3u'):
+              dcfull_playlist_path = 'dcfull.m3u'
+          else:
+              print("ERROR: No dcfull playlist found")
+              raise SystemExit(1)
+
+          print(f"dcfull M3U: {dcfull_playlist_path}")
+
+          with open(
+              dcfull_playlist_path,
+              'rb'
+          ) as f:
+              dcfull_playlist_data = f.read()
+
+          # ============================================================
+          # COMBINE PLAYLISTS
+          #
+          # Plex remains byte-for-byte unchanged.
+          # Only the dcfull entries are appended.
+          # ============================================================
+
+          plex_lines = plex_playlist_data.splitlines()
+
+          if not plex_lines:
+              print("ERROR: Plex playlist is empty")
+              raise SystemExit(1)
+
+          plex_header = plex_lines[0]
+
+          dcfull_lines = dcfull_playlist_data.splitlines()
+
+          if dcfull_lines and dcfull_lines[0].startswith(b'#EXTM3U'):
+              dcfull_lines = dcfull_lines[1:]
+
+          combined_playlist = (
+              b'\n'.join(
+                  [plex_header] +
+                  plex_lines[1:] +
+                  dcfull_lines
+              )
+              +
+              b'\n'
+          )
 
           with open(
               'dcmaster2.m3u8',
               'wb'
           ) as f:
-              f.write(playlist_data)
+              f.write(combined_playlist)
 
           with open(
               'dcmaster2.m3u',
               'wb'
           ) as f:
-              f.write(playlist_data)
+              f.write(combined_playlist)
 
           # ============================================================
           # FIND PLEX GUIDE
@@ -86,27 +131,119 @@ jobs:
           print("Plex guide: plex-ca.xml.gz")
 
           # ============================================================
-          # IMPORT PLEX XML.GZ
-          #
-          # THIS IS THE ORIGINAL XML IMPORT METHOD.
-          #
-          # Decompress the Plex guide into dcmaster2.xml.
-          # No filtering or XML rebuilding.
+          # IMPORT PLEX GUIDE EXACTLY AS BEFORE
           # ============================================================
 
           with gzip.open(
               'plex-ca.xml.gz',
               'rb'
           ) as source_file:
+              plex_guide_data = source_file.read()
 
-              guide_data = source_file.read()
+          # ============================================================
+          # FIND DCFULL GUIDE
+          # ============================================================
+
+          if os.path.exists('dcfull.xml'):
+              dcfull_guide_path = 'dcfull.xml'
+
+          elif os.path.exists('dcfull.xml.gz'):
+              dcfull_guide_path = 'dcfull.xml.gz'
+
+          else:
+              print("ERROR: No dcfull guide found")
+              raise SystemExit(1)
+
+          print(f"dcfull guide: {dcfull_guide_path}")
+
+          # ============================================================
+          # LOAD DCFULL GUIDE
+          # ============================================================
+
+          if dcfull_guide_path.endswith('.gz'):
+
+              with gzip.open(
+                  dcfull_guide_path,
+                  'rb'
+              ) as source_file:
+                  dcfull_guide_data = source_file.read()
+
+          else:
+
+              with open(
+                  dcfull_guide_path,
+                  'rb'
+              ) as source_file:
+                  dcfull_guide_data = source_file.read()
+
+          # ============================================================
+          # COMBINE GUIDES
+          #
+          # Keep the actual Plex guide content intact.
+          # Keep the dcfull guide content intact.
+          # Remove only the outer XML declaration/DOCTYPE/tv wrapper
+          # required to place both guides under one <tv> root.
+          # ============================================================
+
+          def extract_tv_contents(data):
+
+              text = data.decode(
+                  'utf-8',
+                  errors='ignore'
+              )
+
+              text = re.sub(
+                  r'<\?xml[^?]*\?>',
+                  '',
+                  text,
+                  flags=re.I
+              )
+
+              text = re.sub(
+                  r'<!DOCTYPE[^>]*>',
+                  '',
+                  text,
+                  flags=re.I
+              )
+
+              match = re.search(
+                  r'<tv\b[^>]*>(.*?)</tv\s*>',
+                  text,
+                  flags=re.I | re.S
+              )
+
+              if match:
+                  return match.group(1)
+
+              return text
+
+          plex_content = extract_tv_contents(
+              plex_guide_data
+          )
+
+          dcfull_content = extract_tv_contents(
+              dcfull_guide_data
+          )
+
+          final_xml = (
+              '<?xml version="1.0" encoding="UTF-8"?>\n'
+              '<tv>\n'
+              +
+              plex_content
+              +
+              '\n'
+              +
+              dcfull_content
+              +
+              '\n</tv>\n'
+          )
 
           with open(
               'dcmaster2.xml',
-              'wb'
-          ) as output_file:
-
-              output_file.write(guide_data)
+              'w',
+              encoding='utf-8'
+          ) as f:
+              f.write(final_xml)
 
           # ============================================================
           # REPORT
@@ -114,27 +251,47 @@ jobs:
 
           print('')
           print('==========================================')
-          print('DCMASTER2 PLEX-ONLY M3U IMPORT TEST')
+          print('DCMASTER2 PLEX + DCFULL')
           print('==========================================')
 
           print(
-              f'M3U channels: '
-              f'{playlist_data.count(b"#EXTINF")}'
+              f'Plex M3U channels: '
+              f'{plex_playlist_data.count(b"#EXTINF")}'
           )
 
           print(
-              f'XML channels: '
-              f'{guide_data.count(b"<channel ")}'
+              f'dcfull M3U channels: '
+              f'{dcfull_playlist_data.count(b"#EXTINF")}'
           )
 
           print(
-              f'XML programmes: '
-              f'{guide_data.count(b"<programme ")}'
+              f'Total M3U channels: '
+              f'{combined_playlist.count(b"#EXTINF")}'
+          )
+
+          print(
+              f'Plex XML channels: '
+              f'{plex_guide_data.count(b"<channel ")}'
+          )
+
+          print(
+              f'dcfull XML channels: '
+              f'{dcfull_guide_data.count(b"<channel ")}'
+          )
+
+          print(
+              f'Combined XML channels: '
+              f'{final_xml.count("<channel ")}'
+          )
+
+          print(
+              f'Combined XML programmes: '
+              f'{final_xml.count("<programme ")}'
           )
 
           print(
               f'XML size: '
-              f'{len(guide_data)} bytes'
+              f'{len(final_xml)} bytes'
           )
 
           print('==========================================')
@@ -173,5 +330,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "dcmaster2 test Plex M3U import"
+          git commit -m "dcmaster2 add dcfull"
           git push
