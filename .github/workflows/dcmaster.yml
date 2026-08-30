@@ -1,145 +1,102 @@
-name: dcmaster
+name: Build DCMASTER
+
 on:
- # schedule:
- #  - cron: '35 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
 
-  
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Build DCMASTER
         run: |
-          cat > /tmp/build.py << 'PY'
-          import re, requests, os, shutil
+          python3 << 'PY'
+          import os, re, requests, shutil
 
-          def load_blocks(text):
-              blocks=[]; cur=[]
-              for l in text.replace("\r","").split("\n"):
-                  l=l.strip()
-                  if not l: continue
-                  if l.startswith("#EXTINF"):
-                      if cur: blocks.append(cur)
-                      cur=[l]
-                  elif l.startswith("http"):
-                      cur.append(l); blocks.append(cur); cur=[]
-              return blocks
-
-          def load_file(f):
+          def load(f):
               if not os.path.exists(f): return []
-              return load_blocks(open(f,encoding='utf-8',errors='ignore').read())
+              lines=open(f,encoding='utf-8',errors='ignore').read().splitlines()
+              pairs=[]
+              for i,l in enumerate(lines):
+                  if l.startswith('#EXTINF'):
+                      url=lines[i+1] if i+1 < len(lines) else ""
+                      if url.startswith('http'):
+                          pairs.append((l,url))
+              return pairs
 
-          def get_group(b):
-              m=re.search(r'group-title=["\']([^"\']+)["\']', b[0], re.I)
-              return m.group(1).lower() if m else ""
-
-          def get_inner(path):
+          def safe_inner(path):
               if not os.path.exists(path): return ""
               txt=open(path,encoding='utf-8',errors='ignore').read()
-              return txt.split("<tv>")[-1].split("</tv>")[0] if "<tv>" in txt else txt
+              if "<tv>" in txt:
+                  txt=txt.split("<tv>")[-1].split("</tv>")[0]
+              return re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',txt)
 
-          dcfull_blocks = load_file("dcfull.m3u8") or load_file("dcfull.m3u")
-          all_ch = [b for b in dcfull_blocks if 'all channel' in get_group(b)]
-          favs = [b for b in dcfull_blocks if 'favor' in get_group(b)]
-          rest = [b for b in dcfull_blocks if b not in all_ch and b not in favs]
-          dcfull_blocks = all_ch + favs + rest
-          print(f"DCFULL: All {len(all_ch)} + Fav {len(favs)} + Rest {len(rest)} = {len(dcfull_blocks)}")
+          # M3U - keep your exact structure
+          dcfull = load('dcfull.m3u8') or load('dcfull.m3u')
+          plex = load('plex-ca.m3u8') or load('plex-ca.m3u')
+          tubi = load('tubiroku.m3u8') or load('tubiroku.m3u')
 
-          tubi_blocks = load_file("tubiroku.m3u") or load_file("tubiroku.m3u8")
-          print(f"TUBI (from tubiroku): {len(tubi_blocks)}")
+          # remote roku optional
+          roku=[]
+          try:
+              r=requests.get("https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",timeout=20)
+              if r.ok:
+                  open("_roku.m3u","w",encoding="utf-8").write(r.text)
+                  roku=load('_roku.m3u')
+          except: pass
 
-          # PLEX CA
-          plex_blocks = load_file("plex-ca.m3u") or load_file("plex-ca.m3u8")
-          print(f"PLEX CA: {len(plex_blocks)}")
+          merged = dcfull + plex + tubi + roku
+          print(f"DCFULL {len(dcfull)} + PLEX {len(plex)} + TUBI {len(tubi)} + ROKU {len(roku)} = {len(merged)}")
 
-          roku_blocks=[]
-          sources = [
-              "https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",
-              "https://raw.githubusercontent.com/Drewski2423/onlineTV/master/Roku/RokuChannel.m3u8"
-          ]
-          for src in sources:
-              try:
-                  r=requests.get(src, timeout=20, headers={'User-Agent':'Mozilla/5.0'})
-                  if r.ok and "#EXTINF" in r.text:
-                      tmp=load_blocks(r.text)
-                      if len(tmp)>10:
-                          roku_blocks=tmp
-                          print(f"ROKU scraped {len(tmp)} from {src}")
-                          break
-              except Exception as e:
-                  print(f"ROKU fail {src}: {e}")
+          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"']
+          for inf,url in merged:
+              out.append(inf)
+              out.append(url)
+          content="\n".join(out)+"\n"
+          open('dcmaster.m3u8','w',encoding='utf-8').write(content)
+          open('dcmaster.m3u','w',encoding='utf-8').write(content)
 
-          final=[]
-          seen=set()
-          for b in dcfull_blocks:
-              url=b[-1]
-              if url not in seen:
-                  seen.add(url)
-                  final.append(b)
+          # XML - SAFE MERGE
+          dcfull_xml=safe_inner('dcfull.xml')
+          plex_xml=safe_inner('plex-ca.xml')
+          tubi_xml=safe_inner('tubiroku.xml')
 
-          # PLEX CA
-          for b in plex_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              final.append(b)
-
-          chno=5000
-          for b in tubi_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              # KEEP ORIGINAL CATEGORY - don't strip group-title
-              if 'group-title=' not in b[0].lower():
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Tubi" tvg-chno="{chno}"',1)
-              else:
-                  # ensure chno is added but keep the real category like "True Crime"
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
-
-          chno=6000
-          for b in roku_blocks:
-              url=b[-1]
-              if url in seen: continue
-              seen.add(url)
-              m=re.search(r'tvg-id="([^"]+)"',b[0]); tid=m.group(1) if m else ""
-              if not tid:
-                  name=b[0].split(",")[-1].strip()
-                  tid="roku."+re.sub(r'[^a-z0-9]+','-',name.lower()).strip("-")
-                  b[0]=re.sub(r'tvg-id="[^"]*"','',b[0])
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-id="{tid}"',1)
-              b[0]=re.sub(r'tvg-chno="[^"]*"','',b[0])
-              # KEEP ROKU CATEGORIES TOO
-              if 'group-title=' not in b[0].lower():
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 group-title="Roku" tvg-chno="{chno}"',1)
-              else:
-                  b[0]=b[0].replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"',1)
-              final.append(b); chno+=1
-
-          with open("dcmaster.m3u8","w",encoding="utf-8") as o:
-              o.write('#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n')
-              for b in final: o.write(b[0]+"\n"+b[-1]+"\n")
-          shutil.copy("dcmaster.m3u8","dcmaster.m3u")
-
-          dcfull_xml = get_inner("dcfull.xml")
-          plex_xml = get_inner("plex-ca.xml")
-          tubi_xml = get_inner("tubiroku.xml")
+          # roku extra channels from m3u
           roku_extra=""
-          all_so_far = dcfull_xml + plex_xml + tubi_xml
-          for b in roku_blocks:
-              mm=re.search(r'tvg-id="([^"]+)"',b[0]); tid=mm.group(1) if mm else ""
-              name=b[0].split(",")[-1].strip()
-              if tid and tid not in all_so_far:
-                  roku_extra+=f'<channel id="{tid}"><display-name>{name}</display-name></channel>\n<programme start="20260101000000 +0000" stop="20261231235959 +0000" channel="{tid}"><title>{name}</title><desc>Live on Roku Channel</desc></programme>\n'
+          seen_xml = dcfull_xml+plex_xml+tubi_xml
+          for inf,url in roku:
+              m=re.search(r'tvg-id="([^"]+)"',inf)
+              if not m: continue
+              tid=m.group(1)
+              if tid in seen_xml: continue
+              dname=re.search(r',(.+)$',inf)
+              dname=dname.group(1) if dname else tid
+              dname=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',dname)
+              roku_extra+=f'<channel id="{tid}"><display-name>{dname}</display-name></channel>\n'
 
-          open("dcmaster.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{plex_xml}\n{tubi_xml}\n{roku_extra}\n</tv>')
-          print(f"DONE: dcfull {len(dcfull_blocks)} + Plex CA {len(plex_blocks)} + Tubi {len(tubi_blocks)} + Roku {len(roku_blocks)} = {len(final)} unique")
+          open('dcmaster.xml','w',encoding='utf-8').write(
+            f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{plex_xml}\n{tubi_xml}\n{roku_extra}\n</tv>\n'
+          )
+
+          print(f"XML written - dcfull:{len(dcfull_xml)} plex:{len(plex_xml)} tubi:{len(tubi_xml)}")
           PY
-          python3 /tmp/build.py
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "dcmaster: dcfull + plex-ca + tubi + roku deduped (keep categories)"
-          file_pattern: "dcmaster.m3u8 dcmaster.m3u dcmaster.xml"
+
+      - name: Check
+        run: |
+          grep -c '^#EXTINF:' dcmaster.m3u8
+          grep -c '<channel ' dcmaster.xml
+          grep -c '<programme ' dcmaster.xml
+          xmllint --noout dcmaster.xml && echo "dcmaster.xml OK"
+
+      - name: Push
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
+          git diff --cached --quiet && exit 0
+          git commit -m "dcmaster: dcfull+plex+tubi+roku safe merge"
+          git push
