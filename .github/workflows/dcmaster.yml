@@ -12,90 +12,99 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build DCMASTER
+      - name: Build DCMASTER direct
         run: |
           python3 << 'PY'
-          import os, re, requests, shutil
+          import os, re, glob, requests
 
-          def load(f):
-              if not os.path.exists(f): return []
-              lines=open(f,encoding='utf-8',errors='ignore').read().splitlines()
+          def fix_amp(t):
+              return re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',t)
+
+          def load(patterns):
               pairs=[]
-              for i,l in enumerate(lines):
-                  if l.startswith('#EXTINF'):
-                      url=lines[i+1] if i+1 < len(lines) else ""
-                      if url.startswith('http'):
-                          pairs.append((l,url))
+              for pat in patterns:
+                  for f in glob.glob(pat):
+                      if 'dcfull' in f or 'dcmaster' in f or 'dccatalog' in f: continue
+                      try:
+                          lines=open(f,encoding='utf-8',errors='ignore').read().splitlines()
+                          for i,l in enumerate(lines):
+                              if l.startswith('#EXTINF'):
+                                  url=lines[i+1].strip() if i+1 < len(lines) else ""
+                                  if url.startswith('http'):
+                                      pairs.append((fix_amp(l), url))
+                      except: pass
               return pairs
 
-          def safe_inner(path):
-              if not os.path.exists(path): return ""
-              txt=open(path,encoding='utf-8',errors='ignore').read()
-              if "<tv>" in txt:
-                  txt=txt.split("<tv>")[-1].split("</tv>")[0]
-              return re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',txt)
+          def safe_inner(patterns):
+              txt=""
+              for pat in patterns:
+                  for f in glob.glob(pat):
+                      if 'dcfull' in f or 'dcmaster' in f or 'dccatalog' in f: continue
+                      try:
+                          t=open(f,encoding='utf-8',errors='ignore').read()
+                          if "<tv>" in t:
+                              t=t.split("<tv>",1)[-1].rsplit("</tv>",1)[0]
+                          t=fix_amp(t)
+                          txt+=t+"\n"
+                      except: pass
+              return txt
 
-          # M3U - keep your exact structure
-          dcfull = load('dcfull.m3u8') or load('dcfull.m3u')
-          plex = load('plex-ca.m3u8') or load('plex-ca.m3u')
-          tubi = load('tubiroku.m3u8') or load('tubiroku.m3u')
+          samsung = load(['samsung*.m3u*'])
+          pluto = load(['pluto*.m3u*'])
+          lg = load(['lg*.m3u*'])
+          plex = load(['plex-ca.m3u*'])
+          tubi = load(['tubiroku.m3u*'])
 
-          # remote roku optional
           roku=[]
           try:
               r=requests.get("https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_roku.m3u",timeout=20)
               if r.ok:
                   open("_roku.m3u","w",encoding="utf-8").write(r.text)
-                  roku=load('_roku.m3u')
+                  lines=r.text.splitlines()
+                  for i,l in enumerate(lines):
+                      if l.startswith('#EXTINF'):
+                          url=lines[i+1].strip() if i+1 < len(lines) else ""
+                          if url.startswith('http'):
+                              roku.append((fix_amp(l), url))
           except: pass
 
-          merged = dcfull + plex + tubi + roku
-          print(f"DCFULL {len(dcfull)} + PLEX {len(plex)} + TUBI {len(tubi)} + ROKU {len(roku)} = {len(merged)}")
+          merged = samsung + pluto + lg + plex + tubi + roku
+          print(f"SAMS {len(samsung)} + PLUTO {len(pluto)} + LG {len(lg)} + PLEX {len(plex)} + TUBI {len(tubi)} + ROKU {len(roku)} = TOTAL {len(merged)}")
 
-          out=['#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"']
+          m3u = ['#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"']
           for inf,url in merged:
-              out.append(inf)
-              out.append(url)
-          content="\n".join(out)+"\n"
+              m3u.append(inf)
+              m3u.append(url)
+          content="\n".join(m3u)+"\n"
           open('dcmaster.m3u8','w',encoding='utf-8').write(content)
           open('dcmaster.m3u','w',encoding='utf-8').write(content)
 
-          # XML - SAFE MERGE
-          dcfull_xml=safe_inner('dcfull.xml')
-          plex_xml=safe_inner('plex-ca.xml')
-          tubi_xml=safe_inner('tubiroku.xml')
+          xml_inner = safe_inner(['samsung*.xml','pluto*.xml','lg*.xml','plex-ca.xml','tubiroku.xml'])
 
-          # roku extra channels from m3u
           roku_extra=""
-          seen_xml = dcfull_xml+plex_xml+tubi_xml
           for inf,url in roku:
               m=re.search(r'tvg-id="([^"]+)"',inf)
               if not m: continue
               tid=m.group(1)
-              if tid in seen_xml: continue
+              if tid in xml_inner: continue
               dname=re.search(r',(.+)$',inf)
-              dname=dname.group(1) if dname else tid
-              dname=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',dname)
+              dname=fix_amp(dname.group(1) if dname else tid)
               roku_extra+=f'<channel id="{tid}"><display-name>{dname}</display-name></channel>\n'
 
-          open('dcmaster.xml','w',encoding='utf-8').write(
-            f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{dcfull_xml}\n{plex_xml}\n{tubi_xml}\n{roku_extra}\n</tv>\n'
-          )
-
-          print(f"XML written - dcfull:{len(dcfull_xml)} plex:{len(plex_xml)} tubi:{len(tubi_xml)}")
+          final=f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_inner}\n{roku_extra}\n</tv>\n'
+          final=fix_amp(final)
+          open('dcmaster.xml','w',encoding='utf-8').write(final)
+          print(f"dcmaster.xml {len(final)} bytes")
           PY
 
       - name: Check
         run: |
           sudo apt-get update -y
           sudo apt-get install -y libxml2-utils
-          echo "M3U channels:"
-          grep -c '^#EXTINF:' dcmaster.m3u8 || echo 0
-          echo "XML channels:"
-          grep -c '<channel ' dcmaster.xml || echo 0
-          echo "XML programmes:"
-          grep -c '<programme ' dcmaster.xml || echo 0
-          xmllint --noout dcmaster.xml && echo "dcmaster.xml OK" || (echo "BROKEN" && exit 1)
+          echo "M3U:"; grep -c '^#EXTINF:' dcmaster.m3u8
+          echo "XML channels:"; grep -c '<channel ' dcmaster.xml
+          echo "XML programmes:"; grep -c '<programme ' dcmaster.xml
+          xmllint --noout dcmaster.xml && echo "dcmaster.xml OK" || (xmllint --noout dcmaster.xml 2>&1 | head -20 && exit 1)
 
       - name: Push
         run: |
@@ -103,5 +112,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
           git diff --cached --quiet && exit 0
-          git commit -m "dcmaster: dcfull+plex+tubi+roku safe merge"
+          git commit -m "dcmaster direct: samsung+pluto+lg+plex+tubi+roku no dcfull"
           git push
