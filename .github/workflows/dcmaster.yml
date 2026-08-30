@@ -1,4 +1,4 @@
-name: dcmaster
+name: dcmaster2
 
 on:
   workflow_dispatch:
@@ -28,10 +28,12 @@ jobs:
           def find_xml(base):
               if base == 'plex-ca' and os.path.exists('plex-ca.xml.gz'):
                   return 'plex-ca.xml.gz'
+
               for ext in ['.xml', '.xml.gz']:
                   p = base + ext
                   if os.path.exists(p):
                       return p
+
               print(f"NOT FOUND xml for {base}")
               return None
 
@@ -76,14 +78,6 @@ jobs:
                       cur = []
 
               return blocks
-
-          def get_group(b):
-              m = re.search(
-                  r'group-title=["\']([^"\']+)["\']',
-                  b[0],
-                  re.I
-              )
-              return m.group(1).lower() if m else ""
 
           def extract_tv(path):
               if not path or not os.path.exists(path):
@@ -138,7 +132,7 @@ jobs:
               return m.group(1) if m else ''
 
           # ============================================================
-          # PLEX FIRST - UNTOUCHED
+          # PLEX FIRST
           # ============================================================
 
           plex_m3u_path = find_m3u('plex-ca')
@@ -150,9 +144,43 @@ jobs:
           print(f"Plex loaded: {len(plex_m3u)}")
 
           # ============================================================
+          # PLEX NUMBERING
+          # 6400-6999
+          # ============================================================
+
+          plex_number = 6400
+          plex_numbered = []
+
+          for extinf, url in plex_m3u:
+
+              if plex_number > 6999:
+                  print("ERROR: Plex exceeds 6400-6999 range")
+                  raise SystemExit(1)
+
+              extinf = re.sub(
+                  r'tvg-chno="[^"]*"',
+                  '',
+                  extinf
+              )
+
+              extinf = extinf.replace(
+                  "#EXTINF:-1",
+                  f'#EXTINF:-1 tvg-chno="{plex_number}"',
+                  1
+              )
+
+              plex_numbered.append((extinf, url))
+              plex_number += 1
+
+          plex_m3u = plex_numbered
+
+          print(
+              f"Plex numbered: {len(plex_m3u)} "
+              f"(6400-{plex_number - 1})"
+          )
+
+          # ============================================================
           # DCMaster BASE
-          # Use existing dcmaster output exactly as before.
-          # Fallback to dcfull if dcmaster is unavailable.
           # ============================================================
 
           dc_m3u_path = find_m3u('dcmaster') or find_m3u('dcfull')
@@ -165,13 +193,12 @@ jobs:
 
           # ============================================================
           # NAMESPACE DC BASE
-          # This is the proven fix.
-          # Plex IDs remain completely untouched.
           # ============================================================
 
           dc_m3u = []
 
           for extinf, url in dc_m3u_raw:
+
               if 'tvg-id="' in extinf:
                   extinf = re.sub(
                       r'tvg-id="',
@@ -195,7 +222,6 @@ jobs:
 
           # ============================================================
           # ROKU - ORIGINAL DCMaster SCRAPE
-          # ONLY ADDITION TO THE WORKING DCMaster2
           # ============================================================
 
           roku_blocks = []
@@ -229,16 +255,18 @@ jobs:
                   print(f"ROKU fail {src}: {e}")
 
           # ============================================================
-          # ROKU M3U
-          # Original 6000+ numbering.
-          # Namespace Roku IDs so they cannot collide.
+          # ROKU NUMBERING
+          # 6000-6399
           # ============================================================
 
           roku_m3u = []
-
           roku_chno = 6000
 
           for b in roku_blocks:
+
+              if roku_chno > 6399:
+                  print("ERROR: Roku exceeds 6000-6399 range")
+                  raise SystemExit(1)
 
               if not b:
                   continue
@@ -246,7 +274,6 @@ jobs:
               extinf = b[0]
               url = b[-1]
 
-              # Original Roku tvg-id if present.
               m = re.search(
                   r'tvg-id="([^"]+)"',
                   extinf
@@ -279,7 +306,6 @@ jobs:
                       1
                   )
 
-              # Namespace Roku ID.
               extinf = re.sub(
                   r'tvg-id="([^"]+)"',
                   r'tvg-id="roku-\1"',
@@ -316,21 +342,18 @@ jobs:
               roku_chno += 1
 
           print(
-              f"Roku M3U added: {len(roku_m3u)}"
+              f"Roku M3U added: {len(roku_m3u)} "
+              f"(6000-{roku_chno - 1})"
           )
 
           # ============================================================
           # MERGE M3U
-          # Plex + existing DCMaster + Roku
           # ============================================================
 
           merged = plex_m3u + dc_m3u + roku_m3u
 
           # ============================================================
           # ROKU GUIDE
-          # Original DCMaster behavior:
-          # Generate a basic all-day guide entry for Roku channels.
-          # Namespace channel IDs to match the Roku M3U.
           # ============================================================
 
           roku_extra = ""
@@ -368,9 +391,6 @@ jobs:
 
           # ============================================================
           # COMBINED XML
-          # Plex unchanged.
-          # DC namespaced.
-          # Roku added.
           # ============================================================
 
           xml_body = (
@@ -462,7 +482,8 @@ jobs:
           print('==========================================')
 
           print(
-              f'Plex M3U channels: {len(plex_m3u)}'
+              f'Plex M3U channels: {len(plex_m3u)} '
+              f'(6400-6999)'
           )
 
           print(
@@ -470,7 +491,8 @@ jobs:
           )
 
           print(
-              f'Roku M3U channels: {len(roku_m3u)}'
+              f'Roku M3U channels: {len(roku_m3u)} '
+              f'(6000-6399)'
           )
 
           print(
@@ -478,19 +500,23 @@ jobs:
           )
 
           print(
-              f'Plex XML channels: {plex_xml.count("<channel ")}'
+              f'Plex XML channels: '
+              f'{plex_xml.count("<channel ")}'
           )
 
           print(
-              f'DC XML channels: {dc_xml.count("<channel ")}'
+              f'DC XML channels: '
+              f'{dc_xml.count("<channel ")}'
           )
 
           print(
-              f'Roku XML channels: {roku_extra.count("<channel ")}'
+              f'Roku XML channels: '
+              f'{roku_extra.count("<channel ")}'
           )
 
           print(
-              f'Combined XML channels: {final_xml.count("<channel ")}'
+              f'Combined XML channels: '
+              f'{final_xml.count("<channel ")}'
           )
 
           print(
@@ -539,5 +565,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "dcmaster2 add Roku"
+          git commit -m "dcmaster2 Roku 6000 Plex 6400"
           git push
