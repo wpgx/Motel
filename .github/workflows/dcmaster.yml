@@ -8,77 +8,82 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build DCMASTER for Sparkle - Plex guide fix
+      - name: Build DCMASTER - last night with dc- fix
         run: |
           python3 << 'PY'
-          import os, gzip, re
+          import os, re, gzip
+          def load_m3u(p):
+            lines=open(p,encoding='utf-8',errors='ignore').read().splitlines()
+            out=[]
+            for i,l in enumerate(lines):
+              if l.startswith('#EXTINF') and i+1 < len(lines):
+                u=lines[i+1].strip()
+                if u.startswith('http'): out.append((l,u))
+            return out
+          def extract(p):
+            if not os.path.exists(p): return ''
+            t=gzip.open(p,'rt',encoding='utf-8',errors='ignore').read() if p.endswith('.gz') else open(p,encoding='utf-8',errors='ignore').read()
+            m=re.search(r'<tv[^>]*>(.*)</tv>',t,flags=re.I|re.S)
+            return m.group(1) if m else t
 
-          def load_m3u(path):
-              lines=open(path,encoding='utf-8',errors='ignore').read().splitlines()
-              out=[]
-              for i,l in enumerate(lines):
-                  if l.startswith('#EXTINF') and i+1 < len(lines):
-                      u=lines[i+1].strip()
-                      if u.startswith('http'): out.append((l,u))
-              return out
+          merged=[]
+          xml_body=''
 
-          def extract_tv(path):
-              if not os.path.exists(path): return ''
-              txt=gzip.open(path,'rt',encoding='utf-8',errors='ignore').read() if path.endswith('.gz') else open(path,encoding='utf-8',errors='ignore').read()
-              m=re.search(r'<tv[^>]*>(.*)</tv>',txt,flags=re.I|re.S)
-              return m.group(1) if m else txt
+          # PLEX - LEAVE 100% ALONE
+          for f in ['plex-ca.m3u8','plex-ca.m3u']:
+            if os.path.exists(f):
+              merged.extend(load_m3u(f))
+              print(f"PLEX {f}: {len(load_m3u(f))}")
+              break
+          for f in ['plex-ca.xml','plex-ca.xml.gz']:
+            if os.path.exists(f):
+              xml_body+=extract(f)+'\n'
+              break
 
-          # --- PLEX ---
-          plex_m3u = 'plex-ca.m3u8' if os.path.exists('plex-ca.m3u8') else 'plex-ca.m3u'
-          plex_xml = 'plex-ca.xml.gz' if os.path.exists('plex-ca.xml.gz') else 'plex-ca.xml'
+          # EVERYTHING ELSE - ADD dc- PREFIX
+          for base in ['dcfull','tubiroku','roku','free2view']:
+            mp=None
+            for ext in ['.m3u8','.m3u']:
+              if os.path.exists(base+ext):
+                mp=base+ext
+                break
+            if mp:
+              raw=load_m3u(mp)
+              fixed=[]
+              for extinf,url in raw:
+                if 'tvg-id="' in extinf:
+                  if 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf and 'tvg-id="roku-' not in extinf:
+                    extinf=extinf.replace('tvg-id="','tvg-id="dc-')
+                else:
+                  extinf=extinf.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-id="dc-{len(merged)+len(fixed)}"')
+                # add dc- to chno to keep unique
+                extinf=re.sub(r'tvg-chno="', 'tvg-chno="dc-', extinf)
+                fixed.append((extinf,url))
+              merged.extend(fixed)
+              print(f"{base}: {len(fixed)} with dc- prefix")
 
-          plex_m3u_list = load_m3u(plex_m3u) if os.path.exists(plex_m3u) else []
-          plex_xml_body = extract_tv(plex_xml) if os.path.exists(plex_xml) else ''
+            xp=None
+            for ext in ['.xml','.xml.gz']:
+              if os.path.exists(base+ext):
+                xp=base+ext
+                break
+            if xp:
+              t=extract(xp)
+              t=re.sub(r'<channel id="(?!dc-|plex-|roku-)', '<channel id="dc-', t)
+              t=re.sub(r' channel="(?!dc-|plex-|roku-)', ' channel="dc-', t)
+              t=t.replace('dc-dc-','dc-').replace('dc-plex-','plex-').replace('dc-roku-','roku-')
+              xml_body+=t+'\n'
 
-          # FIX 2: Plex XML sometimes has id without plex- prefix, m3u has it
-          # Normalize: make sure XML ids match M3U tvg-id
-          # We keep plex- prefix in both
-
-          # --- DCFULL + TUBI with dc- prefix to avoid collision ---
-          merged = plex_m3u_list
-          xml_body = plex_xml_body + '\n'
-
-          for base in ['dcfull','tubiroku']:
-              mp = base+'.m3u8' if os.path.exists(base+'.m3u8') else (base+'.m3u' if os.path.exists(base+'.m3u') else None)
-              xp = base+'.xml' if os.path.exists(base+'.xml') else (base+'.xml.gz' if os.path.exists(base+'.xml.gz') else None)
-              if mp:
-                  raw = load_m3u(mp)
-                  fixed=[]
-                  for extinf,url in raw:
-                      if 'tvg-id="' in extinf:
-                          if 'tvg-id="dc-' not in extinf and 'tvg-id="plex-' not in extinf:
-                              extinf = extinf.replace('tvg-id="','tvg-id="dc-')
-                      else:
-                          # add id if missing
-                          extinf = extinf.replace('#EXTINF:','#EXTINF: tvg-id="dc-'+str(len(merged)+len(fixed))+'" ')
-                      fixed.append((extinf,url))
-                  merged.extend(fixed)
-              if xp:
-                  t = extract_tv(xp)
-                  t = re.sub(r'<channel id="(?!dc-|plex-)', '<channel id="dc-', t)
-                  t = re.sub(r' channel="(?!dc-|plex-)', ' channel="dc-', t)
-                  t = t.replace('dc-dc-','dc-')
-                  xml_body += t + '\n'
-
-          # Escape &
-          xml_body = re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)','&amp;',xml_body)
-
-          m3u_out = '#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
+          xml_body=re.sub(r'&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)','&amp;',xml_body)
+          m3u_out='#EXTM3U url-tvg="https://motel.deecee.ca/dcmaster.xml"\n' + '\n'.join(f"{a}\n{b}" for a,b in merged) + '\n'
           open('dcmaster.m3u8','w',encoding='utf-8').write(m3u_out)
           open('dcmaster.m3u','w',encoding='utf-8').write(m3u_out)
           open('dcmaster.xml','w',encoding='utf-8').write(f'<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n{xml_body}\n</tv>\n')
-
-          print(f"SPARKLE -> dcmaster.xml | {len(merged)} channels | {xml_body.count('<channel ')} xml channels | {xml_body.count('<programme')} programmes")
+          print(f"FINAL {len(merged)} - Plex untouched, others dc-")
           PY
       - name: Push
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git rm -f dcmaster2.* DCmaster.* dcmaster.xml.gz DCmaster.xml.gz -f || true
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
-          git diff --cached --quiet || (git commit -m "dcmaster for sparkle - plex guide fix - xml only" && git push)
+          git diff --cached --quiet || (git commit -m "dcmaster: last night working - plex clean + dc- prefix others" && git push)
