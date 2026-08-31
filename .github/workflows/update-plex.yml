@@ -41,8 +41,8 @@ jobs:
           fi
 
       - name: Build categorized Plex CA playlist + guide
+        shell: python
         run: |
-          python3 << 'PY'
           import re
           from pathlib import Path
           import xml.etree.ElementTree as ET
@@ -52,243 +52,119 @@ jobs:
           FULL_GUIDE = Path("full-guide.xml")
           OUTPUT_XML = Path("plex-ca.xml")
 
-          CATEGORIES = [
-              "News & Weather","Sports","Movies","Crime","Classic TV",
-              "Classic TV Comedy","Comedy","Drama","Entertainment",
-              "Game Shows","Daytime & Talk Shows","Documentary",
-              "Home & Food","Kids","Music","Mystery","Nature & Science",
-              "Sci-Fi & Horror","Westerns","South Park","Ambiance",
-              "Anime & Gaming","Other"
-          ]
-
+          CATEGORIES = ["News & Weather","Sports","Movies","Crime","Classic TV","Classic TV Comedy","Comedy","Drama","Entertainment","Game Shows","Daytime & Talk Shows","Documentary","Home & Food","Kids","Music","Mystery","Nature & Science","Sci-Fi & Horror","Westerns","South Park","Ambiance","Anime & Gaming","Other"]
           REMOVE_TERMS = ["spanish","espanol","espa","latin","latino","telemundo","french","francais","deutsch","italiano","portuguese","brazuca"]
 
           def get_attr(ext, attr):
               m = re.search(rf'{re.escape(attr)}="([^"]*)"', ext, re.I)
               return m.group(1) if m else ""
-
           def get_name(ext):
               return ext.rsplit(",", 1)[-1].strip()
-
           def norm(s):
-              s = s.lower()
-              s = s.replace("’","").replace("'","").replace("`","")
+              s = s.lower().replace("’","").replace("'","").replace("`","")
               s = re.sub(r'\s+', ' ', s).strip()
               return s
 
           def category_for(name):
               n = norm(name)
-
               explicit = {
-                  "cbc news": "News & Weather",
-                  "cbc news ottawa": "News & Weather",
-                  "cbc news toronto": "News & Weather",
-                  "cbc news windsor": "News & Weather",
-                  "cheddar": "News & Weather",
-                  "france 24": "News & Weather",
-                  "gb news": "News & Weather",
-                  "inter 24/7": "News & Weather",
-                  "radio-canada info": "News & Weather",
-                  "usa today": "News & Weather",
-                  "weather spy": "News & Weather",
-                  "yahoo finance": "News & Weather",
-                  "bassmaster": "Sports",
-                  "billiard tv": "Sports",
-                  "bowling tv": "Sports",
-                  "dp world tour": "Sports",
-                  "fubo sports": "Sports",
-                  "monster jam": "Sports",
-                  "nhra tv": "Sports",
-                  "one championship tv": "Sports",
-                  "pac-12 insider": "Sports",
-                  "pfl mma": "Sports",
-                  "pokergo": "Sports",
-                  "racing america": "Sports",
-                  "speed sport 1": "Sports",
-                  "speedvision": "Sports",
-                  "sports illustrated tv": "Sports",
-                  "sportsgrid": "Sports",
-                  "strongman champions": "Sports",
-                  "swerve combat": "Sports",
-                  "swerve womens sports": "Sports",
-                  "the world poker tour": "Sports",
-                  "triton poker": "Sports",
-                  "willow sports": "Sports",
-                  "world billiards tv": "Sports",
-                  "world surf league 24/7": "Sports",
-                  "xfc tv": "Sports",
-                  "24 hour free movies": "Movies",
-                  "moviesphere": "Movies",
-                  "noovo cinema": "Movies",
-                  "pelimex": "Movies",
-                  "scream factory tv": "Movies",
-                  "screambox tv": "Movies",
-                  "shout! tv": "Movies",
-                  "trailers from hell": "Movies",
-                  "tribeca channel": "Movies",
-                  "wu tang collection": "Movies",
-                  "cheaters": "Crime",
-                  "dateline": "Crime",
-                  "dog the bounty hunter": "Crime",
-                  "hardcore pawn": "Crime",
-                  "jail": "Crime",
-                  "nash bridges": "Crime",
-                  "operation repo": "Crime",
-                  "sheriffs: el dorado county": "Crime",
-                  "the fbi files": "Crime",
-                  "the first 48": "Crime",
-                  "untold stories of the er": "Crime",
-                  "women behind bars": "Crime",
-                  "american gladiators by mgm": "Classic TV",
-                  "dick van dyke": "Classic TV Comedy",
-                  "mr. bean": "Classic TV Comedy",
-                  "mr. bean live action": "Classic TV Comedy",
-                  "the addams family": "Classic TV Comedy",
-                  "the carol burnett show": "Classic TV Comedy",
-                  "threes company": "Classic TV Comedy",
-                  "death valley days": "Westerns",
-                  "wanted: dead or alive": "Westerns",
-                  "that girl": "Classic TV",
-                  "the outer limits": "Sci-Fi & Horror",
-                  "andromeda": "Drama",
-                  "continuum": "Drama",
-                  "degrassi": "Drama",
-                  "farscape": "Sci-Fi & Horror",
-                  "heartland": "Drama",
-                  "mcleods daughters": "Drama",
-                  "mi-5": "Drama",
-                  "nip/tuck": "Drama",
-                  "nolly africa hd": "Drama",
-                  "silent witness|new tricks": "Drama",
-                  "teen wolf by mgm": "Sci-Fi & Horror",
-                  "un si grand soleil": "Drama",
-                  "weeds & nurse jackie": "Drama",
-                  "antiques road trip": "Documentary",
-                  "antiques roadshow uk": "Documentary",
-                  "bbc travel": "Documentary",
-                  "come dine with me": "Home & Food",
-                  "factual": "Documentary",
-                  "get.factual": "Documentary",
-                  "great british menu": "Home & Food",
-                  "i shouldnt be alive": "Documentary",
-                  "intervention": "Documentary",
-                  "journy": "Documentary",
-                  "modern marvels": "Documentary",
-                  "survivorman on plex": "Documentary",
-                  "top gear": "Documentary",
-                  "fifth gear (uk)": "Documentary",
-                  "the hotel inspector": "Documentary",
-                  "travel escapes": "Documentary",
-                  "unidentified": "Mystery",
-                  "american pickers channel": "Home & Food",
-                  "craftsytv": "Home & Food",
-                  "flipping nation": "Home & Food",
-                  "four in a bed": "Home & Food",
-                  "hells kitchen": "Home & Food",
-                  "iron chef": "Home & Food",
-                  "the bob ross channel": "Home & Food",
-                  "the design network": "Home & Food",
-                  "the emeril lagasse channel": "Home & Food",
-                  "the martha stewart channel": "Home & Food",
-                  "this old house": "Home & Food",
-                  "tiny house nation": "Home & Food",
-                  "taste": "Home & Food",
-                  "arthur": "Kids",
-                  "baby einstein": "Kids",
-                  "baby shark tv": "Kids",
-                  "beyblade": "Anime & Gaming",
-                  "my little pony": "Kids",
-                  "ninja kidz tv": "Kids",
-                  "power rangers": "Kids",
-                  "preston & brianna": "Kids",
-                  "sonic the hedgehog": "Kids",
-                  "strawberry shortcake": "Kids",
-                  "teletubbies": "Kids",
-                  "the wiggles": "Kids",
-                  "toon goggles": "Kids",
-                  "transformers": "Kids",
-                  "watch it kid": "Kids",
-                  "classic rock": "Music",
-                  "easy listening": "Music",
-                  "euro hits": "Music",
-                  "fashiontv": "Music",
-                  "hip-hop/r&b": "Music",
-                  "metal.rocks": "Music",
-                  "new k-pop": "Music",
-                  "non-stop 90s": "Music",
-                  "nothin but 90s": "Music",
-                  "qwest tv": "Music",
-                  "smooth jazz": "Music",
-                  "todays k-pop": "Music",
-                  "trace uk": "Music",
-                  "trace urban": "Music",
-                  "beyond belief": "Mystery",
-                  "ghost hunters channel": "Mystery",
-                  "most haunted": "Mystery",
-                  "unxplained zone": "Mystery",
-                  "game & fish tv": "Nature & Science",
-                  "hunter": "Nature & Science",
-                  "life down under": "Nature & Science",
-                  "river monsters": "Nature & Science",
-                  "waypoint tv": "Nature & Science",
-                  "wired2fish": "Nature & Science",
-                  "camp spoopy": "Sci-Fi & Horror",
-                  "frightflix": "Sci-Fi & Horror",
-                  "haunttv": "Sci-Fi & Horror",
-                  "midnight pulp": "Sci-Fi & Horror",
-                  "mst3k": "Sci-Fi & Horror",
-                  "stargate by mgm": "Sci-Fi & Horror",
-                  "the walking dead universe": "Sci-Fi & Horror",
-                  "the outpost": "Sci-Fi & Horror",
-                  "z nation": "Sci-Fi & Horror",
-                  "bonanza": "Westerns",
-                  "gunsmoke": "Westerns",
-                  "animation+": "Anime & Gaming",
-                  "asiancrush": "Anime & Gaming",
-                  "dungeons & dragons adventures": "Anime & Gaming",
-                  "pocket.watch game-on": "Anime & Gaming",
-                  "retrocrush": "Anime & Gaming",
-                  "yu-gi-oh!": "Anime & Gaming",
-                  "deal zone": "Game Shows",
-                  "impossible - quiz show": "Game Shows",
-                  "johnny carson tv": "Classic TV Comedy",
-                  "judge faith": "Daytime & Talk Shows",
-                  "the graham norton show": "Daytime & Talk Shows",
-                  "the spa": "Ambiance",
-                  "spark tv light & love": "Ambiance",
-                  "south park": "South Park",
-                  "123go!": "Entertainment",
-                  "21 jump street": "Drama",
-                  "5-minute crafts": "Home & Food",
-                  "addictatv": "Entertainment",
-                  "afrolandtv": "Entertainment",
-                  "aliwko": "Entertainment",
-                  "always funny": "Comedy",
-                  "amasian tv": "Movies",
-                  "anger management": "Comedy",
-                  "are we there yet?": "Comedy",
-                  "ax men": "Documentary",
-                  "baywatch": "Drama",
-                  "bbc comedy": "Comedy",
-                  "bizaar": "Comedy",
-                  "blackpix": "Movies",
-                  "bon voyage": "Documentary",
-                  "bondi rescue": "Documentary",
-                  "boot": "Kids",
-                  "brat tv": "Kids",
-                  "c4 en alerta": "Crime",
-                  "caracol mix": "Entertainment",
-                  "cbc comedy": "Comedy",
-                  "cinepride": "Movies",
-                  "circle country": "Music",
-                  "comedy dynamics": "Comedy",
-                  "complex tv": "Entertainment",
-                  "corner gas": "Comedy",
-                  "cosmic frontiers": "Sci-Fi & Horror",
-                  "creator television": "Entertainment",
-                  "cricket gold": "Sports",
-                  "ctv gets real": "Entertainment",
-                  "ctv laughs": "Comedy",
-                  "dog whisperer": "Nature & Science",
-                  "dont tell the bride": "Home & Food",
-                 
+                  "cbc news": "News & Weather","cbc news ottawa": "News & Weather","cbc news toronto": "News & Weather","cbc news windsor": "News & Weather","cheddar": "News & Weather","france 24": "News & Weather","gb news": "News & Weather","inter 24/7": "News & Weather","radio-canada info": "News & Weather","usa today": "News & Weather","yahoo finance": "News & Weather",
+                  "bassmaster": "Sports","billiard tv": "Sports","bowling tv": "Sports","dp world tour": "Sports","fubo sports": "Sports","monster jam": "Sports","nhra tv": "Sports","one championship tv": "Sports","pac-12 insider": "Sports","pfl mma": "Sports","pokergo": "Sports","racing america": "Sports","speed sport 1": "Sports","speedvision": "Sports","sports illustrated tv": "Sports","sportsgrid": "Sports","strongman champions": "Sports","swerve combat": "Sports","swerve womens sports": "Sports","the world poker tour": "Sports","triton poker": "Sports","willow sports": "Sports","world billiards tv": "Sports","world surf league 24/7": "Sports","xfc tv": "Sports",
+                  "24 hour free movies": "Movies","moviesphere": "Movies","noovo cinema": "Movies","pelimex": "Movies","scream factory tv": "Movies","screambox tv": "Movies","shout! tv": "Movies","trailers from hell": "Movies","tribeca channel": "Movies","wu tang collection": "Movies",
+                  "cheaters": "Crime","dateline": "Crime","dog the bounty hunter": "Crime","hardcore pawn": "Crime","jail": "Crime","nash bridges": "Crime","operation repo": "Crime","sheriffs: el dorado county": "Crime","the fbi files": "Crime","the first 48": "Crime","untold stories of the er": "Crime","women behind bars": "Crime",
+                  "american gladiators by mgm": "Classic TV","dick van dyke": "Classic TV Comedy","mr. bean": "Classic TV Comedy","mr. bean live action": "Classic TV Comedy","the addams family": "Classic TV Comedy","the carol burnett show": "Classic TV Comedy","threes company": "Classic TV Comedy","death valley days": "Westerns","wanted: dead or alive": "Westerns","that girl": "Classic TV","the outer limits": "Sci-Fi & Horror",
+                  "andromeda": "Drama","continuum": "Drama","degrassi": "Drama","farscape": "Sci-Fi & Horror","heartland": "Drama","mcleods daughters": "Drama","mi-5": "Drama","nip/tuck": "Drama","nolly africa hd": "Drama","silent witness|new tricks": "Drama","teen wolf by mgm": "Sci-Fi & Horror","un si grand soleil": "Drama","weeds & nurse jackie": "Drama",
+                  "antiques road trip": "Documentary","antiques roadshow uk": "Documentary","bbc travel": "Documentary","come dine with me": "Home & Food","factual": "Documentary","get.factual": "Documentary","great british menu": "Home & Food","i shouldnt be alive": "Documentary","intervention": "Documentary","journy": "Documentary","modern marvels": "Documentary","survivorman on plex": "Documentary","top gear": "Documentary","fifth gear (uk)": "Documentary","the hotel inspector": "Documentary","travel escapes": "Documentary","unidentified": "Mystery",
+                  "american pickers channel": "Home & Food","craftsytv": "Home & Food","flipping nation": "Home & Food","four in a bed": "Home & Food","hells kitchen": "Home & Food","iron chef": "Home & Food","the bob ross channel": "Home & Food","the design network": "Home & Food","the emeril lagasse channel": "Home & Food","the martha stewart channel": "Home & Food","this old house": "Home & Food","tiny house nation": "Home & Food","taste": "Home & Food",
+                  "arthur": "Kids","baby einstein": "Kids","baby shark tv": "Kids","beyblade": "Anime & Gaming","my little pony": "Kids","ninja kidz tv": "Kids","power rangers": "Kids","preston & brianna": "Kids","sonic the hedgehog": "Kids","strawberry shortcake": "Kids","teletubbies": "Kids","the wiggles": "Kids","toon goggles": "Kids","transformers": "Kids","watch it kid": "Kids",
+                  "classic rock": "Music","easy listening": "Music","euro hits": "Music","fashiontv": "Music","hip-hop/r&b": "Music","metal.rocks": "Music","new k-pop": "Music","non-stop 90s": "Music","nothin but 90s": "Music","qwest tv": "Music","smooth jazz": "Music","todays k-pop": "Music","trace uk": "Music","trace urban": "Music",
+                  "beyond belief": "Mystery","ghost hunters channel": "Mystery","most haunted": "Mystery","unxplained zone": "Mystery",
+                  "game & fish tv": "Nature & Science","hunter": "Nature & Science","life down under": "Nature & Science","river monsters": "Nature & Science","waypoint tv": "Nature & Science","wired2fish": "Nature & Science",
+                  "camp spoopy": "Sci-Fi & Horror","frightflix": "Sci-Fi & Horror","haunttv": "Sci-Fi & Horror","midnight pulp": "Sci-Fi & Horror","mst3k": "Sci-Fi & Horror","stargate by mgm": "Sci-Fi & Horror","the walking dead universe": "Sci-Fi & Horror","the outpost": "Sci-Fi & Horror","z nation": "Sci-Fi & Horror",
+                  "bonanza": "Westerns","gunsmoke": "Westerns",
+                  "animation+": "Anime & Gaming","asiancrush": "Anime & Gaming","dungeons & dragons adventures": "Anime & Gaming","pocket.watch game-on": "Anime & Gaming","retrocrush": "Anime & Gaming","yu-gi-oh!": "Anime & Gaming",
+                  "deal zone": "Game Shows","impossible - quiz show": "Game Shows","johnny carson tv": "Classic TV Comedy","judge faith": "Daytime & Talk Shows","the graham norton show": "Daytime & Talk Shows","the spa": "Ambiance","spark tv light & love": "Ambiance","south park": "South Park",
+                  "123go!": "Entertainment","21 jump street": "Drama","5-minute crafts": "Home & Food","addictatv": "Entertainment","afrolandtv": "Entertainment","aliwko": "Entertainment","always funny": "Comedy","amasian tv": "Movies","anger management": "Comedy","are we there yet?": "Comedy","ax men": "Documentary","baywatch": "Drama","bbc comedy": "Comedy","bizaar": "Comedy","blackpix": "Movies","bon voyage": "Documentary","bondi rescue": "Documentary","boot": "Kids","brat tv": "Kids","c4 en alerta": "Crime","caracol mix": "Entertainment","cbc comedy": "Comedy","cinepride": "Movies","circle country": "Music","comedy dynamics": "Comedy","complex tv": "Entertainment","corner gas": "Comedy","cosmic frontiers": "Sci-Fi & Horror","creator television": "Entertainment","cricket gold": "Sports","ctv gets real": "Entertainment","ctv laughs": "Comedy","dog whisperer": "Nature & Science","dont tell the bride": "Home & Food","dove": "Movies","dr. g: medical examiner": "Crime","dude perfect": "Sports","eddies wonderland": "Kids","entertains": "Entertainment","everyday": "Entertainment","fifa+": "Sports","flashback 70s": "Music","fuel tv": "Sports","galxy tv": "Sci-Fi & Horror","gametvgo": "Sports","glewed tv": "Entertainment","growthday network": "Documentary","hard knocks": "Sports","highway to heaven": "Drama","historias de corazon": "Drama","hit list": "Music","hit sitcoms": "Comedy","hot ones": "Entertainment","ice pilots nwt": "Documentary","ideas en 5 minutos": "Home & Food","in the heat of the night by mgm": "Drama","itv deportes": "Sports","joysauce": "Entertainment","legacy": "Entertainment","life+style": "Home & Food","little women: la": "Entertainment","lone star": "Westerns","lucha plus": "Sports","made in hollywood": "Entertainment","made it myself tv": "Home & Food","more u": "Entertainment","mythical 24/7": "Entertainment","nashville": "Drama","nosey escandalos": "Entertainment","novelisima": "Drama","outflix proud": "Movies","paternity court": "Daytime & Talk Shows","pickletv": "Sports","pink panther": "Kids","pitufo tv": "Kids","pll network": "Sports","pop adult": "Music","powder tv": "Sports","powernation": "Sports","pursuitup": "Nature & Science","racer select": "Sports","rakuten viki": "Drama","rcm": "Music","remember the 80s": "Music","revry": "Entertainment","rig tv": "Documentary","robot wars by mech+": "Sci-Fi & Horror","ryan and friends": "Kids","shemaroo bollywood": "Movies","skwad": "Kids","slopes": "Sports","so... real": "Entertainment","sonic tv": "Kids","startalk tv": "Nature & Science","stories by amc": "Entertainment","super channel hearties": "Drama","super channel uncovered": "Documentary","tarima tv": "Music","tg junior": "Kids","the biggest loser": "Entertainment","the bold and the beautiful": "Drama","the ed sullivan show": "Classic TV","the mightiest by ctv": "Documentary","the osbournes": "Entertainment","the pet collective": "Nature & Science","the prof g channel": "Documentary","the wicked tuna channel": "Nature & Science","trailer park boys: the swearnet show": "Comedy","unbeaten": "Sports","unspeakable": "Anime & Gaming","victory+": "Sports","wedotv amor piel salvaje": "Drama","wipeoutxtra": "Entertainment","wonder": "Nature & Science","xtreme caution": "Documentary","y2k": "Music","ca cest drole": "Comedy","exitos del momento": "Music",
+              }
+              if n in explicit:
+                  return explicit[n]
+              if "south park" in n:
+                  return "South Park"
+              return "Other"
+
+          lines = SOURCE.read_text(encoding="utf-8", errors="ignore").splitlines()
+          entries = []
+          seen = set()
+          category_counts = {}
+          for i, line in enumerate(lines):
+              if not line.startswith("#EXTINF"): continue
+              if i+1 >= len(lines): continue
+              url = lines[i+1].strip()
+              if not url.startswith("http"): continue
+              name = get_name(line)
+              nl = norm(name)
+              if "judge nosey" in nl or nl == "nosey" or "novelisma" in nl: continue
+              if any(term in nl for term in REMOVE_TERMS): continue
+              plex_id = get_attr(line, "tvg-id")
+              key = plex_id or url
+              if key in seen: continue
+              seen.add(key)
+              category = category_for(name)
+              category_counts[category] = category_counts.get(category, 0) + 1
+              if re.search(r'group-title="[^"]*"', line, re.I):
+                  line = re.sub(r'group-title="[^"]*"', f'group-title="{category}"', line, flags=re.I)
+              else:
+                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{category}"', 1)
+              entries.append((category, nl, line, url, plex_id))
+
+          category_order = {c: i for i, c in enumerate(CATEGORIES)}
+          entries.sort(key=lambda x: (category_order.get(x[0], 999), x[1]))
+          output = ['#EXTM3U url-tvg="https://plex-ca.donxman.workers.dev/plex-ca.xml"']
+          chno = 6500
+          for category, _, line, url, _ in entries:
+              if re.search(r'tvg-chno="[^"]*"', line, re.I):
+                  line = re.sub(r'tvg-chno="[^"]*"', f'tvg-chno="{chno}"', line, flags=re.I)
+              else:
+                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"', 1)
+              output.append(line)
+              output.append(url)
+              chno += 1
+          OUTPUT_M3U.write_text("\n".join(output) + "\n", encoding="utf-8")
+          print(f"TOTAL: {len(entries)}")
+          print(category_counts)
+          other = [n for cat, n, _, _, _ in entries if cat == "Other"]
+          print(f"OTHER LEFT {len(other)}: {other[:50]}")
+
+          valid_ids = {pid for _, _, _, _, pid in entries if pid}
+          try:
+              tree = ET.parse(FULL_GUIDE)
+              root = tree.getroot()
+              guide_ids = {e.get("id") for e in root if e.tag == "channel"}
+              overlap = valid_ids & guide_ids
+              print(f"Guide overlap {len(overlap)}")
+              if len(overlap) < 10:
+                  tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
+              else:
+                  for elem in list(root):
+                      if elem.tag == "channel" and elem.get("id") not in valid_ids:
+                          root.remove(elem)
+                      elif elem.tag == "programme" and elem.get("channel") not in valid_ids:
+                          root.remove(elem)
+                  tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
+          except Exception as e:
+              print(f"Guide filter failed: {e}")
+              OUTPUT_XML.write_bytes(FULL_GUIDE.read_bytes())
+
+      - name: Check final files
+        run: |
+          rm -f plex-ca-source.m3u full-guide.xml full-guide.xml.gz all.xml.gz
+          ls -lh plex-ca.*
+          echo "M3U: $(grep -c '^#EXTINF:' plex-ca.m3u)"
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Plex CA - fixed Other ascii safe"
+          file_pattern: |
+            plex-ca.m3u
+            plex-ca.xml
