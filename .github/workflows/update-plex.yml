@@ -17,6 +17,7 @@ jobs:
       - name: Download Plex CA playlist from Buddy
         run: |
           set -e
+
           curl -L --fail -A "Mozilla/5.0" \
             "https://raw.githubusercontent.com/BuddyChewChew/app-m3u-generator/main/playlists/plex_ca.m3u" \
             -o plex-ca-source.m3u
@@ -32,6 +33,7 @@ jobs:
             -o full-guide.xml
 
           if file full-guide.xml | grep -q gzip; then
+            echo "Guide is gzip compressed"
             mv full-guide.xml full-guide.xml.gz
             gunzip -c full-guide.xml.gz > full-guide.xml
           fi
@@ -62,7 +64,7 @@ jobs:
           OUTPUT_XML = Path("plex-ca.xml")
 
           # ============================================================
-          # EXISTING MOTEL CATEGORIES
+          # MOTEL CATEGORIES
           # ============================================================
 
           CATEGORIES = [
@@ -90,6 +92,10 @@ jobs:
               "Anime & Gaming",
               "Other"
           ]
+
+          # ============================================================
+          # FOREIGN LANGUAGE REMOVAL
+          # ============================================================
 
           REMOVE_TERMS = [
               "spanish",
@@ -119,15 +125,274 @@ jobs:
               return ext.rsplit(",", 1)[-1].strip()
 
           # ============================================================
-          # PLEX CATEGORY RULES
+          # PLEX CATEGORY ENGINE
           #
-          # Specific rules come first.
-          # General Entertainment is the final fallback.
+          # Specific rules are deliberately placed before broad rules.
           # ============================================================
 
           def category_for(name):
 
               n = re.sub(r'\s+', ' ', name.lower()).strip()
+
+              # --------------------------------------------------------
+              # EXPLICIT CHANNEL OVERRIDES
+              # --------------------------------------------------------
+
+              explicit = {
+
+                  # NEWS
+                  "cbc news": "News & Weather",
+                  "cbc news ottawa": "News & Weather",
+                  "cbc news toronto": "News & Weather",
+                  "cbc news windsor": "News & Weather",
+                  "cheddar": "News & Weather",
+                  "france 24": "News & Weather",
+                  "gb news": "News & Weather",
+                  "inter 24/7": "News & Weather",
+                  "radio-canada info": "News & Weather",
+                  "usa today": "News & Weather",
+                  "weather spy": "News & Weather",
+                  "yahoo finance": "News & Weather",
+
+                  # SPORTS
+                  "afc with alfonso ribeiro": "Entertainment",
+                  "bassmaster": "Sports",
+                  "billiard tv": "Sports",
+                  "bowling tv": "Sports",
+                  "dp world tour": "Sports",
+                  "fubo sports": "Sports",
+                  "monster jam": "Sports",
+                  "nhra tv": "Sports",
+                  "one championship tv": "Sports",
+                  "pac-12 insider": "Sports",
+                  "pfl mma": "Sports",
+                  "pokergo": "Sports",
+                  "racing america": "Sports",
+                  "speed sport 1": "Sports",
+                  "speedvision": "Sports",
+                  "sports illustrated tv": "Sports",
+                  "sportsgrid": "Sports",
+                  "strongman champions": "Sports",
+                  "swerve combat": "Sports",
+                  "swerve women's sports": "Sports",
+                  "the world poker tour": "Sports",
+                  "triton poker": "Sports",
+                  "ufc": "Sports",
+                  "willow sports": "Sports",
+                  "world billiards tv": "Sports",
+                  "world surf league 24/7": "Sports",
+                  "x games": "Sports",
+                  "xfc tv": "Sports",
+
+                  # MOVIES
+                  "24 hour free movies": "Movies",
+                  "filmrise free movies": "Movies",
+                  "moviesphere": "Movies",
+                  "noovo cinéma": "Movies",
+                  "noovo cinema": "Movies",
+                  "peliMex": "Movies",
+                  "scream factory tv": "Movies",
+                  "screambox tv": "Movies",
+                  "shout! tv": "Movies",
+                  "trailers from hell": "Movies",
+                  "tribeca channel": "Movies",
+                  "wu tang collection": "Movies",
+
+                  # CRIME
+                  "cheaters": "Crime",
+                  "dateline": "Crime",
+                  "dog the bounty hunter": "Crime",
+                  "hardcore pawn": "Crime",
+                  "jail": "Crime",
+                  "nash bridges": "Crime",
+                  "operation repo": "Crime",
+                  "sheriffs: el dorado county": "Crime",
+                  "the fbi files": "Crime",
+                  "the first 48": "Crime",
+                  "untold stories of the er": "Crime",
+                  "women behind bars": "Crime",
+
+                  # CLASSIC TV COMEDY
+                  "american gladiators by mgm": "Classic TV",
+                  "dick van dyke": "Classic TV Comedy",
+                  "mr. bean": "Classic TV Comedy",
+                  "mr. bean live action": "Classic TV Comedy",
+                  "the addams family": "Classic TV Comedy",
+                  "the carol burnett show": "Classic TV Comedy",
+                  "the conners": "Comedy",
+                  "three's company": "Classic TV Comedy",
+
+                  # CLASSIC TV
+                  "death valley days": "Westerns",
+                  "wanted: dead or alive": "Westerns",
+                  "that girl": "Classic TV",
+                  "the outer limits": "Sci-Fi & Horror",
+                  "the rifleman": "Westerns",
+
+                  # COMEDY
+                  "angry beavers": "Comedy",
+                  "failarmy": "Comedy",
+                  "get comedy": "Comedy",
+                  "schitts creek": "Comedy",
+                  "schitt's creek": "Comedy",
+                  "portlandia": "Comedy",
+                  "the conners": "Comedy",
+                  "three's company": "Classic TV Comedy",
+
+                  # DRAMA
+                  "andromeda": "Drama",
+                  "continuum": "Drama",
+                  "degrassi": "Drama",
+                  "farscape": "Sci-Fi & Horror",
+                  "heartland": "Drama",
+                  "mcleods daughters": "Drama",
+                  "mcLeod's daughters": "Drama",
+                  "mi-5": "Drama",
+                  "nip/tuck": "Drama",
+                  "nolly africa hd": "Drama",
+                  "silent witness|new tricks": "Drama",
+                  "teen wolf by mgm": "Sci-Fi & Horror",
+                  "un si grand soleil": "Drama",
+                  "weeds & nurse jackie": "Drama",
+
+                  # DOCUMENTARY
+                  "antiques road trip": "Documentary",
+                  "antiques roadshow": "Documentary",
+                  "antiques roadshow uk": "Documentary",
+                  "bbc travel": "Documentary",
+                  "come dine with me": "Home & Food",
+                  "curiosity now": "Documentary",
+                  "factual": "Documentary",
+                  "get.factual": "Documentary",
+                  "great british menu": "Home & Food",
+                  "i shouldn't be alive": "Documentary",
+                  "intervention": "Documentary",
+                  "journy": "Documentary",
+                  "modern marvels": "Documentary",
+                  "survivorman on plex": "Documentary",
+                  "top gear": "Documentary",
+                  "fifth gear (uk)": "Documentary",
+                  "the hotel inspector": "Documentary",
+                  "travel escapes": "Documentary",
+                  "unidentified": "Mystery",
+
+                  # HOME & FOOD
+                  "american pickers channel": "Home & Food",
+                  "craftsytv": "Home & Food",
+                  "come dine with me": "Home & Food",
+                  "flipping nation": "Home & Food",
+                  "four in a bed": "Home & Food",
+                  "hell's kitchen": "Home & Food",
+                  "iron chef": "Home & Food",
+                  "the bob ross channel": "Home & Food",
+                  "the design network": "Home & Food",
+                  "the emeril lagasse channel": "Home & Food",
+                  "the martha stewart channel": "Home & Food",
+                  "this old house": "Home & Food",
+                  "tiny house nation": "Home & Food",
+                  "taste": "Home & Food",
+
+                  # KIDS
+                  "arthur": "Kids",
+                  "baby einstein": "Kids",
+                  "baby shark tv": "Kids",
+                  "beyblade": "Anime & Gaming",
+                  "my little pony": "Kids",
+                  "ninja kidz tv": "Kids",
+                  "power rangers": "Kids",
+                  "preston & brianna": "Kids",
+                  "sonic the hedgehog": "Kids",
+                  "strawberry shortcake": "Kids",
+                  "teletubbies": "Kids",
+                  "the wiggles": "Kids",
+                  "toon goggles": "Kids",
+                  "transformers": "Kids",
+                  "watch it kid": "Kids",
+
+                  # MUSIC
+                  "classic rock": "Music",
+                  "easy listening": "Music",
+                  "euro hits": "Music",
+                  "fashiontv": "Music",
+                  "hip-hop/r&b": "Music",
+                  "metal.rocks": "Music",
+                  "new k-pop": "Music",
+                  "non-stop '90s": "Music",
+                  "nothin' but 90s": "Music",
+                  "qwest tv": "Music",
+                  "smooth jazz": "Music",
+                  "today's k-pop": "Music",
+                  "trace uk": "Music",
+                  "trace urban": "Music",
+
+                  # MYSTERY
+                  "beyond belief": "Mystery",
+                  "ghost hunters channel": "Mystery",
+                  "most haunted": "Mystery",
+                  "mystery": "Mystery",
+                  "unexplained": "Mystery",
+                  "unxplained zone": "Mystery",
+
+                  # NATURE & SCIENCE
+                  "bbc earth": "Nature & Science",
+                  "game & fish tv": "Nature & Science",
+                  "hunter": "Nature & Science",
+                  "life down under": "Nature & Science",
+                  "river monsters": "Nature & Science",
+                  "waypoint tv": "Nature & Science",
+                  "wired2fish": "Nature & Science",
+
+                  # SCI-FI & HORROR
+                  "camp spoopy": "Sci-Fi & Horror",
+                  "farscape": "Sci-Fi & Horror",
+                  "frightflix": "Sci-Fi & Horror",
+                  "haunttv": "Sci-Fi & Horror",
+                  "midnight pulp": "Sci-Fi & Horror",
+                  "mst3k": "Sci-Fi & Horror",
+                  "scream factory tv": "Movies",
+                  "stargate by mgm": "Sci-Fi & Horror",
+                  "the walking dead universe": "Sci-Fi & Horror",
+                  "the outpost": "Sci-Fi & Horror",
+                  "teen wolf by mgm": "Sci-Fi & Horror",
+                  "z nation": "Sci-Fi & Horror",
+
+                  # WESTERNS
+                  "bonanza": "Westerns",
+                  "gunsmoke": "Westerns",
+                  "wanted: dead or alive": "Westerns",
+                  "westerns": "Westerns",
+
+                  # ANIME & GAMING
+                  "animation+": "Anime & Gaming",
+                  "asiancrush": "Anime & Gaming",
+                  "dungeons & dragons adventures": "Anime & Gaming",
+                  "pocket.watch game-on": "Anime & Gaming",
+                  "retrocrush": "Anime & Gaming",
+                  "yu-gi-oh!": "Anime & Gaming",
+
+                  # GAME SHOWS
+                  "deal zone": "Game Shows",
+                  "impossible - quiz show": "Game Shows",
+                  "game & fish tv": "Nature & Science",
+                  "the price is right": "Game Shows",
+                  "wong game": "Game Shows",
+
+                  # DAYTIME & TALK
+                  "johnny carson tv": "Classic TV Comedy",
+                  "judge faith": "Daytime & Talk Shows",
+                  "judge nosey": "Daytime & Talk Shows",
+                  "the graham norton show": "Daytime & Talk Shows",
+
+                  # AMBIANCE
+                  "the spa": "Ambiance",
+                  "spark tv light & love": "Ambiance",
+
+                  # SOUTH PARK
+                  "south park": "South Park"
+              }
+
+              if n in explicit:
+                  return explicit[n]
 
               # --------------------------------------------------------
               # SOUTH PARK
@@ -151,8 +416,8 @@ jobs:
                   "nbc now",
                   "newsnation",
                   "newsmax",
-                  "weather channel",
-                  "weather channel",
+                  "news 24",
+                  "weather",
                   "accuweather",
                   "local now",
                   "cheddar news",
@@ -160,7 +425,13 @@ jobs:
                   "reuters",
                   "bloomberg",
                   "news 12",
-                  "court tv"
+                  "cbc news",
+                  "ctv news",
+                  "ctv gridlock",
+                  "radio-canada info",
+                  "france 24",
+                  "gb news",
+                  "yahoo finance"
               ]
 
               if any(x in n for x in news_terms):
@@ -201,8 +472,19 @@ jobs:
                   "soccer",
                   "fubo sports",
                   "stadium",
+                  "bein sports",
                   "beinsports",
-                  "bein sports"
+                  "sportsgrid",
+                  "sports illustrated",
+                  "monster jam",
+                  "racing",
+                  "poker",
+                  "billiard",
+                  "billiards",
+                  "bowling",
+                  "surf league",
+                  "championship",
+                  "sports"
               ]
 
               if any(x in n for x in sports_terms):
@@ -215,7 +497,6 @@ jobs:
               kids_terms = [
                   "nickelodeon",
                   "nick jr",
-                  "nick jr.",
                   "nicktoons",
                   "cartoon network",
                   "boomerang",
@@ -230,8 +511,13 @@ jobs:
                   "moonbug",
                   "kidoodle",
                   "kids",
-                  "family kids",
-                  "lego"
+                  "lego",
+                  "pony",
+                  "wiggles",
+                  "teletubbies",
+                  "power rangers",
+                  "toon",
+                  "transformers"
               ]
 
               if any(x in n for x in kids_terms):
@@ -261,7 +547,13 @@ jobs:
                   "property",
                   "travel kitchen",
                   "food",
-                  "eats"
+                  "cooking",
+                  "chef",
+                  "kitchen",
+                  "dine",
+                  "house",
+                  "craftsy",
+                  "design network"
               ]
 
               if any(x in n for x in home_food_terms):
@@ -289,7 +581,13 @@ jobs:
                   "crime 360",
                   "chasing criminals",
                   "cold case files",
-                  "crime scenes"
+                  "crime scenes",
+                  "fbi files",
+                  "first 48",
+                  "dateline",
+                  "bounty hunter",
+                  "jail",
+                  "pawn"
               ]
 
               if any(x in n for x in crime_terms):
@@ -310,7 +608,15 @@ jobs:
                   "nat geo",
                   "pbs",
                   "vice",
-                  "magellan"
+                  "magellan",
+                  "factual",
+                  "antiques",
+                  "travel",
+                  "top gear",
+                  "roadshow",
+                  "survivorman",
+                  "modern marvels",
+                  "intervention"
               ]
 
               if any(x in n for x in documentary_terms):
@@ -334,7 +640,10 @@ jobs:
                   "deep sea",
                   "wild",
                   "outdoor",
-                  "animals"
+                  "animals",
+                  "fishing",
+                  "fish",
+                  "hunting"
               ]
 
               if any(x in n for x in nature_science_terms):
@@ -356,7 +665,17 @@ jobs:
                   "twilight zone",
                   "doctor who",
                   "classic doctor who",
-                  "dust"
+                  "dust",
+                  "stargate",
+                  "walking dead",
+                  "z nation",
+                  "teen wolf",
+                  "outer limits",
+                  "farscape",
+                  "monster",
+                  "haunt",
+                  "scream",
+                  "fright"
               ]
 
               if any(x in n for x in scifi_horror_terms):
@@ -373,7 +692,11 @@ jobs:
                   "cowboys",
                   "wild west",
                   "western tv",
-                  "western movies"
+                  "western movies",
+                  "bonanza",
+                  "gunsmoke",
+                  "rifleman",
+                  "wanted: dead or alive"
               ]
 
               if any(x in n for x in western_terms):
@@ -390,7 +713,11 @@ jobs:
                   "video game",
                   "videogame",
                   "esports",
-                  "retro gaming"
+                  "retro gaming",
+                  "yu-gi-oh",
+                  "yugioh",
+                  "asiancrush",
+                  "retrocrush"
               ]
 
               if any(x in n for x in anime_terms):
@@ -410,7 +737,14 @@ jobs:
                   "cmt",
                   "concert",
                   "live music",
-                  "stingray"
+                  "stingray",
+                  "xite",
+                  "rock",
+                  "jazz",
+                  "k-pop",
+                  "hip-hop",
+                  "r&b",
+                  "hits"
               ]
 
               if any(x in n for x in music_terms):
@@ -433,7 +767,8 @@ jobs:
                   "lets make a deal",
                   "match game",
                   "press your luck",
-                  "supermarket sweep"
+                  "supermarket sweep",
+                  "quiz show"
               ]
 
               if any(x in n for x in game_show_terms):
@@ -451,36 +786,19 @@ jobs:
                   "dr phil",
                   "judge judy",
                   "judge mathis",
-                  "court",
+                  "judge faith",
                   "rachael ray",
                   "the view",
                   "today show",
                   "morning show",
                   "kelly clarkson",
-                  "ellen"
+                  "ellen",
+                  "carson",
+                  "graham norton"
               ]
 
               if any(x in n for x in daytime_terms):
                   return "Daytime & Talk Shows"
-
-              # --------------------------------------------------------
-              # COMEDY
-              # --------------------------------------------------------
-
-              comedy_terms = [
-                  "comedy",
-                  "comedies",
-                  "always funny",
-                  "laugh",
-                  "stand up",
-                  "stand-up",
-                  "funny",
-                  "comedian",
-                  "comedy dynamics"
-              ]
-
-              if any(x in n for x in comedy_terms):
-                  return "Comedy"
 
               # --------------------------------------------------------
               # CLASSIC TV COMEDY
@@ -498,7 +816,12 @@ jobs:
                   "brady bunch",
                   "sanford and son",
                   "all in the family",
-                  "classic comedy"
+                  "classic comedy",
+                  "dick van dyke",
+                  "mr. bean",
+                  "addams family",
+                  "carol burnett",
+                  "three's company"
               ]
 
               if any(x in n for x in classic_comedy_terms):
@@ -520,11 +843,11 @@ jobs:
                   "the waltons",
                   "little house",
                   "columbo",
-                  "the twilight zone",
                   "star trek",
                   "the lone ranger",
                   "dragnet",
-                  "alfred hitchcock"
+                  "alfred hitchcock",
+                  "that girl"
               ]
 
               if any(x in n for x in classic_tv_terms):
@@ -541,7 +864,12 @@ jobs:
                   "detective",
                   "unsolved",
                   "unsolved mysteries",
-                  "mystery channel"
+                  "mystery channel",
+                  "beyond belief",
+                  "ghost hunters",
+                  "most haunted",
+                  "unidentified",
+                  "unxplained"
               ]
 
               if any(x in n for x in mystery_terms):
@@ -567,7 +895,9 @@ jobs:
                   "hallmark movies",
                   "lifetime movies",
                   "great american pure flix",
-                  "great american family"
+                  "great american family",
+                  "scream factory",
+                  "screambox"
               ]
 
               if any(x in n for x in movie_terms):
@@ -588,7 +918,15 @@ jobs:
                   "blue bloods",
                   "chicago fire",
                   "chicago pd",
-                  "chicago med"
+                  "chicago med",
+                  "degrassi",
+                  "heartland",
+                  "continuum",
+                  "mcleod",
+                  "nip/tuck",
+                  "nash bridges",
+                  "silent witness",
+                  "new tricks"
               ]
 
               if any(x in n for x in drama_terms):
@@ -609,14 +947,15 @@ jobs:
                   "scenery",
                   "nature sounds",
                   "sleep",
-                  "meditation"
+                  "meditation",
+                  "spa"
               ]
 
               if any(x in n for x in ambiance_terms):
                   return "Ambiance"
 
               # --------------------------------------------------------
-              # GENERAL ENTERTAINMENT
+              # ENTERTAINMENT
               # --------------------------------------------------------
 
               entertainment_terms = [
@@ -624,7 +963,15 @@ jobs:
                   "reality",
                   "celebrity",
                   "pop culture",
-                  "reality tv"
+                  "reality tv",
+                  "fashion",
+                  "lifestyle",
+                  "people",
+                  "project runway",
+                  "dance moms",
+                  "duck dynasty",
+                  "fear factor",
+                  "hell's kitchen"
               ]
 
               if any(x in n for x in entertainment_terms):
@@ -647,7 +994,6 @@ jobs:
 
           entries = []
           seen = set()
-
           category_counts = {}
 
           for i, line in enumerate(lines):
@@ -665,7 +1011,7 @@ jobs:
 
               name = get_name(line)
 
-              # Remove unwanted language channels.
+              # Remove unwanted foreign-language channels.
               if any(
                   term in name.lower()
                   for term in REMOVE_TERMS
@@ -717,7 +1063,7 @@ jobs:
               )
 
           # ============================================================
-          # SORT BY CATEGORY, THEN CHANNEL NAME
+          # SORT BY MOTEL CATEGORY ORDER
           # ============================================================
 
           category_order = {
@@ -733,7 +1079,7 @@ jobs:
           )
 
           # ============================================================
-          # NUMBER PLEX 6500+
+          # PLEX NUMBERING 6500+
           # ============================================================
 
           output = [
@@ -772,6 +1118,10 @@ jobs:
               encoding="utf-8"
           )
 
+          # ============================================================
+          # CATEGORY REPORT
+          # ============================================================
+
           print()
           print("========================================")
           print("          PLEX CATEGORY REPORT")
@@ -788,6 +1138,28 @@ jobs:
           print("----------------------------------------")
           print(f"TOTAL CHANNELS: {len(entries)}")
           print("NUMBERING: 6500+")
+          print("========================================")
+
+          # ============================================================
+          # REPORT REMAINING OTHER CHANNELS
+          # ============================================================
+
+          other_channels = [
+              name
+              for category, name, _, _, _ in entries
+              if category == "Other"
+          ]
+
+          print()
+          print("========================================")
+          print("             OTHER CHANNELS")
+          print("========================================")
+
+          for name in other_channels:
+              print(name)
+
+          print("----------------------------------------")
+          print(f"OTHER COUNT: {len(other_channels)}")
           print("========================================")
 
           # ============================================================
@@ -819,8 +1191,9 @@ jobs:
                   f"overlap {len(overlap)}"
               )
 
-              # Keep the full guide if Buddy IDs and guide IDs
-              # don't match.
+              # Buddy Plex IDs and guide IDs can differ.
+              # If they do, retain the complete guide.
+
               if len(overlap) < 10:
 
                   print(
@@ -880,7 +1253,7 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update Plex CA - categorized Plex channels"
+          commit_message: "Update Plex CA - improved Motel categorization"
           file_pattern: |
             plex-ca.m3u
             plex-ca.xml
