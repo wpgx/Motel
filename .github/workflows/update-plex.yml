@@ -94,7 +94,7 @@ jobs:
           ]
 
           # ============================================================
-          # FOREIGN LANGUAGE REMOVAL
+          # FOREIGN LANGUAGE / UNWANTED CHANNEL REMOVAL
           # ============================================================
 
           REMOVE_TERMS = [
@@ -190,7 +190,7 @@ jobs:
                   "moviesphere": "Movies",
                   "noovo cinéma": "Movies",
                   "noovo cinema": "Movies",
-                  "peliMex": "Movies",
+                  "pelimex": "Movies",
                   "scream factory tv": "Movies",
                   "screambox tv": "Movies",
                   "shout! tv": "Movies",
@@ -246,7 +246,7 @@ jobs:
                   "farscape": "Sci-Fi & Horror",
                   "heartland": "Drama",
                   "mcleods daughters": "Drama",
-                  "mcLeod's daughters": "Drama",
+                  "mcleod's daughters": "Drama",
                   "mi-5": "Drama",
                   "nip/tuck": "Drama",
                   "nolly africa hd": "Drama",
@@ -1010,12 +1010,34 @@ jobs:
                   continue
 
               name = get_name(line)
+              name_lower = name.lower()
 
-              # Remove unwanted foreign-language channels.
+              # ========================================================
+              # EXPLICIT UNWANTED CHANNEL REMOVAL
+              # ========================================================
+              #
+              # These are removed regardless of source group/category.
+              # This catches alternate spellings and accented names.
+              #
+
+              if (
+                  "judge nosey" in name_lower
+                  or name_lower.strip() == "nosey"
+                  or "novelisma" in name_lower
+                  or "novelísima" in name_lower
+              ):
+                  print(f"REMOVED: {name}")
+                  continue
+
+              # ========================================================
+              # FOREIGN LANGUAGE REMOVAL
+              # ========================================================
+
               if any(
-                  term in name.lower()
+                  term in name_lower
                   for term in REMOVE_TERMS
               ):
+                  print(f"REMOVED FOREIGN: {name}")
                   continue
 
               plex_id = get_attr(line, "tvg-id")
