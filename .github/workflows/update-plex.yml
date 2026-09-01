@@ -28,12 +28,15 @@ jobs:
           curl -L --compressed --fail -A "Mozilla/5.0" \
             "https://plex-ca.donxman.workers.dev/plex-ca.xml" \
             -o full-guide.xml
+
           if file full-guide.xml | grep -q gzip; then
             mv full-guide.xml full-guide.xml.gz
             gunzip -c full-guide.xml.gz > full-guide.xml
           fi
+
           echo "Channels: $(grep -c '<channel' full-guide.xml || true)"
           echo "Programs: $(grep -c '<programme' full-guide.xml || true)"
+
           if [ "$(grep -c '<channel' full-guide.xml || true)" -lt 10 ]; then
             echo "Worker empty, using Matt fallback"
             curl -L --fail -A "Mozilla/5.0" \
@@ -68,8 +71,10 @@ jobs:
           def get_attr(ext, attr):
               m = re.search(rf'{re.escape(attr)}="([^"]*)"', ext, re.I)
               return m.group(1) if m else ""
+
           def get_name(ext):
               return ext.rsplit(",", 1)[-1].strip()
+
           def norm(s):
               s = s.lower()
               s = s.replace("’","").replace("'","").replace("`","")
@@ -86,7 +91,7 @@ jobs:
                   "24 hour free movies": "Movies","filmrise free movies": "Movies","moviesphere": "Movies","noovo cinema": "Movies","pelimex": "Movies","scream factory tv": "Movies","screambox tv": "Movies","shout! tv": "Movies","trailers from hell": "Movies","tribeca channel": "Movies","wu tang collection": "Movies",
                   "cheaters": "Crime","dateline": "Crime","dog the bounty hunter": "Crime","hardcore pawn": "Crime","jail": "Crime","nash bridges": "Crime","operation repo": "Crime","sheriffs: el dorado county": "Crime","the fbi files": "Crime","the first 48": "Crime","untold stories of the er": "Crime","women behind bars": "Crime",
                   "american gladiators by mgm": "Classic TV","dick van dyke": "Classic TV Comedy","mr. bean": "Classic TV Comedy","mr. bean live action": "Classic TV Comedy","the addams family": "Classic TV Comedy","the carol burnett show": "Classic TV Comedy","the conners": "Comedy","threes company": "Classic TV Comedy","death valley days": "Westerns","wanted: dead or alive": "Westerns","that girl": "Classic TV","the outer limits": "Sci-Fi & Horror","the rifleman": "Westerns",
-                  "angry beavers": "Comedy","failarmy": "Comedy","get comedy": "Comedy","schitts creek": "Comedy","schitts creek": "Comedy","portlandia": "Comedy",
+                  "angry beavers": "Comedy","failarmy": "Comedy","get comedy": "Comedy","schitts creek": "Comedy","portlandia": "Comedy",
                   "andromeda": "Drama","continuum": "Drama","degrassi": "Drama","farscape": "Sci-Fi & Horror","heartland": "Drama","mcleods daughters": "Drama","mi-5": "Drama","nip/tuck": "Drama","nolly africa hd": "Drama","silent witness|new tricks": "Drama","teen wolf by mgm": "Sci-Fi & Horror","un si grand soleil": "Drama","weeds & nurse jackie": "Drama",
                   "antiques road trip": "Documentary","antiques roadshow": "Documentary","antiques roadshow uk": "Documentary","bbc travel": "Documentary","curiosity now": "Documentary","factual": "Documentary","get.factual": "Documentary","great british menu": "Home & Food","i shouldnt be alive": "Documentary","intervention": "Documentary","journy": "Documentary","modern marvels": "Documentary","survivorman on plex": "Documentary","top gear": "Documentary","fifth gear (uk)": "Documentary","the hotel inspector": "Documentary","travel escapes": "Documentary","unidentified": "Mystery",
                   "american pickers channel": "Home & Food","craftsytv": "Home & Food","come dine with me": "Home & Food","flipping nation": "Home & Food","four in a bed": "Home & Food","hells kitchen": "Home & Food","iron chef": "Home & Food","the bob ross channel": "Home & Food","the design network": "Home & Food","the emeril lagasse channel": "Home & Food","the martha stewart channel": "Home & Food","this old house": "Home & Food","tiny house nation": "Home & Food","taste": "Home & Food",
@@ -101,110 +106,159 @@ jobs:
                   "johnny carson tv": "Classic TV Comedy","judge faith": "Daytime & Talk Shows","judge nosey": "Daytime & Talk Shows","the graham norton show": "Daytime & Talk Shows",
                   "the spa": "Ambiance","spark tv light & love": "Ambiance",
                   "south park": "South Park",
-                  # --- YOUR LAST 121 MERGED ---
                   "123go!": "Entertainment","21 jump street": "Drama","5-minute crafts": "Home & Food","addictatv": "Entertainment","afrolandtv": "Entertainment","aliwko": "Entertainment","always funny": "Comedy","amasian tv": "Movies","anger management": "Comedy","are we there yet?": "Comedy","ax men": "Documentary","baywatch": "Drama","bbc comedy": "Comedy","bizaar": "Comedy","blackpix": "Movies","bon voyage": "Documentary","bondi rescue": "Documentary","boot": "Kids","brat tv": "Kids","c4 en alerta": "Crime","caracol mix": "Entertainment","cbc comedy": "Comedy","cinepride": "Movies","circle country": "Music","combatv": "Sports","comedy dynamics": "Comedy","complex tv": "Entertainment","corner gas": "Comedy","cosmic frontiers": "Sci-Fi & Horror","creator television": "Entertainment","cricket gold": "Sports","ctv gets real": "Entertainment","ctv laughs": "Comedy","dog whisperer": "Nature & Science","dont tell the bride": "Home & Food","dove": "Movies","dr. g: medical examiner": "Crime","dude perfect": "Sports","eddies wonderland": "Kids","entertains": "Entertainment","everyday": "Entertainment","fifa+": "Sports","flashback 70s": "Music","fuel tv": "Sports","galxy tv": "Sci-Fi & Horror","gametvgo": "Sports","glewed tv": "Entertainment","growthday network": "Documentary","hard knocks": "Sports","highway to heaven": "Drama","historias de corazon": "Drama","hit list": "Music","hit sitcoms": "Comedy","hot ones": "Entertainment","ice pilots nwt": "Documentary","ideas en 5 minutos": "Home & Food","in the heat of the night by mgm": "Drama","itv deportes": "Sports","joysauce": "Entertainment","legacy": "Entertainment","life+style": "Home & Food","little women: la": "Entertainment","lone star": "Westerns","lucha plus": "Sports","made in hollywood": "Entertainment","made it myself tv": "Home & Food","more u": "Entertainment","mythical 24/7": "Entertainment","nashville": "Drama","nosey escandalos": "Entertainment","novelisima": "Drama","outflix proud": "Movies","paternity court": "Daytime & Talk Shows","pickletv": "Sports","pink panther": "Kids","pitufo tv": "Kids","pll network": "Sports","pop adult": "Music","powder tv": "Sports","powernation": "Sports","pursuitup": "Nature & Science","racer select": "Sports","rakuten viki": "Drama","rcm": "Music","remember the 80s": "Music","revry": "Entertainment","rig tv": "Documentary","robot wars by mech+": "Sci-Fi & Horror","ryan and friends": "Kids","shemaroo bollywood": "Movies","skwad": "Kids","slopes": "Sports","so... real": "Entertainment","sonic tv": "Kids","startalk tv": "Nature & Science","stories by amc": "Entertainment","super channel hearties": "Drama","super channel uncovered": "Documentary","tarima tv": "Music","tg junior": "Kids","the biggest loser": "Entertainment","the bold and the beautiful": "Drama","the ed sullivan show": "Classic TV","the mightiest by ctv": "Documentary","the osbournes": "Entertainment","the pet collective": "Nature & Science","the prof g channel": "Documentary","the wicked tuna channel": "Nature & Science","trailer park boys: the swearnet show": "Comedy","unbeaten": "Sports","unspeakable": "Anime & Gaming","victory+": "Sports","wedotv amor piel salvaje": "Drama","wipeoutxtra": "Entertainment","wonder": "Nature & Science","xtreme caution": "Documentary","y2k": "Music","ca cest drole": "Comedy","exitos del momento": "Music",
               }
+
               if n in explicit:
                   return explicit[n]
+
               if "south park" in n:
                   return "South Park"
 
               news_terms = ["cnn","msnbc","fox news","fox business","abc news","cbs news","nbc news","nbc now","newsnation","newsmax","news 24","weather","accuweather","local now","cheddar news","cnbc","reuters","bloomberg","news 12","cbc news","ctv news","ctv gridlock","radio-canada info","france 24","gb news","yahoo finance"]
               if any(x in n for x in news_terms): return "News & Weather"
+
               sports_terms = ["espn","fs1","fs2","fox sports","sportsnet","tsn","nfl","nhl","nba","mlb","nascar","motogp","motortrend","golf","pga","tennis","wimbledon","ufc","fight","boxing","wrestling","cornhole","pickleball","football","basketball","baseball","hockey","soccer","fubo sports","stadium","bein sports","beinsports","sportsgrid","sports illustrated","monster jam","racing","poker","billiard","billiards","bowling","surf league","championship","sports"]
               if any(x in n for x in sports_terms): return "Sports"
+
               kids_terms = ["nickelodeon","nick jr","nicktoons","cartoon network","boomerang","pbs kids","disney junior","disney jr","disney channel","dreamworks","babyfirst","baby first","kabillion","moonbug","kidoodle","kids","lego","pony","wiggles","teletubbies","power rangers","toon","transformers"]
               if any(x in n for x in kids_terms): return "Kids"
+
               home_food_terms = ["food network","cooking","cooks","hgtv","home & garden","home and garden","tastemade","delish","bon app","garden","home","renovation","house hunters","property","food","chef","kitchen","dine","house","craftsy","design network"]
               if any(x in n for x in home_food_terms): return "Home & Food"
+
               crime_terms = ["crime","true crime","investigation discovery","id channel","forensic files","cold case","killer","killers","murder","criminal","cops","court tv","crime 360","fbi files","first 48","dateline","bounty hunter","jail","pawn"]
               if any(x in n for x in crime_terms): return "Crime"
+
               documentary_terms = ["documentary","documentaries","history","biography","smithsonian","national geographic","nat geo","pbs","vice","magellan","factual","antiques","travel","top gear","roadshow","survivorman","modern marvels","intervention"]
               if any(x in n for x in documentary_terms): return "Documentary"
+
               nature_science_terms = ["discovery science","science channel","science","nasa","nature","wildlife","animal planet","earth","ocean","planet earth","deep sea","wild","outdoor","animals","fishing","fish","hunting"]
               if any(x in n for x in nature_science_terms): return "Nature & Science"
+
               scifi_horror_terms = ["sci-fi","scifi","science fiction","horror","supernatural","paranormal","alien","aliens","twilight zone","doctor who","classic doctor who","dust","stargate","walking dead","z nation","teen wolf","outer limits","farscape","monster","haunt","scream","fright"]
               if any(x in n for x in scifi_horror_terms): return "Sci-Fi & Horror"
+
               western_terms = ["western","westerns","cowboy","cowboys","wild west","western tv","western movies","bonanza","gunsmoke","rifleman","wanted: dead or alive"]
               if any(x in n for x in western_terms): return "Westerns"
+
               anime_terms = ["anime","gaming","gamer","video game","videogame","esports","retro gaming","yu-gi-oh","yugioh","asiancrush","retrocrush"]
               if any(x in n for x in anime_terms): return "Anime & Gaming"
+
               music_terms = ["mtv","vh1","vevo","music","music video","music videos","cmt","concert","live music","stingray","xite","rock","jazz","k-pop","hip-hop","r&b","hits"]
               if any(x in n for x in music_terms): return "Music"
+
               game_show_terms = ["game show","game shows","game show network","family feud","jeopardy","wheel of fortune","deal or no deal","price is right","lets make a deal","match game","press your luck","supermarket sweep","quiz show"]
               if any(x in n for x in game_show_terms): return "Game Shows"
+
               daytime_terms = ["talk show","talk shows","daytime","dr. phil","dr phil","judge judy","judge mathis","judge faith","rachael ray","the view","today show","morning show","kelly clarkson","ellen","carson","graham norton"]
               if any(x in n for x in daytime_terms): return "Daytime & Talk Shows"
+
               classic_comedy_terms = ["i love lucy","andy griffith","three stooges","beverly hillbillies","gilligans island","leave it to beaver","bewitched","brady bunch","sanford and son","all in the family","classic comedy","dick van dyke","mr. bean","addams family","carol burnett","threes company"]
               if any(x in n for x in classic_comedy_terms): return "Classic TV Comedy"
+
               classic_tv_terms = ["classic tv","classic television","classic movies & tv","m*a*s*h","mash","bonanza","gunsmoke","the rifleman","the waltons","little house","columbo","star trek","the lone ranger","dragnet","alfred hitchcock","that girl"]
               if any(x in n for x in classic_tv_terms): return "Classic TV"
+
               mystery_terms = ["mystery","mysteries","murder mystery","detective","unsolved","unsolved mysteries","mystery channel","beyond belief","ghost hunters","most haunted","unidentified","unxplained"]
               if any(x in n for x in mystery_terms): return "Mystery"
+
               movie_terms = ["movie","movies","film","films","cinema","cinevault","movieplex","filmrise","movie sphere","moviesphere","24 hour free movies","24hr free movies","hallmark movies","lifetime movies","great american pure flix","great american family","scream factory","screambox"]
               if any(x in n for x in movie_terms): return "Movies"
+
               drama_terms = ["drama","soap","soap opera","law & order","law and order","ncis","criminal minds","blue bloods","chicago fire","chicago pd","chicago med","degrassi","heartland","continuum","mcleod","nip/tuck","nash bridges","silent witness","new tricks"]
               if any(x in n for x in drama_terms): return "Drama"
+
               ambiance_terms = ["ambiance","ambience","relaxation","relaxing","fireplace","aquarium","scenic","scenery","nature sounds","sleep","meditation","spa"]
               if any(x in n for x in ambiance_terms): return "Ambiance"
+
               entertainment_terms = ["entertainment","reality","celebrity","pop culture","reality tv","fashion","lifestyle","people","project runway","dance moms","duck dynasty","fear factor","hells kitchen"]
               if any(x in n for x in entertainment_terms): return "Entertainment"
+
               return "Other"
 
           lines = SOURCE.read_text(encoding="utf-8", errors="ignore").splitlines()
           entries = []
           seen = set()
           category_counts = {}
+
           for i, line in enumerate(lines):
-              if not line.startswith("#EXTINF"): continue
-              if i+1 >= len(lines): continue
-              url = lines[i+1].strip()
-              if not url.startswith("http"): continue
+              if not line.startswith("#EXTINF"):
+                  continue
+              if i + 1 >= len(lines):
+                  continue
+
+              url = lines[i + 1].strip()
+              if not url.startswith("http"):
+                  continue
+
               name = get_name(line)
               nl = norm(name)
-              if "judge nosey" in nl or nl == "nosey" or "novelisma" in nl: continue
-              if any(term in nl for term in REMOVE_TERMS): continue
+
+              if "judge nosey" in nl or nl == "nosey" or "novelisma" in nl:
+                  continue
+
+              if any(term in nl for term in REMOVE_TERMS):
+                  continue
+
               plex_id = get_attr(line, "tvg-id")
               key = plex_id or url
-              if key in seen: continue
+
+              if key in seen:
+                  continue
+
               seen.add(key)
               category = category_for(name)
               category_counts[category] = category_counts.get(category, 0) + 1
+
               if re.search(r'group-title="[^"]*"', line, re.I):
                   line = re.sub(r'group-title="[^"]*"', f'group-title="{category}"', line, flags=re.I)
               else:
                   line = line.replace("#EXTINF:-1", f'#EXTINF:-1 group-title="{category}"', 1)
+
               entries.append((category, nl, line, url, plex_id))
 
           category_order = {c: i for i, c in enumerate(CATEGORIES)}
           entries.sort(key=lambda x: (category_order.get(x[0], 999), x[1]))
 
           output = ['#EXTM3U url-tvg="https://plex-ca.donxman.workers.dev/plex-ca.xml"']
+
           chno = 6500
+
           for category, _, line, url, pid in entries:
               if re.search(r'tvg-chno="[^"]*"', line, re.I):
                   line = re.sub(r'tvg-chno="[^"]*"', f'tvg-chno="{chno}"', line, flags=re.I)
               else:
                   line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"', 1)
+
               output.append(line)
               output.append(url)
               chno += 1
 
           OUTPUT_M3U.write_text("\n".join(output) + "\n", encoding="utf-8")
+
           print("=== CATEGORY REPORT ===")
+
           for c in CATEGORIES:
-              if category_counts.get(c): print(f"{c}: {category_counts[c]}")
+              if category_counts.get(c):
+                  print(f"{c}: {category_counts[c]}")
+
           print(f"TOTAL: {len(entries)}")
+
           other = [n for cat, n, _, _, _ in entries if cat == "Other"]
           print(f"OTHER LEFT {len(other)}: {other}")
 
           valid_ids = {pid for _, _, _, _, pid in entries if pid}
+
           try:
               tree = ET.parse(FULL_GUIDE)
               root = tree.getroot()
+
               guide_ids = {e.get("id") for e in root if e.tag == "channel"}
               overlap = valid_ids & guide_ids
+
               print(f"Guide overlap {len(overlap)}")
+
               if len(overlap) < 10:
                   tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
               else:
@@ -213,7 +267,9 @@ jobs:
                           root.remove(elem)
                       elif elem.tag == "programme" and elem.get("channel") not in valid_ids:
                           root.remove(elem)
+
                   tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
+
           except Exception as e:
               print(f"Guide failed: {e}")
               OUTPUT_XML.write_bytes(FULL_GUIDE.read_bytes())
@@ -223,6 +279,20 @@ jobs:
           rm -f plex-ca-source.m3u full-guide.xml full-guide.xml.gz all.xml.gz
           ls -lh plex-ca.*
           echo "M3U: $(grep -c '^#EXTINF:' plex-ca.m3u)"
+
+      - name: Debug Plex XML
+        run: |
+          echo "=== FILE ==="
+          ls -lah plex-ca.xml
+
+          echo "=== GIT STATUS ==="
+          git status --short
+
+          echo "=== GIT CHECK-IGNORE ==="
+          git check-ignore -v plex-ca.xml || echo "NOT IGNORED"
+
+          echo "=== GIT LS-FILES ==="
+          git ls-files plex-ca.xml
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
