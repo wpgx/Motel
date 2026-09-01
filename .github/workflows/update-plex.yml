@@ -25,15 +25,13 @@ jobs:
       - name: Download fresh Plex guide from Worker
         run: |
           set -e
-          curl -L --compressed --fail -A "Mozilla/5.0" \
+
+          curl -L --fail -A "Mozilla/5.0" \
             "https://plex-ca.donxman.workers.dev/plex-ca.xml" \
             -o full-guide.xml
 
-          if file full-guide.xml | grep -q gzip; then
-            mv full-guide.xml full-guide.xml.gz
-            gunzip -c full-guide.xml.gz > full-guide.xml
-          fi
-
+          echo "=== WORKER GUIDE ==="
+          ls -lh full-guide.xml
           echo "Channels: $(grep -c '<channel' full-guide.xml || true)"
           echo "Programs: $(grep -c '<programme' full-guide.xml || true)"
 
