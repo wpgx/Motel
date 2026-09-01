@@ -22,26 +22,390 @@ jobs:
             -o plex-ca-source.m3u
           echo "Source: $(grep -c '^#EXTINF:' plex-ca-source.m3u)"
 
-      - name: Download fresh Plex guide from Worker
+      - name: Build fresh Plex Luma guide
+        env:
+          PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
         run: |
-          set -e
+          python - <<'PY'
+          import concurrent.futures
+          import datetime
+          import json
+          import os
+          import re
+          import urllib.parse
+          import urllib.request
+          import xml.etree.ElementTree as ET
 
-          curl -L --fail -A "Mozilla/5.0" \
-            "https://plex-ca.donxman.workers.dev/plex-ca.xml" \
-            -o full-guide.xml
+          TOKEN = os.environ["PLEX_TOKEN"]
 
-          echo "=== WORKER GUIDE ==="
-          ls -lh full-guide.xml
-          echo "Channels: $(grep -c '<channel' full-guide.xml || true)"
-          echo "Programs: $(grep -c '<programme' full-guide.xml || true)"
+          CATEGORY_URL = (
+              "https://luma.plex.tv/api/fragment/live-tv/category"
+              "?key=%2Flineups%2Fplex%2Fchannels"
+              "&startDate="
+              + datetime.datetime.now(
+                  datetime.timezone.utc
+              ).strftime("%Y-%m-%d")
+          )
 
-          if [ "$(grep -c '<channel' full-guide.xml || true)" -lt 10 ]; then
-            echo "Worker empty, using Matt fallback"
-            curl -L --fail -A "Mozilla/5.0" \
-              "https://github.com/matthuisman/i.mjh.nz/raw/master/Plex/all.xml.gz" \
-              -o all.xml.gz
-            gunzip -c all.xml.gz > full-guide.xml
-          fi
+          HEADERS = {
+              "X-Plex-Token": TOKEN,
+              "Accept": "application/json",
+              "User-Agent": "Mozilla/5.0"
+          }
+
+          def get_json(url):
+              req = urllib.request.Request(
+                  url,
+                  headers=HEADERS
+              )
+
+              with urllib.request.urlopen(
+                  req,
+                  timeout=60
+              ) as response:
+                  return json.loads(
+                      response.read().decode("utf-8")
+                  )
+
+          print("=== GETTING PLEX LUMA CHANNELS ===")
+
+          channels = get_json(CATEGORY_URL)
+
+          if not isinstance(channels, list):
+              raise RuntimeError(
+                  "Plex did not return a channel list."
+              )
+
+          print(
+              f"Found {len(channels)} Plex channels."
+          )
+
+          def xmltv_time(timestamp):
+              dt = datetime.datetime.fromtimestamp(
+                  int(timestamp),
+                  datetime.timezone.utc
+              )
+
+              return dt.strftime(
+                  "%Y%m%d%H%M%S +0000"
+              )
+
+          def get_channel_key(channel):
+              data = channel.get("data") or {}
+
+              key = str(
+                  data.get("key") or ""
+              ).strip()
+
+              match = re.search(
+                  r"-([A-Za-z0-9]+)\.m3u8",
+                  key
+              )
+
+              if match:
+                  return match.group(1)
+
+              url = str(
+                  channel.get("url") or ""
+              ).strip()
+
+              match = re.search(
+                  r"/airings/([^?]+)",
+                  url
+              )
+
+              if match:
+                  return match.group(1)
+
+              return ""
+
+          def get_airings(channel):
+              title = str(
+                  channel.get("title") or ""
+              ).strip()
+
+              key = get_channel_key(channel)
+
+              if not key:
+                  print(
+                      f"No channel key: {title}"
+                  )
+                  return channel, []
+
+              url = (
+                  "https://luma.plex.tv/api/fragment/live-tv/airings/"
+                  + urllib.parse.quote(
+                      key,
+                      safe=""
+                  )
+              )
+
+              try:
+                  data = get_json(url)
+
+                  if isinstance(data, list):
+                      return channel, data
+
+                  if isinstance(data, dict):
+                      for field in (
+                          "airings",
+                          "items",
+                          "data"
+                      ):
+                          if isinstance(
+                              data.get(field),
+                              list
+                          ):
+                              return channel, data[field]
+
+                  return channel, []
+
+              except Exception as e:
+                  print(
+                      f"ERROR getting airings for "
+                      f"{title}: {e}"
+                  )
+                  return channel, []
+
+          print("=== GETTING PLEX LUMA AIRINGS ===")
+
+          results = []
+
+          with concurrent.futures.ThreadPoolExecutor(
+              max_workers=20
+          ) as executor:
+
+              futures = [
+                  executor.submit(
+                      get_airings,
+                      channel
+                  )
+                  for channel in channels
+              ]
+
+              for index, future in enumerate(
+                  concurrent.futures.as_completed(
+                      futures
+                  ),
+                  1
+              ):
+                  channel, airings = future.result()
+
+                  results.append(
+                      (channel, airings)
+                  )
+
+                  if (
+                      index % 25 == 0
+                      or index == len(channels)
+                  ):
+                      print(
+                          f"Processed "
+                          f"{index}/{len(channels)} channels"
+                      )
+
+          print("=== BUILDING PLEXLUMA.XML ===")
+
+          tv = ET.Element(
+              "tv",
+              {
+                  "generator-info-name": "Plex Luma",
+                  "source-info-name": "Plex Canada"
+              }
+          )
+
+          total_channels = 0
+          total_programmes = 0
+
+          for channel, airings in results:
+
+              channel_id = str(
+                  channel.get("id") or ""
+              ).strip()
+
+              title = str(
+                  channel.get("title") or ""
+              ).strip()
+
+              logo = str(
+                  channel.get("thumb") or ""
+              ).strip()
+
+              if not channel_id or not title:
+                  continue
+
+              channel_element = ET.SubElement(
+                  tv,
+                  "channel",
+                  {
+                      "id": channel_id
+                  }
+              )
+
+              display_name = ET.SubElement(
+                  channel_element,
+                  "display-name"
+              )
+
+              display_name.text = title
+
+              if logo:
+                  ET.SubElement(
+                      channel_element,
+                      "icon",
+                      {
+                          "src": logo
+                      }
+                  )
+
+              total_channels += 1
+
+              for airing in airings:
+
+                  data = airing.get("data") or {}
+
+                  preview = (
+                      airing.get("previewData")
+                      or {}
+                  )
+
+                  begins = data.get(
+                      "beginsAt"
+                  )
+
+                  ends = data.get(
+                      "endsAt"
+                  )
+
+                  if not begins or not ends:
+                      continue
+
+                  programme = ET.SubElement(
+                      tv,
+                      "programme",
+                      {
+                          "channel": channel_id,
+                          "start": xmltv_time(
+                              begins
+                          ),
+                          "stop": xmltv_time(
+                              ends
+                          )
+                      }
+                  )
+
+                  program_title = (
+                      airing.get("title")
+                      or preview.get("title")
+                      or ""
+                  )
+
+                  title_element = ET.SubElement(
+                      programme,
+                      "title",
+                      {
+                          "lang": "en"
+                      }
+                  )
+
+                  title_element.text = str(
+                      program_title
+                  )
+
+                  subtitle = (
+                      preview.get("subtitle")
+                      or ""
+                  )
+
+                  if subtitle:
+                      subtitle_element = ET.SubElement(
+                          programme,
+                          "sub-title",
+                          {
+                              "lang": "en"
+                          }
+                      )
+
+                      subtitle_element.text = (
+                          subtitle
+                      )
+
+                  summary = (
+                      preview.get("summary")
+                      or ""
+                  )
+
+                  if summary:
+                      desc_element = ET.SubElement(
+                          programme,
+                          "desc",
+                          {
+                              "lang": "en"
+                          }
+                      )
+
+                      desc_element.text = (
+                          summary
+                      )
+
+                  guid = data.get(
+                      "guid"
+                  ) or ""
+
+                  if guid:
+                      episode_num = ET.SubElement(
+                          programme,
+                          "episode-num",
+                          {
+                              "system": "plex"
+                          }
+                      )
+
+                      episode_num.text = str(
+                          guid
+                      )
+
+                  total_programmes += 1
+
+          output_file = "plexluma.xml"
+
+          tree = ET.ElementTree(tv)
+
+          try:
+              ET.indent(
+                  tree,
+                  space="  "
+              )
+          except AttributeError:
+              pass
+
+          tree.write(
+              output_file,
+              encoding="UTF-8",
+              xml_declaration=True
+          )
+
+          print("")
+          print(
+              f"Luma channels: {total_channels}"
+          )
+          print(
+              f"Luma programmes: {total_programmes}"
+          )
+          print(
+              f"Output: {output_file}"
+          )
+
+          if total_channels < 10:
+              raise RuntimeError(
+                  "Luma guide contains fewer than 10 channels."
+              )
+
+          if total_programmes < 10:
+              raise RuntimeError(
+                  "Luma guide contains fewer than 10 programmes."
+              )
+          PY
 
       - name: Build categorized Plex CA playlist + guide
         shell: python
@@ -52,7 +416,7 @@ jobs:
 
           SOURCE = Path("plex-ca-source.m3u")
           OUTPUT_M3U = Path("plex-ca.m3u")
-          FULL_GUIDE = Path("full-guide.xml")
+          FULL_GUIDE = Path("plexluma.xml")
           OUTPUT_XML = Path("plex-ca.xml")
 
           CATEGORIES = [
@@ -638,13 +1002,24 @@ jobs:
               name = get_name(line)
               nl = norm(name)
 
-              if "judge nosey" in nl or nl == "nosey" or "novelisma" in nl:
+              if (
+                  "judge nosey" in nl
+                  or nl == "nosey"
+                  or "novelisma" in nl
+              ):
                   continue
 
-              if any(term in nl for term in REMOVE_TERMS):
+              if any(
+                  term in nl
+                  for term in REMOVE_TERMS
+              ):
                   continue
 
-              plex_id = get_attr(line, "tvg-id")
+              plex_id = get_attr(
+                  line,
+                  "tvg-id"
+              )
+
               key = plex_id or url
 
               if key in seen:
@@ -653,9 +1028,16 @@ jobs:
               seen.add(key)
 
               category = category_for(name)
-              category_counts[category] = category_counts.get(category, 0) + 1
 
-              if re.search(r'group-title="[^"]*"', line, re.I):
+              category_counts[category] = (
+                  category_counts.get(category, 0) + 1
+              )
+
+              if re.search(
+                  r'group-title="[^"]*"',
+                  line,
+                  re.I
+              ):
                   line = re.sub(
                       r'group-title="[^"]*"',
                       f'group-title="{category}"',
@@ -670,16 +1052,26 @@ jobs:
                   )
 
               entries.append(
-                  (category, nl, line, url, plex_id)
+                  (
+                      category,
+                      nl,
+                      line,
+                      url,
+                      plex_id
+                  )
               )
 
           category_order = {
-              c: i for i, c in enumerate(CATEGORIES)
+              c: i
+              for i, c in enumerate(CATEGORIES)
           }
 
           entries.sort(
               key=lambda x: (
-                  category_order.get(x[0], 999),
+                  category_order.get(
+                      x[0],
+                      999
+                  ),
                   x[1]
               )
           )
@@ -691,7 +1083,12 @@ jobs:
           chno = 6500
 
           for category, _, line, url, pid in entries:
-              if re.search(r'tvg-chno="[^"]*"', line, re.I):
+
+              if re.search(
+                  r'tvg-chno="[^"]*"',
+                  line,
+                  re.I
+              ):
                   line = re.sub(
                       r'tvg-chno="[^"]*"',
                       f'tvg-chno="{chno}"',
@@ -707,6 +1104,7 @@ jobs:
 
               output.append(line)
               output.append(url)
+
               chno += 1
 
           OUTPUT_M3U.write_text(
@@ -718,12 +1116,17 @@ jobs:
 
           for c in CATEGORIES:
               if category_counts.get(c):
-                  print(f"{c}: {category_counts[c]}")
+                  print(
+                      f"{c}: {category_counts[c]}"
+                  )
 
-          print(f"TOTAL: {len(entries)}")
+          print(
+              f"TOTAL: {len(entries)}"
+          )
 
           other = [
-              n for cat, n, _, _, _ in entries
+              n
+              for cat, n, _, _, _ in entries
               if cat == "Other"
           ]
 
@@ -732,7 +1135,8 @@ jobs:
           )
 
           valid_ids = {
-              pid for _, _, _, _, pid in entries
+              pid
+              for _, _, _, _, pid in entries
               if pid
           }
 
@@ -748,25 +1152,38 @@ jobs:
 
               overlap = valid_ids & guide_ids
 
-              print(f"Guide overlap {len(overlap)}")
+              print(
+                  f"Guide overlap {len(overlap)}"
+              )
 
               if len(overlap) < 10:
+                  print(
+                      "WARNING: Guide overlap is under 10."
+                  )
+                  print(
+                      "Using full Luma guide unchanged."
+                  )
+
                   tree.write(
                       OUTPUT_XML,
                       encoding="utf-8",
                       xml_declaration=True
                   )
+
               else:
                   for elem in list(root):
+
                       if (
                           elem.tag == "channel"
-                          and elem.get("id") not in valid_ids
+                          and elem.get("id")
+                          not in valid_ids
                       ):
                           root.remove(elem)
 
                       elif (
                           elem.tag == "programme"
-                          and elem.get("channel") not in valid_ids
+                          and elem.get("channel")
+                          not in valid_ids
                       ):
                           root.remove(elem)
 
@@ -777,7 +1194,10 @@ jobs:
                   )
 
           except Exception as e:
-              print(f"Guide failed: {e}")
+              print(
+                  f"Guide failed: {e}"
+              )
+
               OUTPUT_XML.write_bytes(
                   FULL_GUIDE.read_bytes()
               )
@@ -787,12 +1207,10 @@ jobs:
           set -e
 
           rm -f plex-ca-source.m3u
-          rm -f full-guide.xml
-          rm -f full-guide.xml.gz
           rm -f all.xml.gz
 
           echo "=== FINAL FILES ==="
-          ls -lh plex-ca.*
+          ls -lh plex-ca.* plexluma.xml
 
           echo "M3U: $(grep -c '^#EXTINF:' plex-ca.m3u)"
 
@@ -809,20 +1227,25 @@ jobs:
           echo "=== FILE ==="
           ls -lah plex-ca.xml
 
+          echo "=== LUMA FILE ==="
+          ls -lah plexluma.xml
+
           echo "=== GIT STATUS ==="
           git status --short
 
           echo "=== GIT CHECK-IGNORE ==="
           git check-ignore -v plex-ca.xml || echo "NOT IGNORED"
+          git check-ignore -v plexluma.xml || echo "NOT IGNORED"
 
           echo "=== GIT LS-FILES ==="
           git ls-files plex-ca.xml
+          git ls-files plexluma.xml
 
       - name: Commit
         run: |
           set -e
 
-          git add plex-ca.m3u plex-ca.xml
+          git add plex-ca.m3u plex-ca.xml plexluma.xml
 
           echo "=== STAGED FILES ==="
           git status --short
