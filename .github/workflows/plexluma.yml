@@ -1,0 +1,403 @@
+name: Luma Plex
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-plex-guide:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build Plex Canada guide
+        env:
+          PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
+        run: |
+          python - <<'PY'
+          import concurrent.futures
+          import datetime
+          import json
+          import os
+          import re
+          import urllib.parse
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          TOKEN = os.environ["PLEX_TOKEN"]
+
+          CATEGORY_URL = (
+              "https://luma.plex.tv/api/fragment/live-tv/category"
+              "?key=%2Flineups%2Fplex%2Fchannels"
+              "&startDate="
+              + datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+          )
+
+          HEADERS = {
+              "X-Plex-Token": TOKEN,
+              "Accept": "application/json",
+              "User-Agent": "Mozilla/5.0"
+          }
+
+          def get_json(url):
+              req = urllib.request.Request(
+                  url,
+                  headers=HEADERS
+              )
+
+              with urllib.request.urlopen(req, timeout=60) as response:
+                  return json.loads(
+                      response.read().decode("utf-8")
+                  )
+
+          print("Getting Plex channel list...")
+
+          channels = get_json(CATEGORY_URL)
+
+          if not isinstance(channels, list):
+              raise RuntimeError(
+                  "Plex did not return a channel list."
+              )
+
+          print(f"Found {len(channels)} Plex channels.")
+
+          def xmltv_time(timestamp):
+              dt = datetime.datetime.fromtimestamp(
+                  int(timestamp),
+                  datetime.timezone.utc
+              )
+
+              return dt.strftime(
+                  "%Y%m%d%H%M%S +0000"
+              )
+
+          def get_channel_key(channel):
+              data = channel.get("data") or {}
+
+              key = str(
+                  data.get("key") or ""
+              ).strip()
+
+              match = re.search(
+                  r"-([A-Za-z0-9]+)\.m3u8",
+                  key
+              )
+
+              if match:
+                  return match.group(1)
+
+              url = str(
+                  channel.get("url") or ""
+              ).strip()
+
+              match = re.search(
+                  r"/airings/([^?]+)",
+                  url
+              )
+
+              if match:
+                  return match.group(1)
+
+              return ""
+
+          def get_airings(channel):
+              title = str(
+                  channel.get("title") or ""
+              ).strip()
+
+              key = get_channel_key(channel)
+
+              if not key:
+                  print(
+                      f"No channel key: {title}"
+                  )
+                  return channel, []
+
+              url = (
+                  "https://luma.plex.tv/api/fragment/live-tv/airings/"
+                  + urllib.parse.quote(
+                      key,
+                      safe=""
+                  )
+              )
+
+              try:
+                  data = get_json(url)
+
+                  if isinstance(data, list):
+                      return channel, data
+
+                  if isinstance(data, dict):
+                      for field in (
+                          "airings",
+                          "items",
+                          "data"
+                      ):
+                          if isinstance(
+                              data.get(field),
+                              list
+                          ):
+                              return channel, data[field]
+
+                  return channel, []
+
+              except Exception as e:
+                  print(
+                      f"ERROR getting airings for {title}: {e}"
+                  )
+                  return channel, []
+
+          print("Getting Plex airings...")
+
+          results = []
+
+          with concurrent.futures.ThreadPoolExecutor(
+              max_workers=20
+          ) as executor:
+
+              futures = [
+                  executor.submit(
+                      get_airings,
+                      channel
+                  )
+                  for channel in channels
+              ]
+
+              for index, future in enumerate(
+                  concurrent.futures.as_completed(
+                      futures
+                  ),
+                  1
+              ):
+                  channel, airings = future.result()
+
+                  results.append(
+                      (channel, airings)
+                  )
+
+                  if (
+                      index % 25 == 0
+                      or index == len(channels)
+                  ):
+                      print(
+                          f"Processed "
+                          f"{index}/{len(channels)} channels"
+                      )
+
+          print("Building XMLTV...")
+
+          tv = ET.Element(
+              "tv",
+              {
+                  "generator-info-name": "Plex Luma",
+                  "source-info-name": "Plex Canada"
+              }
+          )
+
+          total_channels = 0
+          total_programmes = 0
+
+          for channel, airings in results:
+
+              channel_id = str(
+                  channel.get("id") or ""
+              ).strip()
+
+              title = str(
+                  channel.get("title") or ""
+              ).strip()
+
+              logo = str(
+                  channel.get("thumb") or ""
+              ).strip()
+
+              if not channel_id or not title:
+                  continue
+
+              channel_element = ET.SubElement(
+                  tv,
+                  "channel",
+                  {
+                      "id": channel_id
+                  }
+              )
+
+              display_name = ET.SubElement(
+                  channel_element,
+                  "display-name"
+              )
+
+              display_name.text = title
+
+              if logo:
+                  ET.SubElement(
+                      channel_element,
+                      "icon",
+                      {
+                          "src": logo
+                      }
+                  )
+
+              total_channels += 1
+
+              for airing in airings:
+
+                  data = airing.get("data") or {}
+
+                  preview = (
+                      airing.get("previewData")
+                      or {}
+                  )
+
+                  begins = data.get(
+                      "beginsAt"
+                  )
+
+                  ends = data.get(
+                      "endsAt"
+                  )
+
+                  if not begins or not ends:
+                      continue
+
+                  programme = ET.SubElement(
+                      tv,
+                      "programme",
+                      {
+                          "channel": channel_id,
+                          "start": xmltv_time(
+                              begins
+                          ),
+                          "stop": xmltv_time(
+                              ends
+                          )
+                      }
+                  )
+
+                  program_title = (
+                      airing.get("title")
+                      or preview.get("title")
+                      or ""
+                  )
+
+                  title_element = ET.SubElement(
+                      programme,
+                      "title",
+                      {
+                          "lang": "en"
+                      }
+                  )
+
+                  title_element.text = str(
+                      program_title
+                  )
+
+                  subtitle = (
+                      preview.get("subtitle")
+                      or ""
+                  )
+
+                  if subtitle:
+                      subtitle_element = ET.SubElement(
+                          programme,
+                          "sub-title",
+                          {
+                              "lang": "en"
+                          }
+                      )
+
+                      subtitle_element.text = (
+                          subtitle
+                      )
+
+                  summary = (
+                      preview.get("summary")
+                      or ""
+                  )
+
+                  if summary:
+                      desc_element = ET.SubElement(
+                          programme,
+                          "desc",
+                          {
+                              "lang": "en"
+                          }
+                      )
+
+                      desc_element.text = (
+                          summary
+                      )
+
+                  guid = data.get(
+                      "guid"
+                  ) or ""
+
+                  if guid:
+                      episode_num = ET.SubElement(
+                          programme,
+                          "episode-num",
+                          {
+                              "system": "plex"
+                          }
+                      )
+
+                      episode_num.text = str(
+                          guid
+                      )
+
+                  total_programmes += 1
+
+          output_file = "plexluma.yml"
+
+          tree = ET.ElementTree(tv)
+
+          try:
+              ET.indent(
+                  tree,
+                  space="  "
+              )
+          except AttributeError:
+              pass
+
+          tree.write(
+              output_file,
+              encoding="UTF-8",
+              xml_declaration=True
+          )
+
+          print("")
+          print(
+              f"Channels: {total_channels}"
+          )
+          print(
+              f"Programmes: {total_programmes}"
+          )
+          print(
+              f"Output: {output_file}"
+          )
+          PY
+
+      - name: Commit updated guide
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add plexluma.yml
+
+          if git diff --cached --quiet; then
+            echo "No changes to Plex guide."
+          else
+            git commit -m "Update Plex Luma guide"
+            git push
+          fi
