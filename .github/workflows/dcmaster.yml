@@ -47,6 +47,7 @@ jobs:
 
           merged = []
           xml_body = ''
+          used_xml_ids = set()
 
           # 1. PLEX-CA - 100% UNTOUCHED
           for f in ['plex-ca.m3u8', 'plex-ca.m3u', 'plex-ca.m3u8']:
@@ -59,7 +60,10 @@ jobs:
 
           for f in ['plex-ca.xml', 'plex-ca.xml.gz']:
               if os.path.exists(f):
-                  xml_body += extract_xml_body(f) + '\n'
+                  plex_xml = extract_xml_body(f)
+                  xml_body += plex_xml + '\n'
+                  for cid in re.findall(r'<channel\s+id="([^"]+)"', plex_xml):
+                      used_xml_ids.add(cid)
                   print(f"PLEX XML {f}")
                   break
 
@@ -93,9 +97,27 @@ jobs:
                       break
               if xp:
                   t = extract_xml_body(xp)
+
                   t = re.sub(r'<channel id="(?!dc-|plex-|roku-)', '<channel id="dc-', t)
                   t = re.sub(r' channel="(?!dc-|plex-|roku-)', ' channel="dc-', t)
                   t = t.replace('dc-dc-', 'dc-').replace('dc-plex-', 'plex-').replace('dc-roku-', 'roku-')
+
+                  # Make duplicate dc- channel IDs unique so sources cannot collide.
+                  source_ids = set(re.findall(r'<channel\s+id="(dc-[^"]+)"', t))
+                  for cid in sorted(source_ids):
+                      if cid in used_xml_ids:
+                          new_id = cid
+                          n = 2
+                          while new_id in used_xml_ids:
+                              new_id = f"{cid}-{n}"
+                              n += 1
+                          t = re.sub(r'(<channel\s+id=")' + re.escape(cid) + r'(")', r'\g<1>' + new_id + r'\2', t)
+                          t = re.sub(r'(\schannel=")' + re.escape(cid) + r'(")', r'\g<1>' + new_id + r'\2', t)
+                          print(f"XML ID collision: {cid} -> {new_id}")
+                          cid = new_id
+
+                      used_xml_ids.add(cid)
+
                   xml_body += t + '\n'
 
           # 3. ROKU - 6000-6499
