@@ -1077,7 +1077,7 @@ jobs:
           )
 
           output = [
-              '#EXTM3U url-tvg="https://plex-ca.donxman.workers.dev/plex-ca.xml"'
+              '#EXTM3U url-tvg="https://motel.deecee.ca/plex-ca.xml"'
           ]
 
           chno = 6500
@@ -1245,7 +1245,7 @@ jobs:
         run: |
           set -e
 
-          git add plex-ca.m3u plex-ca.xml plexluma.xml
+          git add plex-ca.m3u plex-ca.xml
 
           echo "=== STAGED FILES ==="
           git status --short
