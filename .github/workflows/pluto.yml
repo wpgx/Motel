@@ -21,36 +21,60 @@ jobs:
           git checkout main
           npm install
 
-      - name: Run scraper CA + US
+      - name: Run scraper CA + US and combine into one file
         run: |
           echo '{"outdir":".","mapping":{"ca":"207.161.77.221","us":"8.8.8.8"}}' > ./config.json
           node /tmp/scraper/index.js --exclude-groups "^Local News$"
-          
-          # CA - your original
-          cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
-          cp ./plutotv_ca.xml ./pluto.xml
-          rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
+
+          echo "=== BEFORE COMBINE ==="
+          echo "CA: $(grep -c "#EXTINF" ./plutotv_ca.m3u8) channels"
+          echo "US: $(grep -c "#EXTINF" ./plutotv_us.m3u8) channels"
+
+          # --- Combine M3U8 into ONE pluto.m3u8 ---
           echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto.xml"' > ./pluto.m3u8
-          grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./pluto.m3u8
-          rm -f ./plutotv_ca.tmp
+          grep -v "^#EXTM3U" ./plutotv_ca.m3u8 >> ./pluto.m3u8
+          grep -v "^#EXTM3U" ./plutotv_us.m3u8 >> ./pluto.m3u8
 
-          # US - added same way
-          cp ./plutotv_us.m3u8 ./plutotv_us.tmp
-          cp ./plutotv_us.xml ./pluto_us.xml
-          rm -f ./plutotv_us.m3u8 ./plutotv_us.xml
-          echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto_us.xml"' > ./pluto_us.m3u8
-          grep -v "^#EXTM3U" ./plutotv_us.tmp >> ./pluto_us.m3u8
-          rm -f ./plutotv_us.tmp
+          # --- Combine XML into ONE pluto.xml ---
+          python3 << 'PY'
+          import re
+          def extract(f):
+              txt=open(f,encoding='utf-8',errors='ignore').read()
+              channels=re.findall(r'<channel.*?</channel>',txt,re.DOTALL)
+              programmes=re.findall(r'<programme.*?</programme>',txt,re.DOTALL)
+              return channels,programmes
 
-          echo "=== FILES CREATED ==="
-          ls -lh ./pluto.m3u8 ./pluto.xml ./pluto_us.m3u8 ./pluto_us.xml
-          echo "CA: $(grep -c "#EXTINF" ./pluto.m3u8) channels"
-          echo "US: $(grep -c "#EXTINF" ./pluto_us.m3u8) channels"
+          ca_c, ca_p = extract('./plutotv_ca.xml')
+          us_c, us_p = extract('./plutotv_us.xml')
+
+          # dedupe channels by id
+          seen=set()
+          all_c=[]
+          for c in ca_c+us_c:
+              m=re.search(r'id="([^"]+)"',c)
+              if m and m.group(1) not in seen:
+                  seen.add(m.group(1))
+                  all_c.append(c)
+
+          with open('./pluto.xml','w',encoding='utf-8') as out:
+              out.write('<?xml version="1.0" encoding="UTF-8"?>\n<tv>\n')
+              out.write("\n".join(all_c)+"\n")
+              out.write("\n".join(ca_p+us_p)+"\n")
+              out.write("</tv>\n")
+
+          print(f"Combined XML: {len(all_c)} channels, {len(ca_p+us_p)} programmes")
+          PY
+
+          echo "=== AFTER COMBINE ==="
+          echo "Combined: $(grep -c "#EXTINF" ./pluto.m3u8) channels"
+          ls -lh ./pluto.m3u8 ./pluto.xml
+
+          rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml ./plutotv_us.m3u8 ./plutotv_us.xml
 
       - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
-          git add ./pluto.m3u8 ./pluto.xml ./pluto_us.m3u8 ./pluto_us.xml
-          git rm -f ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./plutotv_us.m3u8 ./plutotv_us.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml .nojekyll 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Update pluto CA+US $(date -u)" && git push)
+          git add ./pluto.m3u8 ./pluto.xml
+          git rm -f ./pluto_us.m3u8 ./pluto_us.xml ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./plutotv_us.m3u8 ./plutotv_us.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml .nojekyll 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Update pluto CA+US combined $(date -u)" && git push)
