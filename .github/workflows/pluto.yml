@@ -1,10 +1,9 @@
-name: Update Pluto CA
+name: Update Pluto CA + US
 
 on:
- # schedule:
- #  - cron: '0 2,5,8,11,14,17,20,23 * * *'
+  #schedule:
+    #- cron: '0 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
-
 
 jobs:
   update:
@@ -22,26 +21,45 @@ jobs:
         run: |
           git clone https://github.com/4v3ngR/pluto_tv_scraper.git /tmp/scraper
           cd /tmp/scraper
-          git checkout main
           npm install
 
-      - name: Run scraper
+      - name: Run scraper CA + US
         run: |
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221"}}' > ./config.json
-          node /tmp/scraper/index.js --config ./config.json --exclude-groups "^Local News$"
-          cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
-          cp ./plutotv_ca.xml ./pluto.xml
-          rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml
+          # config with both CA and US mappings
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221","us":"0.0.0.0"}}' > ./config.json
           
+          # CA
+          node /tmp/scraper/index.js --config ./config.json --countries ca --exclude-groups "^Local News$"
+          cp ./plutotv_ca.m3u8 ./plutotv_ca.tmp
+          cp ./plutotv_ca.xml ./pluto_ca.xml
+          
+          # US
+          node /tmp/scraper/index.js --config ./config.json --countries us --exclude-groups "^Local News$"
+          cp ./plutotv_us.m3u8 ./plutotv_us.tmp
+          cp ./plutotv_us.xml ./pluto_us.xml
+          
+          # Clean temp raw files
+          rm -f ./plutotv_ca.m3u8 ./plutotv_ca.xml ./plutotv_us.m3u8 ./plutotv_us.xml
+          
+          # Build CA final (your existing pluto.m3u8)
           echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto.xml"' > ./pluto.m3u8
           grep -v "^#EXTM3U" ./plutotv_ca.tmp >> ./pluto.m3u8
-          rm -f ./plutotv_ca.tmp
+          cp ./pluto_ca.xml ./pluto.xml
+          
+          # Build US final (for your pluto_us.xml)
+          echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto_us.xml"' > ./pluto_us.m3u8
+          grep -v "^#EXTM3U" ./plutotv_us.tmp >> ./pluto_us.m3u8
+          
+          rm -f ./plutotv_ca.tmp ./plutotv_us.tmp
+          
+          ls -lh ./pluto.m3u8 ./pluto.xml ./pluto_us.m3u8 ./pluto_us.xml
           head -5 ./pluto.m3u8
+          head -5 ./pluto_us.m3u8
 
       - name: Commit
         run: |
           git config user.name "pluto-bot"
           git config user.email "bot@github.com"
-          git add ./pluto.m3u8 ./pluto.xml
-          git rm -f ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml .nojekyll 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "Update pluto $(date -u) - no welcome" && git push)
+          git add ./pluto.m3u8 ./pluto.xml ./pluto_us.m3u8 ./pluto_us.xml
+          git rm -f ./dctv.m3u8 ./dctv.xml ./plutotv_ca.m3u8 ./plutotv_ca.xml ./plutotv_us.m3u8 ./plutotv_us.xml ./pluto/plutotv_ca.m3u8 ./pluto/plutotv_ca.xml .nojekyll 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "Update pluto CA+US $(date -u)" && git push)
