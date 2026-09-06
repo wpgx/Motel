@@ -23,7 +23,7 @@ jobs:
 
       - name: Run scraper CA + US
         run: |
-          echo '{"outdir":".","mapping":{"ca":"207.161.77.221","us":"0.0.0.0"}}' > ./config.json
+          echo '{"outdir":".","mapping":{"ca":"207.161.77.221","us":"8.8.8.8"}}' > ./config.json
           node /tmp/scraper/index.js --exclude-groups "^Local News$"
           
           # CA - your original
@@ -41,6 +41,11 @@ jobs:
           echo '#EXTM3U url-tvg="https://motel.deecee.ca/pluto_us.xml"' > ./pluto_us.m3u8
           grep -v "^#EXTM3U" ./plutotv_us.tmp >> ./pluto_us.m3u8
           rm -f ./plutotv_us.tmp
+
+          echo "=== FILES CREATED ==="
+          ls -lh ./pluto.m3u8 ./pluto.xml ./pluto_us.m3u8 ./pluto_us.xml
+          echo "CA: $(grep -c "#EXTINF" ./pluto.m3u8) channels"
+          echo "US: $(grep -c "#EXTINF" ./pluto_us.m3u8) channels"
 
       - name: Commit
         run: |
