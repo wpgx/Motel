@@ -61,7 +61,7 @@ jobs:
 
               with urllib.request.urlopen(
                   req,
-                  timeout=60
+                  timeout=120
               ) as response:
                   return json.loads(
                       response.read().decode("utf-8")
