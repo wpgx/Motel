@@ -25,7 +25,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Samsung run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "Samsung failed - retrying..."
+            gh workflow run samsung-render-pull.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "Samsung retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "Samsung failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run Pluto
         env:
@@ -35,7 +44,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=pluto.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Pluto run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "Pluto failed - retrying..."
+            gh workflow run pluto.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=pluto.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "Pluto retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "Pluto failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run Tubi
         env:
@@ -45,7 +63,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Tubi run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "Tubi failed - retrying..."
+            gh workflow run tubiroku-sync.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "Tubi retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "Tubi failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run LG
         env:
@@ -55,7 +82,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=lg_channels.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "LG run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "LG failed - retrying..."
+            gh workflow run lg_channels.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=lg_channels.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "LG retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "LG failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run Plex
         env:
@@ -65,7 +101,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Plex run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "Plex failed - retrying..."
+            gh workflow run update-plex.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "Plex retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "Plex failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run DCFULL
         env:
@@ -75,7 +120,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow="Build DCfull.yml" --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "DCFULL run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "DCFULL failed - retrying..."
+            gh workflow run "Build DCfull.yml" --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow="Build DCfull.yml" --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "DCFULL retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "DCFULL failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run DCMASTER
         env:
@@ -85,7 +139,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=dcmaster.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "DCMASTER run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "DCMASTER failed - retrying..."
+            gh workflow run dcmaster.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=dcmaster.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "DCMASTER retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "DCMASTER failed twice - continuing chain."
+            fi
+          fi
 
       - name: Run DCCatalog
         env:
@@ -95,7 +158,16 @@ jobs:
           sleep 5
           RUN_ID=$(gh run list --workflow=DCcatalog.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "DCCatalog run: $RUN_ID"
-          gh run watch "$RUN_ID" --exit-status
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "DCCatalog failed - retrying..."
+            gh workflow run DCcatalog.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=DCcatalog.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "DCCatalog retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "DCCatalog failed twice - continuing chain."
+            fi
+          fi
 
       - name: Chain complete
         run: |
