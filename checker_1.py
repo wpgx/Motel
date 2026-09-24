@@ -1,14 +1,17 @@
 import re
 from pathlib import Path
 from datetime import datetime, timedelta
+import xml.etree.ElementTree as ET
 
 FINAL = Path("final_60.m3u")
 FINAL_M3U8 = Path("final_60.m3u8")
 FINAL_XML = Path("final_60.xml")
+DC_M3U = Path("DCcatalog.m3u")
+DC_XML = Path("DCcatalog.xml") # REAL GUIDE
 
-# YOUR REAL ADDRESSES - fixed
 BASE = "https://motel.deecee.ca"
-WELCOME_URL = f"{BASE}/welcome/media.m3u"
+# Welcome MUST be GitHub raw, not motel domain
+WELCOME_URL = "https://raw.githubusercontent.com/wpgx/Motel/main/welcome/media/media.m3u8"
 WELCOME_LOGO = f"{BASE}/logo.png"
 WELCOME_EXT = f'#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel Welcome" group-title="Motel Info" tvg-logo="{WELCOME_LOGO}", Cairns Motel - Welcome'
 EPG_URLS = f"{BASE}/final_60.xml"
@@ -27,9 +30,7 @@ CAT_MAP = {
     "Stingray Easy Listening":"Music","Stingray Classic Rock":"Music","Stingray Soft Hits":"Music","Stingray Country Greats":"Music",
     "Toon Goggles":"Kids","Moonbug":"Kids","FailArmy":"Entertainment","Stingray Naturescape":"Relax",
 }
-
 SEQ = list(CAT_MAP.keys())
-
 ID_HINTS = {
     "CBC News Nova Scotia":"CA4600007UE","CBC News PEI":"CA4600002Z5","CBC News":"CABC2300009KD","CTV News":"CA1400004AE",
     "The Weather Network":"CABC23000223U","CBS News 24/7":"CA390002621","NBC News NOW":"CAAJ2700011IF","MLB Channel":"CA1400001PI",
@@ -40,11 +41,8 @@ ID_HINTS = {
 }
 
 def clean_and_recategorize(ext, new_category):
-    if ',' not in ext:
-        return ext
-    parts = ext.rsplit(',', 1)
-    head = parts[0]
-    title = parts[1]
+    if ',' not in ext: return ext
+    head, title = ext.rsplit(',', 1)
     title = re.sub(r'^\s*\d+\s*[-\).]\s*', '', title.strip())
     head = re.sub(r'\s*tvg-chno="[^"]*"\s*', ' ', head)
     head = re.sub(r'#EXTINF:[^\s]*', '#EXTINF:-1', head)
@@ -54,13 +52,13 @@ def clean_and_recategorize(ext, new_category):
     head = re.sub(r'\s+', ' ', head).strip()
     return f"{head}, {title.strip()}"
 
-def load_dccatalog():
-    return Path("DCcatalog.m3u").read_text(errors='ignore').splitlines()
+def load_lines():
+    return DC_M3U.read_text(errors='ignore').splitlines()
 
 def get_best(lines, title):
     cands = []
     for i, l in enumerate(lines):
-        if l.startswith('#EXTINF') and l.rsplit(',', 1)[-1].strip().lower() == title.lower():
+        if l.startswith('#EXTINF') and l.rsplit(',',1)[-1].strip().lower() == title.lower():
             url = lines[i+1].strip() if i+1 < len(lines) else ''
             cands.append((l.strip(), url))
     cands.sort(key=lambda x: 10 if "pluto" in x[0].lower() else -5 if "samsung" in x[0].lower() else 0)
@@ -82,18 +80,16 @@ def get_logo(line):
     return m.group(1) if m else ""
 
 def main():
-    lines = load_dccatalog()
-    out = []
-    out.append(f'#EXTM3U url-tvg="{EPG_URLS}"')
-    out.append(WELCOME_EXT)
-    out.append(WELCOME_URL)
+    if not DC_M3U.exists():
+        raise SystemExit("DCcatalog.m3u not found")
+    lines = load_lines()
+    out_m3u = []
+    out_m3u.append(f'#EXTM3U url-tvg="{EPG_URLS}"')
+    out_m3u.append(WELCOME_EXT)
+    out_m3u.append(WELCOME_URL)
 
-    xml_channels = []
-    xml_channels.append(f' <channel id="welcome"><display-name>Cairns Motel - Welcome</display-name><category>Motel Info</category><icon src="{WELCOME_LOGO}" /></channel>')
-    xml_programs = []
-    now = datetime.utcnow()
-    fmt = "%Y%m%d%H%M%S +0000"
-    xml_programs.append(f' <programme start="{now.strftime(fmt)}" stop="{(now+timedelta(hours=24)).strftime(fmt)}" channel="welcome"><title lang="en">Welcome to Cairns Motel</title><desc>Hotel info and local attractions</desc><category>Motel Info</category></programme>')
+    wanted_ids = set(["welcome"])
+    selected = []
 
     for title in SEQ:
         id_hint = ID_HINTS.get(title)
@@ -102,32 +98,58 @@ def main():
             e, u = get_by_id(lines, id_hint)
         if not e:
             e, u = get_best(lines, title)
-        if e and u:
-            skip = False
-            for b in BLACKLIST:
-                if b in (e+u).lower():
-                    skip = True
-                    break
-            if skip:
-                continue
-            cat = CAT_MAP.get(title, "Entertainment")
-            new_ext = clean_and_recategorize(e, cat)
-            out.append(new_ext)
-            out.append(u)
-            tvg_id = get_tvg_id(new_ext)
-            logo = get_logo(new_ext)
-            safe_title = title.replace("&", "and").replace("<","").replace(">","")
-            xml_channels.append(f' <channel id="{tvg_id}"><display-name>{safe_title}</display-name><category>{cat}</category><icon src="{logo}" /></channel>')
-            xml_programs.append(f' <programme start="{now.strftime(fmt)}" stop="{(now+timedelta(hours=24)).strftime(fmt)}" channel="{tvg_id}"><title lang="en">{safe_title}</title><category>{cat}</category></programme>')
+        if not e or not u: continue
+        if any(b in (e+u).lower() for b in BLACKLIST): continue
+        cat = CAT_MAP.get(title, "Entertainment")
+        new_ext = clean_and_recategorize(e, cat)
+        out_m3u.append(new_ext)
+        out_m3u.append(u)
+        tvg_id = get_tvg_id(new_ext)
+        wanted_ids.add(tvg_id)
+        selected.append((tvg_id, new_ext, u, title, cat))
 
-    text = '\n'.join(out) + '\n'
+    text = '\n'.join(out_m3u) + '\n'
     FINAL.write_text(text, encoding='utf-8')
     FINAL_M3U8.write_text(text, encoding='utf-8')
 
-    xml_text = '<?xml version="1.0" encoding="UTF-8"?>\n<tv generator-info-name="Cairns Motel 60 from DCcatalog">\n' + '\n'.join(xml_channels) + '\n' + '\n'.join(xml_programs) + '\n</tv>\n'
-    FINAL_XML.write_text(xml_text, encoding='utf-8')
+    xml_channels_str = []
+    xml_programmes_str = []
+    xml_channels_str.append(f' <channel id="welcome"><display-name>Cairns Motel - Welcome</display-name><category>Motel Info</category><icon src="{WELCOME_LOGO}" /></channel>')
+    now = datetime.utcnow()
+    fmt = "%Y%m%d%H%M%S +0000"
+    start = now.strftime(fmt)
+    stop = (now + timedelta(hours=24)).strftime(fmt)
+    xml_programmes_str.append(f' <programme start="{start}" stop="{stop}" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>')
 
-    print(f"Built {len(out)//2} chans with MOTEL categories - guide has {len(xml_programs)} programmes")
+    if DC_XML.exists() and DC_XML.stat().st_size > 100:
+        tree = ET.parse(DC_XML)
+        root = tree.getroot()
+        for ch in root.findall('channel'):
+            cid = ch.get('id')
+            if cid in wanted_ids:
+                xml_channels_str.append(' ' + ET.tostring(ch, encoding='unicode').strip())
+        for prog in root.findall('programme'):
+            if prog.get('channel') in wanted_ids:
+                xml_programmes_str.append(' ' + ET.tostring(prog, encoding='unicode').strip())
+        for tvg_id, ext, url, title, cat in selected:
+            if not any(f'id="{tvg_id}"' in s for s in xml_channels_str):
+                safe = title.replace("&","and")
+                logo = get_logo(ext)
+                xml_channels_str.append(f' <channel id="{tvg_id}"><display-name>{safe}</display-name><category>{cat}</category><icon src="{logo}" /></channel>')
+        if len([p for p in xml_programmes_str if 'channel="welcome"' not in p]) == 0:
+            for tvg_id, ext, url, title, cat in selected:
+                safe = title.replace("&","and")
+                xml_programmes_str.append(f' <programme start="{start}" stop="{stop}" channel="{tvg_id}"><title lang="en">{safe}</title></programme>')
+    else:
+        for tvg_id, ext, url, title, cat in selected:
+            safe = title.replace("&","and")
+            logo = get_logo(ext)
+            if not any(f'id="{tvg_id}"' in s for s in xml_channels_str):
+                xml_channels_str.append(f' <channel id="{tvg_id}"><display-name>{safe}</display-name><category>{cat}</category><icon src="{logo}" /></channel>')
+            xml_programmes_str.append(f' <programme start="{start}" stop="{stop}" channel="{tvg_id}"><title lang="en">{safe}</title><category>{cat}</category></programme>')
+
+    xml_text = '<?xml version="1.0" encoding="UTF-8"?>\n<tv generator-info-name="Cairns Motel 60 from DCcatalog">\n' + '\n'.join(xml_channels_str) + '\n' + '\n'.join(xml_programmes_str) + '\n</tv>\n'
+    FINAL_XML.write_text(xml_text, encoding='utf-8')
 
 if __name__ == "__main__":
     main()
