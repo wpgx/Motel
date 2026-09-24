@@ -21,7 +21,7 @@ jobs:
         run: |
           git config user.name "auto"
           git config user.email "auto@auto.com"
-          git add -f final_60.m3u final_60.m3u8 final_60.xml DCcatalog_60.m3u DCcatalog_60.m3u8 DCcatalog_60.xml full_ca_us.m3u
+          git add -f final_60.m3u final_60.m3u8 final_60.xml
           git diff --staged --quiet && exit 0
           git commit -m "auto update final_60 60ch from DCcatalog + guide - 3h @ :30"
           git push
