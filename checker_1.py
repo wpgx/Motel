@@ -9,13 +9,12 @@ DC_60_M3U8 = Path("DCcatalog_60.m3u8")
 DC_60_XML = Path("DCcatalog_60.xml")
 FULL_CA_US = Path("full_ca_us.m3u")
 
-DC_CATALOG = Path("DCcatalog.m3u") # your verified scraped file - ONLY source
+DC_CATALOG = Path("DCcatalog.m3u")
 WELCOME_URL = 'https://motel.deecee.ca/welcome/media/media.m3u8'
 WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" group-title="Motel Info" tvg-logo="https://motel.deecee.ca/logo.png", Cairns Motel - Welcome'
 EPG_URLS = "https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml"
 BLACKLIST = ["99991399", "magnolia", "adult", "xxx", "porn", "xman", "x-man"]
 
-# 59 + Welcome = 60 - all from DCcatalog
 SEQ = [
     ("CBC News Nova Scotia","CA4600007UE"),("CBC News PEI","CA4600002Z5"),("CBC News","CABC2300009KD"),
     ("CTV News","CA1400004AE"),("Global News National",None),("The Weather Network","CABC23000223U"),
@@ -37,7 +36,8 @@ SEQ = [
 ]
 
 def clean(e):
-    if ',' not in e: return e
+    if ',' not in e:
+        return e
     h,t=e.rsplit(',',1)
     t=re.sub(r'^\s*\d+\s*[-\)\.]\s*','',t.strip())
     h=re.sub(r'\s*tvg-chno="[^"]*"\s*',' ',h)
@@ -61,25 +61,29 @@ def get_by_id(lines, id_sub):
             return l.strip(), lines[i+1].strip()
     return None,None
 
+def get_tvg_id(line):
+    m=re.search(r'tvg-id="([^"]*)"', line)
+    return m.group(1) if m else "unknown"
+
+def get_display_name(line):
+    return line.rsplit(",",1)[-1].strip() if "," in line else "Unknown"
+
 def main():
     lines=load_dccatalog()
     out=[f'#EXTM3U url-tvg="{EPG_URLS}"', WELCOME_EXT, WELCOME_URL]
     for title, id_hint in SEQ:
         e,u=get_by_id(lines,id_hint) if id_hint else (None,None)
-        if not e: e,u=get_best(lines,title)
+        if not e:
+            e,u=get_best(lines,title)
         if e and u:
-            if any(b in (e+u).lower() for b in BLACKLIST): continue
-            out.append(clean(e)); out.append(u)
+            if any(b in (e+u).lower() for b in BLACKLIST):
+                continue
+            out.append(clean(e))
+            out.append(u)
 
     text='\n'.join(out)+'\n'
     for p in [FINAL, FINAL_M3U8, DC_60_M3U, DC_60_M3U8]:
         p.write_text(text, encoding='utf-8')
 
-    xml=[f' <channel id="{re.search(r"tvg-id=\\"([^\\"]*)\\"",l).group(1)}"><display-name>{l.rsplit(",",1)[-1].strip()}</display-name></channel>' for l in out if l.startswith('#EXTINF') and 'tvg-id' in l]
-    xml_text='<?xml version="1.0"?>\n<tv>\n'+'\n'.join(xml)+'\n</tv>\n'
-    for p in [FINAL_XML, DC_60_XML]:
-        p.write_text(xml_text, encoding='utf-8')
-    print(f"Built {len(out)//2} chans from DCcatalog ONLY - verified working")
-
-if __name__=="__main__":
-    main()
+    xml_lines=[]
+    for l in out:
