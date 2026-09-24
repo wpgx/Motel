@@ -9,7 +9,6 @@ DC_60_M3U = Path("DCcatalog_60.m3u")
 
 WELCOME_URL = 'https://motel.deecee.ca/welcome/media/media.m3u8'
 WELCOME_EXT = '#EXTINF:-1 tvg-id="welcome" tvg-name="Cairns Motel Welcome" group-title="Motel Info" tvg-logo="https://motel.deecee.ca/logo.png", Cairns Motel - Welcome'
-# Guide: your own final_60.xml FIRST, then iptv-org as fallback
 EPG_URLS = "https://motel.deecee.ca/final_60.xml,https://iptv-org.github.io/epg/guides/ca.xml,https://iptv-org.github.io/epg/guides/us.xml"
 BLACKLIST = ["99991399", "magnolia", "adult", "xxx", "porn", "xman", "x-man"]
 
@@ -49,10 +48,10 @@ def clean_and_recategorize(ext, new_category):
     return f"{head}, {title.strip()}"
 
 def load_dccatalog():
-    for p in [Path("DCcatalog.m3u"), Path("dccatalog.txt"), Path("/mnt/data/DCcatalog.m3u")]:
+    for p in [Path("DCcatalog.m3u"), Path("dccatalog.txt")]:
         if p.exists():
             return p.read_text(errors='ignore').splitlines()
-    raise FileNotFoundError("DCcatalog.m3u not found - put your verified file in repo root")
+    raise FileNotFoundError("DCcatalog.m3u not found")
 
 def get_best(lines, title):
     cands = []
@@ -82,7 +81,6 @@ def main():
     xml_channels = [' <channel id="welcome"><display-name>Cairns Motel - Welcome</display-name><category>Motel Info</category><icon src="https://motel.deecee.ca/logo.png" /></channel>']
     xml_programs = []
     now = datetime.utcnow()
-    # 24h guide for welcome
     fmt = "%Y%m%d%H%M%S +0000"
     xml_programs.append(f' <programme start="{now.strftime(fmt)}" stop="{(now+timedelta(hours=24)).strftime(fmt)}" channel="welcome"><title lang="en">Welcome to Cairns Motel</title><desc>Hotel info and local attractions</desc><category>Motel Info</category></programme>')
 
@@ -102,7 +100,6 @@ def main():
             logo = get_logo(new_ext)
             safe = title.replace("&", "and").replace("<","").replace(">","")
             xml_channels.append(f' <channel id="{tvg_id}"><display-name>{safe}</display-name><category>{cat}</category><icon src="{logo}" /></channel>')
-            # 24h placeholder guide so EPG shows
             xml_programs.append(f' <programme start="{now.strftime(fmt)}" stop="{(now+timedelta(hours=24)).strftime(fmt)}" channel="{tvg_id}"><title lang="en">{safe}</title><category>{cat}</category></programme>')
 
     text = '\n'.join(out) + '\n'
@@ -112,7 +109,7 @@ def main():
     xml_text = '<?xml version="1.0" encoding="UTF-8"?>\n<tv generator-info-name="Cairns Motel 60 from DCcatalog">\n' + '\n'.join(xml_channels) + '\n' + '\n'.join(xml_programs) + '\n</tv>\n'
     FINAL_XML.write_text(xml_text, encoding='utf-8')
     Path("DCcatalog_60.xml").write_text(xml_text, encoding='utf-8')
-    print(f"Built {len(out)//2} chans - Welcome is line 2, guide has {len(xml_programs)} programmes")
+    print(f"Built {len(out)//2} chans - Welcome line 2, guide has {len(xml_programs)} programmes")
 
 if __name__ == "__main__":
     main()
