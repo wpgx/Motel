@@ -1,17 +1,23 @@
 name: motel-check
 on:
+  workflow_dispatch:
   schedule:
     - cron: '30 */3 * * *'
-  workflow_dispatch:
+
+concurrency:
+  group: motel-check
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -22,6 +28,6 @@ jobs:
           git config user.name "auto"
           git config user.email "auto@auto.com"
           git add -f final_60.m3u final_60.m3u8 final_60.xml
-          git diff --staged --quiet && exit 0
-          git commit -m "auto update final_60 60ch from DCcatalog + guide - 3h @ :30"
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "auto update final_60"
           git push
