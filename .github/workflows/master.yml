@@ -169,9 +169,28 @@ jobs:
             fi
           fi
 
+      - name: Run Motel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run motel-check.yml --ref main
+          sleep 5
+          RUN_ID=$(gh run list --workflow=motel-check.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Motel run: $RUN_ID"
+          if ! gh run watch "$RUN_ID" --exit-status; then
+            echo "Motel failed - retrying..."
+            gh workflow run motel-check.yml --ref main
+            sleep 5
+            RUN_ID=$(gh run list --workflow=motel-check.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            echo "Motel retry run: $RUN_ID"
+            if ! gh run watch "$RUN_ID" --exit-status; then
+              echo "Motel failed twice - continuing chain."
+            fi
+          fi
+
       - name: Chain complete
         run: |
           echo "=========================================="
           echo "MASTER IPTV BUILD COMPLETE"
-          echo "Samsung -> Pluto -> Tubi -> LG -> Plex -> DCFULL -> DCMASTER -> DCCatalog"
+          echo "Samsung -> Pluto -> Tubi -> LG -> Plex -> DCFULL -> DCMASTER -> DCCatalog -> Motel"
           echo "=========================================="
