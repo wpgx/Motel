@@ -1,8 +1,8 @@
 name: motel-check
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 */3 * * *'
+ # schedule:
+   # - cron: '30 */3 * * *'
 
 concurrency:
   group: motel-check
