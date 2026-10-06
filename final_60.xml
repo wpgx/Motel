@@ -9,10 +9,6 @@
     <display-name>American Gladiators by MGM</display-name>
     <icon src="https://provider-static.plex.tv/epg/cms/production/18f1bacd-6b37-4f59-acbf-f2ec32680589/AmericanGladiators_logo_dark_-_Carl_HoffelderRDX.png" />
   </channel>
- <channel id="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801">
-    <display-name>Dick Van Dyke</display-name>
-    <icon src="https://provider-static.plex.tv/epg/cms/production/03fe73df-6585-49b7-bdd5-5ea605c4086f/FilmRise_DickVanDykeShow_Logo_Color.png" />
-  </channel>
  <channel id="6a1610bebdf296985fd95603-60d4edd6b2fdec002c141125">
     <display-name>The Carol Burnett Show</display-name>
     <icon src="https://provider-static.plex.tv/epg/images/ott_channels/logos/carolburnett_logo_dark.png" />
@@ -32,6 +28,10 @@
  <channel id="6a1610bebdf296985fd95603-5f170d60b898490041b49359">
     <display-name>Toon Goggles</display-name>
     <icon src="https://provider-static.plex.tv/epg/cms/production/1a85f23b-2648-4636-af3d-1d69b3721200/toongoggles_logo_light_1500x1000.png" />
+  </channel>
+ <channel id="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801">
+    <display-name>Dick Van Dyke</display-name>
+    <icon src="https://provider-static.plex.tv/epg/cms/production/03fe73df-6585-49b7-bdd5-5ea605c4086f/FilmRise_DickVanDykeShow_Logo_Color.png" />
   </channel>
  <channel id="dc-6874ad743ffa5e0c917f6e20">
         <display-name>The Outer Limits</display-name>
@@ -192,7 +192,7 @@
  <channel id="dc-684170"><display-name>Grit Xtra</display-name><icon src="https://canvas-lb.tubitv.com/opts/aBwIuhHsOE8fLQ==/9ba330f3-9b7c-436d-9eb3-ca24daeaa59a/CHgQeDoFMS4xLjlAAQ==" /></channel>
  <channel id="dc-692090"><display-name>FilmRise Horror</display-name><icon src="https://canvas-lb.tubitv.com/opts/-0YnftAlhsdv5Q==/534a2575-8a54-472d-ac96-d71cbd6cb0cf/CHgQeDoFMS4xLjlAAQ==" /></channel>
  <channel id="dc-715950"><display-name>At the Movies</display-name><icon src="https://canvas-lb.tubitv.com/opts/xAQ95D6WQgEvXg==/fa937ce5-3630-46c4-bdd6-e48132ffdd50/CHgQeDoFMS4xLjlAAQ==" /></channel>
- <programme start="20261006021514 +0000" stop="20261007021514 +0000" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>
+ <programme start="20261006041442 +0000" stop="20261007041442 +0000" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>
  <programme channel="6a1610bebdf296985fd95603-65622ac05dbccec83a87b641" start="20261005232719 +0000" stop="20261006000041 +0000">
     <title lang="en">Red Dwarf</title>
     <sub-title lang="en">Beyond a Joke</sub-title>
@@ -624,288 +624,6 @@
     <sub-title lang="en">Round Two Preliminaries 3</sub-title>
     <desc lang="en">Round two preliminaries with contenders: Duke vs. Suzuki and Duke vs. Hill-Hudgins.</desc>
     <episode-num system="plex">plex://episode/6876f9c24555054b68b3c7a9</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261005233449 +0000" stop="20261006000617 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">My Husband Is the Best One</sub-title>
-    <desc lang="en">Rob finds himself in trouble when Laura interferes with an interview he is giving on Alan Brady.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d22df347001e42abda</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006000617 +0000" stop="20261006003826 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Lady and the Tiger and the Lawyer</sub-title>
-    <desc lang="en">When a handsome bachelor moves in next door, Rob and Laura become matchmakers.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d27b5c2e001e6d70b5</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006003826 +0000" stop="20261006010728 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">A Nice, Friendly Game of Cards</sub-title>
-    <desc lang="en">A social game of poker turns sour when it's discovered Rob has been playing with a marked deck.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82ae0b</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006010728 +0000" stop="20261006013854 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Happy Birthday and Too Many More</sub-title>
-    <desc lang="en">Laura and Rob give Ritchie a birthday party and 63 screaming moppets make a shambles of their house.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d091c</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006013854 +0000" stop="20261006020853 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Brave and the Backache</sub-title>
-    <desc lang="en">Rob consults a psychiatrist to determine whether a series of mysterious ailments is psychosomatic.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d0934</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006020853 +0000" stop="20261006024046 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Pen Is Mightier Than the Mouth</sub-title>
-    <desc lang="en">Rob and Buddy find themselves overworked when Sally becomes a television personality overnight.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d092c</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006024046 +0000" stop="20261006031302 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">My Part-Time Wife</sub-title>
-    <desc lang="en">When Laura fills in for Sally at the office, her performance exceeds everyone's expectations.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d0928</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006031302 +0000" stop="20261006034301 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">How to Spank a Star</sub-title>
-    <desc lang="en">At the insistence of an overbearing guest star, Rob takes over as producer of The Alan Brady Show.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d0924</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006034301 +0000" stop="20261006041508 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Plots Thicken</sub-title>
-    <desc lang="en">Rob and Laura's parents compete to get the couple committed to their respective cemetery plots.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d0930</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006041508 +0000" stop="20261006044715 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Plots Thicken</sub-title>
-    <desc lang="en">Rob and Laura's parents compete to get the couple committed to their respective cemetery plots.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d0930</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006044715 +0000" stop="20261006051913 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Scratch My Car and Die</sub-title>
-    <desc lang="en">A scratch on Rob's new car causes a domestic crisis at the Petrie house.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82ade7</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006051913 +0000" stop="20261006055124 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">October Eve</sub-title>
-    <desc lang="en">A painting of Laura resurfaces -- but this time she is not wearing any clothes.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82adef</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006055124 +0000" stop="20261006062328 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Dear Mrs. Petrie, Your Husband Is In Jail</sub-title>
-    <desc lang="en">Rob goes to see an old Army buddy's nightclub act and winds up spending the night in jail.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d23c3f87001f3d0920</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006062328 +0000" stop="20261006065507 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">My Neighbor's Husband's Other Life</sub-title>
-    <desc lang="en">Rob and Laura suspect their neighbor Jerry is having an affair.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82ae03</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006065507 +0000" stop="20261006072631 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">I'd Rather Be Bald Than Have No Head at All</sub-title>
-    <desc lang="en">Fearing he may be going bald, Rob tries a barber's secret recipe.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82adfb</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006072631 +0000" stop="20261006075628 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">My Mother Can Beat Up My Father</sub-title>
-    <desc lang="en">Laura proves herself more proficient than Rob in the art of self-defense.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e44</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006075628 +0000" stop="20261006082756 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Ghost of A. Chantz</sub-title>
-    <desc lang="en">Rob, Laura, Sally and Buddy spend a frightening night in a haunted cabin at a mountain resort.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2170e24001f2d4dc5</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006082756 +0000" stop="20261006085938 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Lady and the Baby Sitter</sub-title>
-    <desc lang="en">Rob and Laura are unaware that their teenage babysitter has a crush on Laura.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2170e24001f2d4db5</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006085938 +0000" stop="20261006093142 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">A Vigilante Ripped My Sports Coat</sub-title>
-    <desc lang="en">Rob's friendship with Jerry is almost destroyed in a feud over a neighbor's crabgrass.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e5c</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006093142 +0000" stop="20261006100351 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Man from 'Emperor'</sub-title>
-    <desc lang="en">Rob is offered a job as humor consultant at a magazine for man-about-town.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e50</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006100351 +0000" stop="20261006103541 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">4 1/2</sub-title>
-    <desc lang="en">Rob and Laura are on their way to visit the doctor when they are trapped in a stalled elevator.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e40</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006103541 +0000" stop="20261006110751 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Alan Brady Show Goes To Jail</sub-title>
-    <desc lang="en">The "Alan Brady" writers entertain at a prison and Rob gets locked up with the inmates.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e60</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006110751 +0000" stop="20261006114003 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Three Letters from One Wife</sub-title>
-    <desc lang="en">Rob puts his job at risk when he convinces Alan Brady to host a cultural documentary program.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e4c</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006114003 +0000" stop="20261006121206 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Pink Pills and Purple Parents</sub-title>
-    <desc lang="en">Laura takes two of Millie's prescription pills and suffers disastrous side effects.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e64</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006121206 +0000" stop="20261006124422 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Death of the Party</sub-title>
-    <desc lang="en">Rob struggles to hide his flu symptoms at a family party rather.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c46</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006124422 +0000" stop="20261006131600 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">My Two Showoffs and Me</sub-title>
-    <desc lang="en">Rob, Sally and Buddy go on big ego trips when a national magazine wants to do a story about them.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c5e</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006131600 +0000" stop="20261006134759 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Stretch Petrie vs. Kid Schenk</sub-title>
-    <desc lang="en">Rob is once again forced to thwart another scheme of his old but manipulative friend, Neil Schenk.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c4a</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006134759 +0000" stop="20261006142006 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Brother, Can You Spare $2500?</sub-title>
-    <desc lang="en">Rob receives a ransom demand of $2,500 for his lost television script.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d208fddd001f324e48</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006142006 +0000" stop="20261006145149 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Stacey Petrie: Part I</sub-title>
-    <desc lang="en">Rob's younger brother involves Sally Rogers in a romantic Waterloo.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c5a</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006145149 +0000" stop="20261006152322 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Stacey Petrie: Part II</sub-title>
-    <desc lang="en">Stacey Petrie tries to save his new business from closing and his romance from ending.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c6a</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006152322 +0000" stop="20261006155510 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Boy #1, Boy #2</sub-title>
-    <desc lang="en">Millie and Laura become two terrible stage-mothers when Rob agrees to hire Ritchie for a commercial.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c66</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006155510 +0000" stop="20261006162658 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Redcoats Are Coming</sub-title>
-    <desc lang="en">Rob agrees to have a popular British singing duo spend the night at his home.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c56</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006162658 +0000" stop="20261006165900 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Young Man with a Shoehorn</sub-title>
-    <desc lang="en">Buddy and Rob run a shoe store they've invested in after chasing off its only full-time salesman.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d24eefaa001f653c52</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006165900 +0000" stop="20261006172802 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Girls Will Be Boys</sub-title>
-    <desc lang="en">Rob and Laura are in a quandary over how Ritchie can protect himself from a girl.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1debef</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006172802 +0000" stop="20261006180010 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Bupkis</sub-title>
-    <desc lang="en">Rob learns that a song he helped write is about to become a hit.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1debeb</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006180010 +0000" stop="20261006183017 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Your Home Sweet Home Is My Home</sub-title>
-    <desc lang="en">Rob recalls the time he and Jerry tried to buy the same house.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2e264b7001fcba6a4</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006183017 +0000" stop="20261006190223 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Anthony Stone</sub-title>
-    <desc lang="en">Sally's new boyfriend is secretive about what he does for a living.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1debf3</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006190223 +0000" stop="20261006193347 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Show of Hands</sub-title>
-    <desc lang="en">Rob and Laura have no choice but to wear gloves to an important community banquet.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1dec03</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006193347 +0000" stop="20261006200542 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Baby Fat</sub-title>
-    <desc lang="en">Alan needs Rob's help improving a script for his Broadway debut.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2e98e47001eb948cc</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006200542 +0000" stop="20261006203749 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">One Hundred Terrible Hours</sub-title>
-    <desc lang="en">Rob recalls his first meeting with Alan Brady during a stay-awake marathon for his disc-jockey job.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1dec07</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006203749 +0000" stop="20261006210749 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Br-rooom, Br-rooom</sub-title>
-    <desc lang="en">Rob buys a motorcycle and is arrested as a joyriding delinquent.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1debf7</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006210749 +0000" stop="20261006213939 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">There's No Sale Like Wholesale</sub-title>
-    <desc lang="en">Buddy offers to help Laura get a fur coat for the wholesale price.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2cb3ffa001f1debff</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006213939 +0000" stop="20261006221153 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">A Farewell to Writing</sub-title>
-    <desc lang="en">Rob sets out to write a book during his vacation but has trouble getting started.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82adeb</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006221153 +0000" stop="20261006224303 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">Uhny Uftz</sub-title>
-    <desc lang="en">Rob sees a flying saucer but nobody believes him.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82adf3</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006224303 +0000" stop="20261006231457 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Ugliest Dog in the World</sub-title>
-    <desc lang="en">Rob and Laura try to find a permanent home for an ugly dog from the pound.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d27b5c2e001e6d70b9</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006231457 +0000" stop="20261006234703 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">No Rice at My Wedding</sub-title>
-    <desc lang="en">Rob and Laura recall their courtship days, when Rob almost lost Laura to another man.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d27b5c2e001e6d70c1</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801" start="20261006234703 +0000" stop="20261007001846 +0000">
-    <title lang="en">The Dick Van Dyke Show</title>
-    <sub-title lang="en">The Great Petrie Fortune</sub-title>
-    <desc lang="en">Rob's dreams of inheriting a fortune seem dashed when he gets an old desk.</desc>
-    <episode-num system="plex">plex://episode/5d9c13d27b5c2e001e6d70d9</episode-num>
   </programme>
  <programme channel="6a1610bebdf296985fd95603-60d4edd6b2fdec002c141125" start="20261005234144 +0000" stop="20261006000820 +0000">
     <title lang="en">The Carol Burnett Show</title>
@@ -2023,21 +1741,6 @@
     <desc lang="en">Join the friendly vehicles of Tiny Town as they play games, go on adventures and solve problems together.</desc>
     <episode-num system="plex">plex://movie/6abe53838ad32b16adc3df11</episode-num>
   </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006000500 +0000" stop="20261006010100 +0000">
-        <title>The Outer Limits</title>
-        <desc>A mysterious stranger arrives in a small town bearing weapons that turn people into killing machines.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006010100 +0000" stop="20261006015800 +0000">
-        <title>The Outer Limits</title>
-        <desc>A man finds a device that allows him to change his image; with Adam Goldberg, Christina Cox, Antonio Sabato, Deanna Milligan and Linden Banks.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006015800 +0000" stop="20261006025400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A rescue crew starts going suicidally insane after boarding a derelict interplanetary battleship.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006025400 +0000" stop="20261006035100 +0000">
         <title>The Outer Limits</title>
         <desc>Traveling forward in time, a scientist discovers his wife has been murdered and he is the prime suspect.</desc>
@@ -2053,25 +1756,15 @@
         <desc>A small-town vet probes links between fast-breeding tumors and genetically engineered corn.</desc>
         <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261006010000 +0000" stop="20261006013000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006054400 +0000" stop="20261006064100 +0000">
+        <title>The Outer Limits</title>
+        <desc>A man builds a robot to replace his deceased son; with Joel Grey, Mikela J. Mikael, Cathy Weseluck and Hiro Kanagawa.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261006013000 +0000" stop="20261006020000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261006020000 +0000" stop="20261006023000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261006023000 +0000" stop="20261006030000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006064100 +0000" stop="20261006073700 +0000">
+        <title>The Outer Limits</title>
+        <desc>Two lovers living in an oppressive future society try to connect even though they've only seen each other as holograms.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006030000 +0000" stop="20261006033000 +0000">
         <title>Global News National</title>
@@ -2098,26 +1791,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006054400 +0000" stop="20261006064100 +0000">
-        <title>The Outer Limits</title>
-        <desc>A man builds a robot to replace his deceased son; with Joel Grey, Mikela J. Mikael, Cathy Weseluck and Hiro Kanagawa.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006064100 +0000" stop="20261006073700 +0000">
-        <title>The Outer Limits</title>
-        <desc>Two lovers living in an oppressive future society try to connect even though they've only seen each other as holograms.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006073700 +0000" stop="20261006083400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A mysterious stranger who claims to have a piece of an alien spaceship causes paranoia and chaos at a UFO convention.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006083400 +0000" stop="20261006093000 +0000">
-        <title>The Outer Limits</title>
-        <desc>After recovering from a near-fatal head injury, a woman realizes her body is being taken over by a second brain the remnants of a Siamese twin that was absorbed into her body.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006053000 +0000" stop="20261006060000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2137,6 +1810,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006073700 +0000" stop="20261006083400 +0000">
+        <title>The Outer Limits</title>
+        <desc>A mysterious stranger who claims to have a piece of an alien spaceship causes paranoia and chaos at a UFO convention.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006083400 +0000" stop="20261006093000 +0000">
+        <title>The Outer Limits</title>
+        <desc>After recovering from a near-fatal head injury, a woman realizes her body is being taken over by a second brain the remnants of a Siamese twin that was absorbed into her body.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006093000 +0000" stop="20261006102700 +0000">
+        <title>The Outer Limits</title>
+        <desc>An intelligent military android makes a bid for freedom, guided from beyond the grave by its pacifist inventor.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006102700 +0000" stop="20261006112300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A mysterious woman visits a presidential candidate on his plane, saying she has come from the future to save his life.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006073000 +0000" stop="20261006080000 +0000">
         <title>Global News National</title>
@@ -2158,26 +1851,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006093000 +0000" stop="20261006102700 +0000">
-        <title>The Outer Limits</title>
-        <desc>An intelligent military android makes a bid for freedom, guided from beyond the grave by its pacifist inventor.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006102700 +0000" stop="20261006112300 +0000">
-        <title>The Outer Limits</title>
-        <desc>A mysterious woman visits a presidential candidate on his plane, saying she has come from the future to save his life.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006112300 +0000" stop="20261006122000 +0000">
-        <title>The Outer Limits</title>
-        <desc>A space salvage crew gets a deadly history lesson from a genocidal militia leader supposedly executed 150 years earlier.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006122000 +0000" stop="20261006131600 +0000">
-        <title>The Outer Limits</title>
-        <desc>Investigating his brother's murder, a man discovers a mind control project operated by a computer; stars D.B. Sweeney, Jessica Steen, Colleen Rennison and Brent Strait.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006093000 +0000" stop="20261006100000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2197,6 +1870,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006112300 +0000" stop="20261006122000 +0000">
+        <title>The Outer Limits</title>
+        <desc>A space salvage crew gets a deadly history lesson from a genocidal militia leader supposedly executed 150 years earlier.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006122000 +0000" stop="20261006131600 +0000">
+        <title>The Outer Limits</title>
+        <desc>Investigating his brother's murder, a man discovers a mind control project operated by a computer; stars D.B. Sweeney, Jessica Steen, Colleen Rennison and Brent Strait.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006131600 +0000" stop="20261006141300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A faith healer bites off more than he can chew when his gifted protégé turns out to be a man-eating alien.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006141300 +0000" stop="20261006150900 +0000">
+        <title>The Outer Limits</title>
+        <desc>A pair of Civil War re-enactors are transported through time to 1863 Gettysburg on the eve of battle.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006113000 +0000" stop="20261006120000 +0000">
         <title>Global News National</title>
@@ -2218,26 +1911,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006131600 +0000" stop="20261006141300 +0000">
-        <title>The Outer Limits</title>
-        <desc>A faith healer bites off more than he can chew when his gifted protégé turns out to be a man-eating alien.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006141300 +0000" stop="20261006150900 +0000">
-        <title>The Outer Limits</title>
-        <desc>A pair of Civil War re-enactors are transported through time to 1863 Gettysburg on the eve of battle.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006150900 +0000" stop="20261006160600 +0000">
-        <title>The Outer Limits</title>
-        <desc>A youth becomes suspicious of his mother's new boarder when three townspeople suddenly disappear; stars Joseph Gordon-Levitt, Gary Chalk, Judd Nelson and Barbara Tyson.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006160600 +0000" stop="20261006170300 +0000">
-        <title>The Outer Limits</title>
-        <desc>A cybercolumnist leads a daring attack against supercomputers that have taken control of society. Stars Frank Whaley, Leslie Hope, John Amos and J.R. Bourne.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006133000 +0000" stop="20261006140000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2257,6 +1930,31 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006150900 +0000" stop="20261006160600 +0000">
+        <title>The Outer Limits</title>
+        <desc>A youth becomes suspicious of his mother's new boarder when three townspeople suddenly disappear; stars Joseph Gordon-Levitt, Gary Chalk, Judd Nelson and Barbara Tyson.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006160600 +0000" stop="20261006170300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A cybercolumnist leads a daring attack against supercomputers that have taken control of society. Stars Frank Whaley, Leslie Hope, John Amos and J.R. Bourne.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006170300 +0000" stop="20261006175900 +0000">
+        <title>The Outer Limits</title>
+        <desc>A pair of old buddies must overcome their haunted past while battling a strange infestation at an Arctic research station.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006175900 +0000" stop="20261006190000 +0000">
+        <title>The Outer Limits</title>
+        <desc>A time traveler accused of violating laws against technology receives a death sentence in a sequel to the episode "A Stitch in Time."</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006190000 +0000" stop="20261006195200 +0000">
+        <title>The Outer Limits</title>
+        <desc>A time traveler accused of violating laws against technology receives a death sentence in a sequel to the episode "A Stitch in Time."</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006153000 +0000" stop="20261006160000 +0000">
         <title>Global News National</title>
@@ -2278,31 +1976,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006170300 +0000" stop="20261006175900 +0000">
-        <title>The Outer Limits</title>
-        <desc>A pair of old buddies must overcome their haunted past while battling a strange infestation at an Arctic research station.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006175900 +0000" stop="20261006190000 +0000">
-        <title>The Outer Limits</title>
-        <desc>A time traveler accused of violating laws against technology receives a death sentence in a sequel to the episode "A Stitch in Time."</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006190000 +0000" stop="20261006195200 +0000">
-        <title>The Outer Limits</title>
-        <desc>A time traveler accused of violating laws against technology receives a death sentence in a sequel to the episode "A Stitch in Time."</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006195200 +0000" stop="20261006204900 +0000">
-        <title>The Outer Limits</title>
-        <desc>A man believes all his family problems will be solved when he purchases a robot to help around the house.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006204900 +0000" stop="20261006214500 +0000">
-        <title>The Outer Limits</title>
-        <desc>A man travels from the future to find and kill the carrier of a plague threatening to annihilate mankind.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006173000 +0000" stop="20261006180000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2322,6 +1995,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006195200 +0000" stop="20261006204900 +0000">
+        <title>The Outer Limits</title>
+        <desc>A man believes all his family problems will be solved when he purchases a robot to help around the house.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006204900 +0000" stop="20261006214500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A man travels from the future to find and kill the carrier of a plague threatening to annihilate mankind.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006214500 +0000" stop="20261006224800 +0000">
+        <title>The Outer Limits</title>
+        <desc>A stressed-out businessman and his girlfriend leave town to join an influential cult.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006224800 +0000" stop="20261006234500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A struggling artist (Heather Donahue) undergoes terrible nightmares after she agrees to become a surrogate mother; with Erich Anderson and G. Patrick Currie.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006193000 +0000" stop="20261006200000 +0000">
         <title>Global News National</title>
@@ -2343,26 +2036,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006214500 +0000" stop="20261006224800 +0000">
-        <title>The Outer Limits</title>
-        <desc>A stressed-out businessman and his girlfriend leave town to join an influential cult.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006224800 +0000" stop="20261006234500 +0000">
-        <title>The Outer Limits</title>
-        <desc>A struggling artist (Heather Donahue) undergoes terrible nightmares after she agrees to become a surrogate mother; with Erich Anderson and G. Patrick Currie.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006234500 +0000" stop="20261007003500 +0000">
-        <title>The Outer Limits</title>
-        <desc>A best-selling author, who is the lone survivor of a space shuttle crash, undergoes a personality metamorphosis.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007003500 +0000" stop="20261007013200 +0000">
-        <title>The Outer Limits</title>
-        <desc>A lonely woman (Rachel Ticotin) seeks to help an android assassin (Laura Harris) find a higher purpose than killing people.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006213000 +0000" stop="20261006220000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2382,6 +2055,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261006234500 +0000" stop="20261007003500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A best-selling author, who is the lone survivor of a space shuttle crash, undergoes a personality metamorphosis.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007003500 +0000" stop="20261007013200 +0000">
+        <title>The Outer Limits</title>
+        <desc>A lonely woman (Rachel Ticotin) seeks to help an android assassin (Laura Harris) find a higher purpose than killing people.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007013200 +0000" stop="20261007022800 +0000">
+        <title>The Outer Limits</title>
+        <desc>A biogeneticist illegally clones his comatose wife.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007022800 +0000" stop="20261007032500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A space station technician lives with aliens to learn the secrets of long-distance space travel.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261006233000 +0000" stop="20261007000000 +0000">
         <title>Global News National</title>
@@ -2403,16 +2096,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007013200 +0000" stop="20261007022800 +0000">
-        <title>The Outer Limits</title>
-        <desc>A biogeneticist illegally clones his comatose wife.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007022800 +0000" stop="20261007050000 +0000">
-        <title>The Outer Limits</title>
-        <desc>no info available</desc>
-        <icon src="https://images.pluto.tv/channels/6874ad743ffa5e0c917f6e20/featuredImage_1756200180819.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261007013000 +0000" stop="20261007020000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2423,20 +2106,40 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261007023000 +0000" stop="20261007050000 +0000">
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261007023000 +0000" stop="20261007030000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261007030000 +0000" stop="20261007033000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007032500 +0000" stop="20261007042100 +0000">
+        <title>The Outer Limits</title>
+        <desc>Unsuspecting patrons of a mysterious store receive strangely empowering objects from the alien shopkeeper. With Jonathon Schaech, Michelle Harrison and Alex Diakun.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261007042100 +0000" stop="20261007070000 +0000">
+        <title>The Outer Limits</title>
+        <desc>no info available</desc>
+        <icon src="https://images.pluto.tv/channels/6874ad743ffa5e0c917f6e20/featuredImage_1756200180819.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261007033000 +0000" stop="20261007040000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261007040000 +0000" stop="20261007043000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261007043000 +0000" stop="20261007070000 +0000">
         <title>Global News National</title>
         <desc>no info available</desc>
         <icon src="https://images.pluto.tv/channels/62cbef9ebb857100072fc187/featuredImage.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
-    </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006004334 +0000" stop="20261006013404 +0000">
-        <title>Good Witch</title>
-        <desc>Hallmark Original Series. Martha organizes a Grease themed movie night in the park.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006013404 +0000" stop="20261006022450 +0000">
-        <title>Good Witch</title>
-        <desc>Hallmark Original Series. Cassie, Stephanie, and Abigail help Martha throw Claire a baby shower.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-628e685ba3811100070551a8" start="20261006022450 +0000" stop="20261006031529 +0000">
         <title>Good Witch</title>
@@ -2458,15 +2161,15 @@
         <desc>Hallmark Original Series. Cassie, Joy and Abigail delve into the images on Joy's vision board.</desc>
         <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261006010000 +0000" stop="20261006020000 +0000">
-        <title>American Pulse</title>
-        <desc>Captivating and intriguing local stories from around the U.S. all in one place.</desc>
-        <icon src="https://images.pluto.tv/series/685d695e34bc8091770f9c64/tile_1785190101335.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006055133 +0000" stop="20261006064119 +0000">
+        <title>Good Witch</title>
+        <desc>Hallmark Original Series. Cassie and Sam disagree about his return to work after his injury.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261006020000 +0000" stop="20261006030000 +0000">
-        <title>CNN Headline Express</title>
-        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
-        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006064119 +0000" stop="20261006073138 +0000">
+        <title>Good Witch</title>
+        <desc>Hallmark Original Series. Strange things start happening to Cassie, Abigail and Joy's abilities.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006030000 +0000" stop="20261006040000 +0000">
         <title>In Case You Missed It</title>
@@ -2483,15 +2186,15 @@
         <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
         <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006055133 +0000" stop="20261006064119 +0000">
-        <title>Good Witch</title>
-        <desc>Hallmark Original Series. Cassie and Sam disagree about his return to work after his injury.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261006060000 +0000" stop="20261006070000 +0000">
+        <title>Headlines from CNN</title>
+        <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
+        <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006064119 +0000" stop="20261006073138 +0000">
-        <title>Good Witch</title>
-        <desc>Hallmark Original Series. Strange things start happening to Cassie, Abigail and Joy's abilities.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8cbb573e6b45cbe0c14/tile_1785189985793.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261006070000 +0000" stop="20261006080000 +0000">
+        <title>Headlines from CNN</title>
+        <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
+        <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-628e685ba3811100070551a8" start="20261006073138 +0000" stop="20261006081940 +0000">
         <title>Good Witch</title>
@@ -2503,15 +2206,10 @@
         <desc>Hallmark Original Movie. Cassie and the town of Middleton are preparing for the annual Harvest Festival.</desc>
         <icon src="https://images.pluto.tv/series/6903c8ddfdf0a6a0a4b3c98d/tile_1761856301836.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261006060000 +0000" stop="20261006070000 +0000">
-        <title>Headlines from CNN</title>
-        <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
-        <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261006070000 +0000" stop="20261006080000 +0000">
-        <title>Headlines from CNN</title>
-        <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
-        <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006100020 +0000" stop="20261006113921 +0000">
+        <title>Good Witch: Curse From a Rose</title>
+        <desc>Hallmark Original Movie. All is fair in love and Halloween.</desc>
+        <icon src="https://images.pluto.tv/series/6a69e6081596cbf54d8a485e/tile_1785325064999.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006080000 +0000" stop="20261006090000 +0000">
         <title>Headlines from CNN</title>
@@ -2523,16 +2221,6 @@
         <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
         <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006100020 +0000" stop="20261006113921 +0000">
-        <title>Good Witch: Curse From a Rose</title>
-        <desc>Hallmark Original Movie. All is fair in love and Halloween.</desc>
-        <icon src="https://images.pluto.tv/series/6a69e6081596cbf54d8a485e/tile_1785325064999.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006113921 +0000" stop="20261006132052 +0000">
-        <title>Good Witch: Secrets of Grey House</title>
-        <desc>Hallmark Original Movie. Cassie Nightingale welcomes a popular author to Grey House.</desc>
-        <icon src="https://images.pluto.tv/series/6a8f68f7fad3326545c7880f/tile_1787784980269.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006100000 +0000" stop="20261006110000 +0000">
         <title>Headlines from CNN</title>
         <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
@@ -2542,6 +2230,16 @@
         <title>CNN Headline Express</title>
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
         <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006113921 +0000" stop="20261006132052 +0000">
+        <title>Good Witch: Secrets of Grey House</title>
+        <desc>Hallmark Original Movie. Cassie Nightingale welcomes a popular author to Grey House.</desc>
+        <icon src="https://images.pluto.tv/series/6a8f68f7fad3326545c7880f/tile_1787784980269.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006132052 +0000" stop="20261006150012 +0000">
+        <title>Good Witch: Spellbound</title>
+        <desc>Hallmark Original Movie. A long-forgotten prophecy is unearthed in the basement of city hall.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8f6043e3df189a03fc0/tile_1761857127489.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006120000 +0000" stop="20261006130000 +0000">
         <title>CNN Headline Express</title>
@@ -2553,10 +2251,15 @@
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
         <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006132052 +0000" stop="20261006150012 +0000">
-        <title>Good Witch: Spellbound</title>
-        <desc>Hallmark Original Movie. A long-forgotten prophecy is unearthed in the basement of city hall.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8f6043e3df189a03fc0/tile_1761857127489.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261006140000 +0000" stop="20261006150000 +0000">
+        <title>In Case You Missed It</title>
+        <desc>Check out the most interesting and unforgettable moments from CNN… in case you missed it!</desc>
+        <icon src="https://images.pluto.tv/series/685d695d9d079f48dbe9bb62/tile_1785190101934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261006150000 +0000" stop="20261006160000 +0000">
+        <title>CNN Headline Express</title>
+        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
+        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-628e685ba3811100070551a8" start="20261006150012 +0000" stop="20261006163910 +0000">
         <title>Good Witch: Tale of Two Hearts</title>
@@ -2568,15 +2271,10 @@
         <desc>Hallmark Original Movie. Cassie Nightingale is helping to plan her stepson's wedding.</desc>
         <icon src="https://images.pluto.tv/series/6903c8edb9a206cb8f7aae5f/tile_1761858029039.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261006140000 +0000" stop="20261006150000 +0000">
-        <title>In Case You Missed It</title>
-        <desc>Check out the most interesting and unforgettable moments from CNN… in case you missed it!</desc>
-        <icon src="https://images.pluto.tv/series/685d695d9d079f48dbe9bb62/tile_1785190101934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261006150000 +0000" stop="20261006160000 +0000">
-        <title>CNN Headline Express</title>
-        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
-        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006182320 +0000" stop="20261006200733 +0000">
+        <title>The Good Witch's Charm</title>
+        <desc>Hallmark Original Movie. Cassie has her hands full juggling her job as mayor and new motherhood.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8fd630fcea3340eeb5a/tile_1761856571283.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006160000 +0000" stop="20261006170000 +0000">
         <title>CNN Headline Express</title>
@@ -2588,16 +2286,6 @@
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
         <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006182320 +0000" stop="20261006200733 +0000">
-        <title>The Good Witch's Charm</title>
-        <desc>Hallmark Original Movie. Cassie has her hands full juggling her job as mayor and new motherhood.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8fd630fcea3340eeb5a/tile_1761856571283.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006200733 +0000" stop="20261006214917 +0000">
-        <title>The Good Witch's Destiny</title>
-        <desc>Hallmark Original Movie. All Cassie wants for her birthday is for her family and friends to be together.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8d75a234f10e0a71ad4/tile_1761856181934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006180000 +0000" stop="20261006190000 +0000">
         <title>American Pulse</title>
         <desc>Captivating and intriguing local stories from around the U.S. all in one place.</desc>
@@ -2607,6 +2295,16 @@
         <title>In Case You Missed It</title>
         <desc>Check out the most interesting and unforgettable moments from CNN… in case you missed it!</desc>
         <icon src="https://images.pluto.tv/series/685d695d9d079f48dbe9bb62/tile_1785190101934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006200733 +0000" stop="20261006214917 +0000">
+        <title>The Good Witch's Destiny</title>
+        <desc>Hallmark Original Movie. All Cassie wants for her birthday is for her family and friends to be together.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8d75a234f10e0a71ad4/tile_1761856181934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006214917 +0000" stop="20261006233430 +0000">
+        <title>The Good Witch's Family</title>
+        <desc>Hallmark Original Movie. Cassie Nightingale and her family receive a visit from a mysterious woman.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8f0156e9ae4a232498c/tile_1761855785745.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006200000 +0000" stop="20261006210000 +0000">
         <title>American Pulse</title>
@@ -2618,16 +2316,6 @@
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
         <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006214917 +0000" stop="20261006233430 +0000">
-        <title>The Good Witch's Family</title>
-        <desc>Hallmark Original Movie. Cassie Nightingale and her family receive a visit from a mysterious woman.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8f0156e9ae4a232498c/tile_1761855785745.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261006233430 +0000" stop="20261007011837 +0000">
-        <title>The Good Witch's Garden</title>
-        <desc>Hallmark Original Movie. Good witch Cassie Nightingale has finally found a home at stately Grey House.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8ce177d2e7dd429f8ca/tile_1761855716069.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261006220000 +0000" stop="20261006230000 +0000">
         <title>CNN Headline Express</title>
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
@@ -2637,6 +2325,16 @@
         <title>CNN Headline Express</title>
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
         <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261006233430 +0000" stop="20261007011837 +0000">
+        <title>The Good Witch's Garden</title>
+        <desc>Hallmark Original Movie. Good witch Cassie Nightingale has finally found a home at stately Grey House.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8ce177d2e7dd429f8ca/tile_1761855716069.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261007011837 +0000" stop="20261007030349 +0000">
+        <title>The Good Witch's Gift</title>
+        <desc>Hallmark Original Movie. Cassie is surprised when Jake proposes their wedding date for Christmas Eve.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8e731f759e4f3f9314e/tile_1761855790911.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261007000000 +0000" stop="20261007010000 +0000">
         <title>In Case You Missed It</title>
@@ -2648,53 +2346,36 @@
         <desc>Captivating and intriguing local stories from around the U.S. all in one place.</desc>
         <icon src="https://images.pluto.tv/series/685d695e34bc8091770f9c64/tile_1785190101335.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261007011837 +0000" stop="20261007030349 +0000">
-        <title>The Good Witch's Gift</title>
-        <desc>Hallmark Original Movie. Cassie is surprised when Jake proposes their wedding date for Christmas Eve.</desc>
-        <icon src="https://images.pluto.tv/series/6903c8e731f759e4f3f9314e/tile_1761855790911.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-628e685ba3811100070551a8" start="20261007030349 +0000" stop="20261007050000 +0000">
-        <title>Hallmark Movies &amp; More</title>
-        <desc>no info available</desc>
-        <icon src="https://images.pluto.tv/channels/628e685ba3811100070551a8/featuredImage_1767639054863.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
-    </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261007020000 +0000" stop="20261007030000 +0000">
         <title>CNN Headline Express</title>
         <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
         <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261007030000 +0000" stop="20261007050000 +0000">
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261007030000 +0000" stop="20261007040000 +0000">
+        <title>In Case You Missed It</title>
+        <desc>Check out the most interesting and unforgettable moments from CNN… in case you missed it!</desc>
+        <icon src="https://images.pluto.tv/series/685d695d9d079f48dbe9bb62/tile_1785190101934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261007030349 +0000" stop="20261007044759 +0000">
+        <title>The Good Witch's Wonder</title>
+        <desc>Hallmark Original Movie. Cassie Nightingale is helping to plan her stepson's wedding.</desc>
+        <icon src="https://images.pluto.tv/series/6903c8edb9a206cb8f7aae5f/tile_1761858029039.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-628e685ba3811100070551a8" start="20261007044759 +0000" stop="20261007070000 +0000">
+        <title>Hallmark Movies &amp; More</title>
+        <desc>no info available</desc>
+        <icon src="https://images.pluto.tv/channels/628e685ba3811100070551a8/featuredImage_1767639054863.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261007040000 +0000" stop="20261007050000 +0000">
+        <title>Headlines from CNN</title>
+        <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
+        <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261007050000 +0000" stop="20261007070000 +0000">
         <title>CNN HEADLINES</title>
         <desc>no info available</desc>
         <icon src="https://images.pluto.tv/channels/5421f71da6af422839419cb3/featuredImage_1755034025648.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
     </programme>
- <programme channel="dc-CA1400004AE" start="20261006010000 +0000" stop="20261006020000 +0000">
-    <title>Question Period</title>
-    <sub-title>Question Period for Sunday, October 4, 2026</sub-title>
-    <desc>Question Period, the national political landmark program, is a must-see for political junkies.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488055950_0_20260917T113420598Z_78_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA1400004AE" start="20261006020000 +0000" stop="20261006023000 +0000">
-    <title>CTV National News with Heather Butts</title>
-    <sub-title>CTV National News for Sunday, October 4, 2026</sub-title>
-    <desc>Watch CTV National News with Heather Butts</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488016015_0_20260917T113420749Z_77_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA1400004AE" start="20261006023000 +0000" stop="20261006030000 +0000">
-    <title>CTV News</title>
-    <sub-title>CTV News: Your Canada for Monday, Oct. 5, 2026</sub-title>
-    <desc>Stories that showcase what makes Canada unique.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488014668_0_20260917T113421205Z_63_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
  <programme channel="dc-CA1400004AE" start="20261006030000 +0000" stop="20261006040000 +0000">
     <title>Question Period</title>
     <sub-title>Question Period for Sunday, October 4, 2026</sub-title>
@@ -2758,26 +2439,29 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA390002621" start="20261006010000 +0000" stop="20261006020000 +0000">
-    <title>The Daily Report</title>
-    <desc>The Daily Report on CBS News features original interviews and insights on the most important, urgent and interesting stories of the day.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064731972_0_20260616T223534078Z_86_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
+ <programme channel="dc-CA1400004AE" start="20261006080000 +0000" stop="20261006083000 +0000">
+    <title>CTV National News with Heather Butts</title>
+    <sub-title>CTV National News for Sunday, October 4, 2026</sub-title>
+    <desc>Watch CTV National News with Heather Butts</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488016015_0_20260917T113420749Z_77_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA390002621" start="20261006020000 +0000" stop="20261006023000 +0000">
-    <title>CBS Evening News</title>
-    <desc>Tony Dokoupil shares the day's most important stories, delivering context and depth to bring greater understanding to one's world.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3161949830_0_20260708T110411352Z_1_imageprocessorclient-tvplus-linear-75df688c49-bwtc7.jpeg" />
+ <programme channel="dc-CA1400004AE" start="20261006083000 +0000" stop="20261006090000 +0000">
+    <title>CTV News</title>
+    <sub-title>CTV News: Your Canada for Monday, Oct. 5, 2026</sub-title>
+    <desc>Stories that showcase what makes Canada unique.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488014668_0_20260917T113421205Z_63_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA390002621" start="20261006023000 +0000" stop="20261006030000 +0000">
-    <title>24/7 Primetime</title>
-    <desc>Delivering the news you need to know.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064713607_1_20260616T223530010Z_70_imageprocessorclient-tvplus-linear-75df688c49-p5bj6.jpeg" />
+ <programme channel="dc-CA1400004AE" start="20261006090000 +0000" stop="20261006100000 +0000">
+    <title>Power Play with Vassy Kapelos</title>
+    <sub-title>Power Play for Monday, October 5, 2026</sub-title>
+    <desc>CTV News Channel's daily marquee political program, Power Play.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488027983_0_20260917T113421085Z_95_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
@@ -2838,26 +2522,26 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600007UE" start="20261006010000 +0000" stop="20261006020000 +0000">
-    <title>The National</title>
-    <desc>The National is CBC's flagship nightly news program, featuring the day's top stories with in-depth journalism.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_542515027_0_20240529T053048179Z_120.jpeg" />
+ <programme channel="dc-CA390002621" start="20261006073000 +0000" stop="20261006080000 +0000">
+    <title>CBS Evening News</title>
+    <desc>Tony Dokoupil shares the day's most important stories, delivering context and depth to bring greater understanding to one's world.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3161949830_0_20260708T110411352Z_1_imageprocessorclient-tvplus-linear-75df688c49-bwtc7.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600007UE" start="20261006020000 +0000" stop="20261006023000 +0000">
-    <title>CBC News Nova Scotia</title>
-    <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093601_0_20241218T055251911Z_90_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
+ <programme channel="dc-CA390002621" start="20261006080000 +0000" stop="20261006090000 +0000">
+    <title>CBS News Roundup</title>
+    <desc>The headlines one needs to know overnight... plus, a roundup of MoneyWatch, health, consumer and up-to-the-minute technology news, the latest weather, and inspiring stories of kindness and hope.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064784150_0_20260616T223530581Z_70_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600007UE" start="20261006023000 +0000" stop="20261006030000 +0000">
-    <title>CBC News Nova Scotia</title>
-    <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093601_0_20241218T055251911Z_90_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
+ <programme channel="dc-CA390002621" start="20261006090000 +0000" stop="20261006093000 +0000">
+    <title>CBS News Mornings</title>
+    <desc>CBS News Mornings broadcasts on weekdays and offers viewers up-to-date news, comprehensive weather forecasts, and highlights from the world of sports.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064713605_0_20260616T223530508Z_46_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
@@ -2918,7 +2602,15 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600002Z5" start="20261006010000 +0000" stop="20261006020000 +0000">
+ <programme channel="dc-CA4600007UE" start="20261006073000 +0000" stop="20261006080000 +0000">
+    <title>CBC News Nova Scotia</title>
+    <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093601_0_20241218T055251911Z_90_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA4600007UE" start="20261006080000 +0000" stop="20261006090000 +0000">
     <title>The National</title>
     <desc>The National is CBC's flagship nightly news program, featuring the day's top stories with in-depth journalism.</desc>
     <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_542515027_0_20240529T053048179Z_120.jpeg" />
@@ -2926,18 +2618,10 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600002Z5" start="20261006020000 +0000" stop="20261006023000 +0000">
-    <title>CBC News PEI</title>
+ <programme channel="dc-CA4600007UE" start="20261006090000 +0000" stop="20261006093000 +0000">
+    <title>CBC News Nova Scotia</title>
     <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405885_0_20241217T114622204Z_129_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA4600002Z5" start="20261006023000 +0000" stop="20261006030000 +0000">
-    <title>CBC News PEI</title>
-    <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405885_0_20241217T114622204Z_129_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093601_0_20241218T055251911Z_90_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
@@ -2998,18 +2682,26 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CABC23000223U" start="20261006010000 +0000" stop="20261006020000 +0000">
-    <title>Your Weather Tonight</title>
-    <desc>National and local forecast details for across the country</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2418190998_0_20260114T194550108Z_26_imageprocessorclient-tvplus-linear-584c967455-z2fx8.jpeg" />
+ <programme channel="dc-CA4600002Z5" start="20261006073000 +0000" stop="20261006080000 +0000">
+    <title>CBC News PEI</title>
+    <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405885_0_20241217T114622204Z_129_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CABC23000223U" start="20261006020000 +0000" stop="20261006030000 +0000">
-    <title>Your Weather Tonight</title>
-    <desc>National and local forecast details for across the country</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2418190998_0_20260114T194550108Z_26_imageprocessorclient-tvplus-linear-584c967455-z2fx8.jpeg" />
+ <programme channel="dc-CA4600002Z5" start="20261006080000 +0000" stop="20261006090000 +0000">
+    <title>The National</title>
+    <desc>The National is CBC's flagship nightly news program, featuring the day's top stories with in-depth journalism.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_542515027_0_20240529T053048179Z_120.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA4600002Z5" start="20261006090000 +0000" stop="20261006093000 +0000">
+    <title>CBC News PEI</title>
+    <desc>Bringing you breaking news, in-depth reports and weather you can count on.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405885_0_20241217T114622204Z_129_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
@@ -3062,6 +2754,30 @@
       <value>PG</value>
     </rating>
   </programme>
+ <programme channel="dc-CABC23000223U" start="20261006073000 +0000" stop="20261006080000 +0000">
+    <title>Dream In Colour</title>
+    <desc>Get lost in the breathtaking beauty of Canadian and international landscapes</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_534124152_0_20231019T012929571Z_80.jpeg" />
+    <rating>
+      <value>PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABC23000223U" start="20261006080000 +0000" stop="20261006090000 +0000">
+    <title>Weather AM</title>
+    <desc>Get your local forecast and weather headlines from right here in Canada, and around the globe.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1617094425_0_20250703T184641377Z_57_imageprocessorclient-tvplus-linear-d7c8c765b-fzvr9.jpeg" />
+    <rating>
+      <value>PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABC23000223U" start="20261006090000 +0000" stop="20261006100000 +0000">
+    <title>Weather AM</title>
+    <desc>Get your local forecast and weather headlines from right here in Canada, and around the globe.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1617094425_0_20250703T184641377Z_57_imageprocessorclient-tvplus-linear-d7c8c765b-fzvr9.jpeg" />
+    <rating>
+      <value>PG</value>
+    </rating>
+  </programme>
  <programme channel="dc-CAAJ2700014EE" start="20261006010919 +0000" stop="20261006032000 +0000">
     <title>Transsiberian</title>
     <desc>On their way home from China, married Christian missionaries Roy (Woody Harrelson) and Jessie (Emily Mortimer) take a train from Beijing to Moscow. On board, they befriend Carlos (Eduardo Noriega) and Abby (Kate Mara). When Roy does not return in time at one stop, Jessie waits for him to catch up at the next station. Carlos and Abby stay with her, insisting the town is unsafe, however Carlos' attempts to "befriend" Jessie radically change the dynamic of the trip.</desc>
@@ -3094,40 +2810,12 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ27000159K" start="20261006003751 +0000" stop="20261006011009 +0000">
-    <title>The Rifleman</title>
-    <sub-title>Heller</sub-title>
-    <desc>After foiling a girl's attempt to rob the general store, Lucas finds that she and her brother are plotting the murder of their abusive stepfather.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734962278_1_20260401T070611575Z_94_imageprocessorclient-tvplus-linear-796646965d-2k68x.jpeg" />
+ <programme channel="dc-CAAJ2700014EE" start="20261006090344 +0000" stop="20261006113745 +0000">
+    <title>Hard Boiled [English-Language Version] [Broadcast Edit]</title>
+    <desc>A tough-as-nails cop teams up with an undercover agent to shut down a sinister mobster and his crew.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3270396536_2_20260801T072731311Z_24_imageprocessorclient-tvplus-linear-9468c5484-p4rrd.jpeg" />
     <rating>
-      <value>PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ27000159K" start="20261006011009 +0000" stop="20261006014218 +0000">
-    <title>The Rifleman</title>
-    <sub-title>The Grasshopper</sub-title>
-    <desc>A condemned killer being transported by train murders a marshal and takes Mark hostage.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734904162_18_20260401T070615619Z_61_imageprocessorclient-tvplus-linear-796646965d-c9w4p.jpeg" />
-    <rating>
-      <value>PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ27000159K" start="20261006014218 +0000" stop="20261006021419 +0000">
-    <title>The Rifleman</title>
-    <sub-title>A Time For Singing</sub-title>
-    <desc>Mark discovers that the new preacher and his wife are impostors planning a robbery.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734904259_19_20260401T070615931Z_36_imageprocessorclient-tvplus-linear-796646965d-9c7bx.jpeg" />
-    <rating>
-      <value>PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ27000159K" start="20261006021419 +0000" stop="20261006024646 +0000">
-    <title>The Rifleman</title>
-    <sub-title>The Vision</sub-title>
-    <desc>After Mark contracts typhoid fever and has a vision of his dead mother he no longer seems interested in getting well.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734904407_20_20260401T070616030Z_105_imageprocessorclient-tvplus-linear-796646965d-2k68x.jpeg" />
-    <rating>
-      <value>PG</value>
+      <value>NA</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ27000159K" start="20261006024646 +0000" stop="20261006031906 +0000">
@@ -3211,40 +2899,31 @@
       <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA2900008Y0" start="20261006010058 +0000" stop="20261006013135 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>Wildcat's First Piano</sub-title>
-    <desc>Culture comes to a mining town with the arrival of a piano, but nobody knows how to play it.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+ <programme channel="dc-CAAJ27000159K" start="20261006073710 +0000" stop="20261006080919 +0000">
+    <title>The Rifleman</title>
+    <sub-title>Woman from Hog Ridge</sub-title>
+    <desc>Lucas shoots a horse thief who turns out to be a member of the Boyle clan. Now Ma Boyle is after him.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618036043_40_20260304T064152237Z_94_imageprocessorclient-tvplus-linear-584c967455-p9wk7.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA2900008Y0" start="20261006013135 +0000" stop="20261006020208 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>California's First Ice Man</sub-title>
-    <desc>Peter arrives in Sacramento to revive his family's fortune but learns Phineas Colby has monopolized the town.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+ <programme channel="dc-CAAJ27000159K" start="20261006080919 +0000" stop="20261006084127 +0000">
+    <title>The Rifleman</title>
+    <sub-title>Seven</sub-title>
+    <desc>Seven condemned murderers escape and take over the town of North Fork.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618006094_50_20260304T064154343Z_96_imageprocessorclient-tvplus-linear-584c967455-bwzbt.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA2900008Y0" start="20261006020208 +0000" stop="20261006023247 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>The Hangman Waits</sub-title>
-    <desc>An aging lawyer and a young associate who's defending a man accused of murder come to blows.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+ <programme channel="dc-CAAJ27000159K" start="20261006084127 +0000" stop="20261006091332 +0000">
+    <title>The Rifleman</title>
+    <sub-title>The Pitchman</sub-title>
+    <desc>When Mark finds gold on their property, a fast-talking salesman who tried to sell Lucas a new lightning rod.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618006327_30_20260304T064149670Z_115_imageprocessorclient-tvplus-linear-584c967455-sqrdh.jpeg" />
     <rating>
-      <value>TV-PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA2900008Y0" start="20261006023247 +0000" stop="20261006030323 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>Gold Is Where You Find It</sub-title>
-    <desc>A detective dons a disguise to clear himself of a robbery charge.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
-    <rating>
-      <value>TV-PG</value>
+      <value>PG</value>
     </rating>
   </programme>
  <programme channel="dc-CA2900008Y0" start="20261006030323 +0000" stop="20261006033355 +0000">
@@ -3328,31 +3007,31 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABC2300007YT" start="20261006010000 +0000" stop="20261006020000 +0000">
-    <title>Bonanza</title>
-    <sub-title>The Hopefuls</sub-title>
-    <desc>A man is leading his family through Virginia City when they are accosted so Adam offers to escort.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3419238524_1_20260902T172253136Z_84_imageprocessorclient-tvplus-linear-6b56cc9f55-vfpsd.jpeg" />
+ <programme channel="dc-CA2900008Y0" start="20261006073830 +0000" stop="20261006080906 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>Pay Dirt</sub-title>
+    <desc>There's trouble on the honeymoon when a newlywed falls for a phony gold mine swindle.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
     <rating>
-      <value>G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABC2300007YT" start="20261006020000 +0000" stop="20261006022800 +0000">
-    <title>Wild West Chronicles</title>
-    <sub-title>James Masterson and the Battle of Cimarron</sub-title>
-    <desc>Gunfire erupts when two Kansas towns fight over who will control the county's official documents.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3419238597_0_20260902T172249242Z_23_imageprocessorclient-tvplus-linear-6b56cc9f55-wrt8j.jpeg" />
+ <programme channel="dc-CA2900008Y0" start="20261006080906 +0000" stop="20261006083940 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>The Longest Beard in the World</sub-title>
+    <desc>A Congressional candidate is urged to go to the Chicago World's Fair as the man with the longest beard.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
     <rating>
-      <value>G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABC2300007YT" start="20261006022800 +0000" stop="20261006030000 +0000">
-    <title>Wild West Chronicles</title>
-    <sub-title>Frank Hamer's First Gunfight</sub-title>
-    <desc>Ranch hand Frank Hamer joins the Texas Rangers and helps them hunt down a mysterious killer.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3419238597_0_20260902T172249242Z_23_imageprocessorclient-tvplus-linear-6b56cc9f55-wrt8j.jpeg" />
+ <programme channel="dc-CA2900008Y0" start="20261006083940 +0000" stop="20261006091013 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>Emperor Norton</sub-title>
+    <desc>Gold Rush-era San Francisco business tycoon Joshua Norton abruptly loses his fortune.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
     <rating>
-      <value>G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABC2300007YT" start="20261006030000 +0000" stop="20261006040000 +0000">
@@ -3408,38 +3087,10 @@
       <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261006004731 +0000" stop="20261006011916 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Granny's Garden</sub-title>
-    <desc>Granny decides to start a vegetable garden on the mansion grounds.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618150581_68_20260304T064158306Z_129_imageprocessorclient-tvplus-linear-584c967455-vwqpv.jpeg" />
-    <rating>
-      <value>G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261006011916 +0000" stop="20261006015102 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Jed Rescues Pearl</sub-title>
-    <desc>Pearl's efforts to snag Mr. Brewster seem doomed until he makes a ridiculous public proposal.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618036182_78_20260304T064200986Z_41_imageprocessorclient-tvplus-linear-584c967455-l5ngp.jpeg" />
-    <rating>
-      <value>G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261006015102 +0000" stop="20261006022237 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Jethro Goes to School</sub-title>
-    <desc>A private school teacher is shocked to learn that her new fifth-grade student is Jethro.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618006076_62_20260304T064157010Z_111_imageprocessorclient-tvplus-linear-584c967455-tswk8.jpeg" />
-    <rating>
-      <value>G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261006022237 +0000" stop="20261006025418 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Hair-Raising Holiday</sub-title>
-    <desc>Granny creates her own brand of mountain medicine.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2618092658_57_20260304T064156577Z_93_imageprocessorclient-tvplus-linear-584c967455-x2xgk.jpeg" />
+ <programme channel="dc-CABC2300007YT" start="20261006090000 +0000" stop="20261006102855 +0000">
+    <title>The Gun and the Pulpit</title>
+    <desc>A gunslinger poses as a preacher to hide from his enemies but brings hope to his parishioners.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3550321142_0_20260930T175143343Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-cvmx2.jpeg" />
     <rating>
       <value>G</value>
     </rating>
@@ -3525,40 +3176,31 @@
       <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200002T9" start="20261006005620 +0000" stop="20261006012420 +0000">
-    <title>Barbecue: Smoke Out</title>
-    <sub-title>Every Kind of Rib: Dino, Fried, Smoked, Grilled and Glazed</sub-title>
-    <desc>We're cooking Beef Ribs, Fried Ribs, Smoked Ribs, Grilled Ribs and even Dirty Cabbage.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3477894947_0_20260915T071114543Z_34_imageprocessorclient-tvplus-linear-6b56cc9f55-4hrj4.jpeg" />
+ <programme channel="dc-CAAJ2700008QA" start="20261006074118 +0000" stop="20261006081344 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>The Gunsmith</sub-title>
+    <desc>A beautiful girl is the prize as a gunsmith enters a battle of bullets - and wits - with a trickshot artist.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3143040555_3_20260704T080337581Z_116_imageprocessorclient-tvplus-linear-75df688c49-bb4m8.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200002T9" start="20261006012420 +0000" stop="20261006015220 +0000">
-    <title>Barbecue: Smoke Out</title>
-    <sub-title>The Only Pulled Pork Recipe You'll Ever Need</sub-title>
-    <desc>Kev &amp; Noah are making BBQ Pulled Pork Sandwiches with Coleslaw  Creole Cabbage  and Grilled Steak Sandwiches.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2529041072_0_20260211T070314833Z_152_imageprocessorclient-tvplus-linear-584c967455-zrlnq.jpeg" />
+ <programme channel="dc-CAAJ2700008QA" start="20261006081344 +0000" stop="20261006084558 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>Perilous Refuge</sub-title>
+    <desc>The end of the Mexican-American War leads to disputes between land-owning families, like the Ortegas, and newer settlers.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3141821557_1_20260704T020458412Z_51_imageprocessorclient-tvplus-linear-75df688c49-tw5hq.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200002T9" start="20261006015220 +0000" stop="20261006022020 +0000">
-    <title>All Up In My Grill</title>
-    <sub-title>Apocalypse Burgers</sub-title>
-    <desc>Chef Dale Talde kicks off summer with a burger blowout featuring Brisket, Shrimp, and Lamb Burgers.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2053654641_0_20251018T074351107Z_105_imageprocessorclient-tvplus-linear-76c46fff7-smtgw.jpeg" />
+ <programme channel="dc-CAAJ2700008QA" start="20261006084558 +0000" stop="20261006091751 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>The White Healer</sub-title>
+    <desc>Lt. Wood is stationed in Arizona Territory during an Apache uprising but is more compassionate than his commander. When a deadly illness breaks out among the Natives, he is willing to treat them - but Geronimo must first surrender.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3169322852_4_20260710T021155391Z_101_imageprocessorclient-tvplus-linear-75df688c49-jrl2c.jpeg" />
     <rating>
-      <value>TV-14</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABD1200002T9" start="20261006022020 +0000" stop="20261006024820 +0000">
-    <title>All Up In My Grill</title>
-    <sub-title>Sausage Egg &amp; Cheese All Day Long</sub-title>
-    <desc>Chef Dale Talde brings out brunch hits with Bacon Wrapped Dates, Cheesy Fried Rice, and BBQ Duck Pancakes.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2053732094_0_20251018T074351107Z_143_imageprocessorclient-tvplus-linear-76c46fff7-smtgw.jpeg" />
-    <rating>
-      <value>TV-14</value>
+      <value>PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200002T9" start="20261006024820 +0000" stop="20261006031620 +0000">
@@ -3651,12 +3293,40 @@
       <value>TV-14</value>
     </rating>
   </programme>
- <programme channel="dc-CA1400001PI" start="20261006000541 +0000" stop="20261006025041 +0000">
-    <title>10/4/26: Jackson Chourio walks it off in Game 2</title>
-    <desc>Jackson Chourio hits a walk-off single in the 9th to lead the Brewers to a Game 2 win of the NLDS.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_862698471_0_20250217T092125093Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-z2cj4.jpeg" />
+ <programme channel="dc-CABD1200002T9" start="20261006072820 +0000" stop="20261006075621 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>This Sandwich is Defying Gravity</sub-title>
+    <desc>What meals rank in the 70s and how are they related to disco? Let's find out!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_871721414_0_20250219T051914105Z_54_imageprocessorclient-tvplus-linear-b76dd9bbb-kskgs.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-14</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABD1200002T9" start="20261006075621 +0000" stop="20261006082423 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>Old Bay and Old Spice Don't Mix</sub-title>
+    <desc>Things get contemptuous as our panel argues over a dish in the 60s. There is no right or wrong, we all win!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_871721414_0_20250219T051914105Z_54_imageprocessorclient-tvplus-linear-b76dd9bbb-kskgs.jpeg" />
+    <rating>
+      <value>TV-14</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABD1200002T9" start="20261006082423 +0000" stop="20261006085024 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>A Favorite of Youngins and Felons Alike</sub-title>
+    <desc>You may not agree with some meals on this episode... but that's okay, because the panel agrees with you!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_871721414_0_20250219T051914105Z_54_imageprocessorclient-tvplus-linear-b76dd9bbb-kskgs.jpeg" />
+    <rating>
+      <value>TV-14</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABD1200002T9" start="20261006085024 +0000" stop="20261006091625 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>Baja Breaking all the Rules</sub-title>
+    <desc>We're halfway through our list, but somehow just getting started!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_871721414_0_20250219T051914105Z_54_imageprocessorclient-tvplus-linear-b76dd9bbb-kskgs.jpeg" />
+    <rating>
+      <value>TV-14</value>
     </rating>
   </programme>
  <programme channel="dc-CA1400001PI" start="20261006025041 +0000" stop="20261006055041 +0000">
@@ -3675,28 +3345,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA1400003R3" start="20261006010951 +0000" stop="20261006013937 +0000">
-    <title>Marble Runs</title>
-    <desc>These shiny competitors must endure 16 races with difficult terrain and obstacles ranging from water to sand to hurdles...</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3559930076_1_20261002T165255351Z_59_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+ <programme channel="dc-CA1400001PI" start="20261006083541 +0000" stop="20261006103541 +0000">
+    <title>MLB Network Special: 2016 World Series Game 7</title>
+    <desc>Joe Maddon and Terry Francona relive the historic Game 7 of the 2016 World Series.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_691111550_0_20250114T032026048Z_97_imageprocessorclient-tvplus-linear-5dc4fd45f6-k22rj.jpeg" />
     <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA1400003R3" start="20261006013937 +0000" stop="20261006023817 +0000">
-    <title>Dodge Juggle</title>
-    <desc>It's a cross between juggling and dodgeball. There are different formats to this game, and all of them are hilarious.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3560031463_0_20261002T165253106Z_90_imageprocessorclient-tvplus-linear-6b56cc9f55-zhkhs.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA1400003R3" start="20261006023817 +0000" stop="20261006030835 +0000">
-    <title>The Ocho: Putt Putt Championships</title>
-    <desc>The Professional Putters Association championships are not until September, but viewers can watch players attack the classic greens here.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3559956939_1_20261002T165253352Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
-    <rating>
-      <value>NA</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CA1400003R3" start="20261006030835 +0000" stop="20261006033357 +0000">
@@ -3731,28 +3385,28 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200008JG" start="20261006010941 +0000" stop="20261006012741 +0000">
-    <title>2014 FIFA World Cup Brazil™ | The Final</title>
-    <desc>Through the eyes of those present, revisit the 2014 Germany vs Argentina final at Maracanã.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1361942547_0_20250520T212643847Z_37_imageprocessorclient-tvplus-linear-b76dd9bbb-slcx2.jpeg" />
+ <programme channel="dc-CA1400003R3" start="20261006071322 +0000" stop="20261006074340 +0000">
+    <title>The Ocho: Putt Putt Championships</title>
+    <desc>The Professional Putters Association championships are not until September, but viewers can watch players attack the classic greens here.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3559956939_1_20261002T165253352Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200008JG" start="20261006012741 +0000" stop="20261006020117 +0000">
-    <title>The Best of FIFA Women's World Cup China 2007™</title>
-    <desc>A showcase of the tournament's top goals, assists, and award-winning moments from China 2007.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3545931834_0_20260929T185700473Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-6psn6.jpeg" />
+ <programme channel="dc-CA1400003R3" start="20261006074340 +0000" stop="20261006080902 +0000">
+    <title>2020 USA Mullet Championships</title>
+    <desc>Who can grow it best? Tune into the 2020 USA Mullet Championships to find out which competitor is crowned the Mullet Champion!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3559930073_0_20261002T165253107Z_112_imageprocessorclient-tvplus-linear-6b56cc9f55-zhkhs.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200008JG" start="20261006020117 +0000" stop="20261006022935 +0000">
-    <title>The Best of FIFA Women's World Cup 2023</title>
-    <desc>Relive the best moments of the FIFA Women's World Cup 2023</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_549957855_0_20241029T172718842Z_76_imageprocessorclient-tvplus-linear-5dc4fd45f6-zsqxt.png" />
+ <programme channel="dc-CA1400003R3" start="20261006080902 +0000" stop="20261006102002 +0000">
+    <title>2020 World Axe Throwing Championships</title>
+    <desc>This year, the World Axe Throwing Championship is made of the top 128 axe throwers in the world. All coming together on one day to represent</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3560010102_0_20261002T165253107Z_37_imageprocessorclient-tvplus-linear-6b56cc9f55-zhkhs.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>NA</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200008JG" start="20261006022935 +0000" stop="20261006042038 +0000">
@@ -3787,13 +3441,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA700002VS" start="20261005231741 +0000" stop="20261006020147 +0000">
-    <title>NASCAR Classics: Cup Series</title>
-    <sub-title>2014 Bank of America 500 at Charlotte Motor Speedway</sub-title>
-    <desc>Relive the 5th race of the 2014 Playoffs in this Cup Series race replay from Charlotte Motor Speedway.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1885611969_0_20250830T231341936Z_1_imageprocessorclient-tvplus-linear-d7c8c765b-l4q7s.jpeg" />
+ <programme channel="dc-CABD1200008JG" start="20261006084805 +0000" stop="20261006103305 +0000">
+    <title>China PR v Sweden | Group D | FIFA Women's World Cup USA 1999™ | Full Match Replay</title>
+    <desc>Watch the full match replay between China PR and Sweden played at Spartan Stadium, San Jose.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3550642106_0_20260930T190658953Z_52_imageprocessorclient-tvplus-linear-6b56cc9f55-hlb7z.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CA700002VS" start="20261006020147 +0000" stop="20261006040000 +0000">
@@ -3823,31 +3476,13 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABC2300015UM" start="20261006010535 +0000" stop="20261006014035 +0000">
-    <title>Bob Ross</title>
-    <sub-title>Snow Birch</sub-title>
-    <desc>An incredibly unique Bob Ross painting -- delight in the effects of white and black gesso.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
+ <programme channel="dc-CA700002VS" start="20261006081642 +0000" stop="20261006105959 +0000">
+    <title>NASCAR Classics: Cup Series</title>
+    <sub-title>2025 Wurth 400 at Texas Motor Speedway</sub-title>
+    <desc>Relive the 2025 Wurth 400 at Texas Motor Speedway in this NASCAR Cup Series race replay.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1373316903_0_20250522T213002389Z_109_imageprocessorclient-tvplus-linear-b76dd9bbb-kskgs.jpeg" />
     <rating>
-      <value>TV-G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABC2300015UM" start="20261006014035 +0000" stop="20261006021542 +0000">
-    <title>Bob Ross</title>
-    <sub-title>Early Autumn</sub-title>
-    <desc>Follow along with the brushes of Bob Ross and step into a beautiful mountain oval  experience the first.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
-    <rating>
-      <value>TV-G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABC2300015UM" start="20261006021542 +0000" stop="20261006025043 +0000">
-    <title>Bob Ross</title>
-    <sub-title>Tranquil Wooded Stream</sub-title>
-    <desc>Bob Ross takes you to a lovely spot deep in the woods where the seclusion.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
-    <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABC2300015UM" start="20261006025043 +0000" stop="20261006032538 +0000">
@@ -3922,20 +3557,31 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ3400017AE" start="20261006001008 +0000" stop="20261006011356 +0000">
-    <title>Wild Albania</title>
-    <desc>Albania is a land of natural bounty, from the Alps to the Adriatic. Discover this beautiful country's secrets.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3251728732_0_20260728T034643493Z_114_imageprocessorclient-tvplus-linear-9468c5484-gjgzw.jpeg" />
+ <programme channel="dc-CABC2300015UM" start="20261006073512 +0000" stop="20261006081016 +0000">
+    <title>Bob Ross</title>
+    <sub-title>Arizona Splendor</sub-title>
+    <desc>In this brilliant southwestern scene Bob Ross portrays a unique view of nature with clear blue skies.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ3400017AE" start="20261006011356 +0000" stop="20261006021805 +0000">
-    <title>Africa's Primeval Oceans</title>
-    <desc>The Cape of Storms marks where Atlantic and Indian oceans meet off Africa, shaping land, life, and climate.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2087999239_0_20251028T013553638Z_44_imageprocessorclient-tvplus-linear-76c46fff7-m8zk4.jpeg" />
+ <programme channel="dc-CABC2300015UM" start="20261006081016 +0000" stop="20261006084515 +0000">
+    <title>Bob Ross</title>
+    <sub-title>Anatomy of a Wave</sub-title>
+    <desc>Guest Artist Joyce Ortner captures the true beauty of the ocean waves.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABC2300015UM" start="20261006084515 +0000" stop="20261006092004 +0000">
+    <title>Bob Ross</title>
+    <sub-title>The Windmill</sub-title>
+    <desc>Bob Ross creates a proud strong windmill.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
+    <rating>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ3400017AE" start="20261006021805 +0000" stop="20261006032301 +0000">
@@ -3980,20 +3626,20 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA600001C3" start="20261006003430 +0000" stop="20261006013240 +0000">
-    <title>Besieged Fortresses, Legendary Battles</title>
-    <sub-title>The Siege Of Alesia: Caesar's Greatest Victory</sub-title>
-    <desc>The fortress at Alesia falls to Caesar in his greatest victory, redefining siege warfare with Roman know-how.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1436592282_0_20250603T004652464Z_112_imageprocessorclient-tvplus-linear-b76dd9bbb-r4zw8.jpeg" />
+ <programme channel="dc-CAAJ3400017AE" start="20261006073347 +0000" stop="20261006083348 +0000">
+    <title>Ocean Wild</title>
+    <sub-title>Japan</sub-title>
+    <desc>Japan's unique coastlines are home to some of the world's most diverse marine ecosystems.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2211021440_0_20251127T000213022Z_1_imageprocessorclient-tvplus-linear-584c967455-fwhrz.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA600001C3" start="20261006013240 +0000" stop="20261006023340 +0000">
-    <title>Tombs of Egypt: Imhotep, The Pyramid Creator</title>
-    <sub-title>The Mummy with Golden Jewellery</sub-title>
-    <desc>At Saqqara, Egyptologist Zahi Hawass hunts for Imhotep's tomb, uncovering ancient secrets and mummies.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1868360852_0_20250826T010028555Z_107_imageprocessorclient-tvplus-linear-d7c8c765b-9jwgh.jpeg" />
+ <programme channel="dc-CAAJ3400017AE" start="20261006083348 +0000" stop="20261006093531 +0000">
+    <title>Ocean Wild</title>
+    <sub-title>Thailand</sub-title>
+    <desc>Thai marine wildlife is like no other. In this episode, discover how these creatures evolved.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2210884867_0_20251127T000213022Z_66_imageprocessorclient-tvplus-linear-584c967455-fwhrz.jpeg" />
     <rating>
       <value>TV-PG</value>
     </rating>
@@ -4043,40 +3689,22 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABA3700003NA" start="20261006005032 +0000" stop="20261006012513 +0000">
-    <title>Blippi's Top 10</title>
-    <sub-title>Fun and Games!</sub-title>
-    <desc>Blippi counts down his TOP 10 FUN GAMES &amp; ACTIVITY episodes!</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_546567862_0_20240826T002134472Z_95_imageprocessorclient-tvplus-linear-64ff86dd75-7z2h5.png" />
+ <programme channel="dc-CA600001C3" start="20261006073118 +0000" stop="20261006083156 +0000">
+    <title>Megapolis: The Ancient World Revealed</title>
+    <sub-title>Alexandria</sub-title>
+    <desc>Alexander the Great transformed Alexandria from a village into a thriving city with remarkable urban design.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1436537269_0_20250603T004652462Z_39_imageprocessorclient-tvplus-linear-b76dd9bbb-r4zw8.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABA3700003NA" start="20261006012513 +0000" stop="20261006015633 +0000">
-    <title>Blippi's Top 10</title>
-    <sub-title>Indoor Playgrounds!</sub-title>
-    <desc>Blippi counts down his TOP 10 INDOOR PLAYGROUND episodes!</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_546567862_0_20240826T002134472Z_95_imageprocessorclient-tvplus-linear-64ff86dd75-7z2h5.png" />
+ <programme channel="dc-CA600001C3" start="20261006083156 +0000" stop="20261006092948 +0000">
+    <title>Megapolis: The Ancient World Revealed</title>
+    <sub-title>Tikal</sub-title>
+    <desc>Explore the rise of the Maya city Tikal, a major metropolis with 12,000 structures and towering pyramids.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1436537269_0_20250603T004652462Z_39_imageprocessorclient-tvplus-linear-b76dd9bbb-r4zw8.jpeg" />
     <rating>
-      <value>TV-G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABA3700003NA" start="20261006015633 +0000" stop="20261006022839 +0000">
-    <title>Blippi's Top 10</title>
-    <sub-title>Amusement Parks!</sub-title>
-    <desc>Blippi remembers some of his favorite times at amusement parks!</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_546567862_0_20240826T002134472Z_95_imageprocessorclient-tvplus-linear-64ff86dd75-7z2h5.png" />
-    <rating>
-      <value>TV-G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABA3700003NA" start="20261006022839 +0000" stop="20261006030050 +0000">
-    <title>Blippi's Top 10</title>
-    <sub-title>Space and Science!</sub-title>
-    <desc>Blippi counts down his favorite Space &amp; Science moments</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_546567862_0_20240826T002134472Z_95_imageprocessorclient-tvplus-linear-64ff86dd75-7z2h5.png" />
-    <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABA3700003NA" start="20261006030050 +0000" stop="20261006050714 +0000">
@@ -4142,12 +3770,40 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA4700006LN" start="20261006000000 +0000" stop="20261006020000 +0000">
-    <title>Stingray Soft Hits</title>
-    <desc>Need a break? These relaxing, easy-listening pop songs from the ‘70s, ‘80s, and ‘90s set the mood to put your feet up and take a breather.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490463984_0_20250612T143933396Z_27_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
+ <programme channel="dc-CABA3700003NA" start="20261006073114 +0000" stop="20261006075116 +0000">
+    <title>ARPO</title>
+    <sub-title>Causing Chaos All Over Town!</sub-title>
+    <desc>Arpo &amp; Daniel cause chaos all over town! They have a wild supermarket chase &amp; a messy picnic!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1286119816_0_20250507T082847006Z_22_imageprocessorclient-tvplus-linear-b76dd9bbb-wf66n.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABA3700003NA" start="20261006075116 +0000" stop="20261006083200 +0000">
+    <title>ARPO</title>
+    <sub-title>Crazy Competitions &amp; Robot Malfunctions!</sub-title>
+    <desc>Arpo has crazy competitions &amp; robot malfunctions! He races Nannybot in a go-kart &amp; dances uncontrollably!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1286119816_0_20250507T082847006Z_22_imageprocessorclient-tvplus-linear-b76dd9bbb-wf66n.jpeg" />
+    <rating>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABA3700003NA" start="20261006083200 +0000" stop="20261006090020 +0000">
+    <title>Little Baby Bum</title>
+    <sub-title>Gentle &amp; Calming Sing-Alongs!</sub-title>
+    <desc>Relax with these calm and gentle tunes. Enjoy a tea party, feed the ducks, and do some sleepy-time yoga.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1286119832_0_20250507T082847005Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-wf66n.jpeg" />
+    <rating>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABA3700003NA" start="20261006090020 +0000" stop="20261006092957 +0000">
+    <title>Little Baby Bum</title>
+    <sub-title>Sweet Dreams &amp; Bedtime Songs!</sub-title>
+    <desc>It's time for sweet dreams! Mia learns calming yoga poses &amp; Daddy shows her the "brush your teeth dance"!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1286119832_0_20250507T082847005Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-wf66n.jpeg" />
+    <rating>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CA4700006LN" start="20261006020000 +0000" stop="20261006040000 +0000">
@@ -4174,12 +3830,12 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200030YP" start="20261006000000 +0000" stop="20261006020000 +0000">
-    <title>Stingray Easy Listening</title>
-    <desc>Sit back and relax to this selection of instrumental music. It's the perfect mix for taking a break, taking a breather, and enjoying the moment.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/CABD1200030YP_20250618T231510_BRANDED.png" />
+ <programme channel="dc-CA4700006LN" start="20261006080000 +0000" stop="20261006100000 +0000">
+    <title>Stingray Soft Hits</title>
+    <desc>Need a break? These relaxing, easy-listening pop songs from the ‘70s, ‘80s, and ‘90s set the mood to put your feet up and take a breather.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490463984_0_20250612T143933396Z_27_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200030YP" start="20261006020000 +0000" stop="20261006040000 +0000">
@@ -4206,12 +3862,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200036YT" start="20261006000000 +0000" stop="20261006020000 +0000">
-    <title>Stingray Classic Rock</title>
-    <desc>Relive the wonders of classic rock, the sound that revolutionized the world of music from the ‘60s to the ‘80s. Listen to the genre's biggest legends.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490548955_0_20250612T143939237Z_92_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
+ <programme channel="dc-CABD1200030YP" start="20261006080000 +0000" stop="20261006100000 +0000">
+    <title>Stingray Easy Listening</title>
+    <desc>Sit back and relax to this selection of instrumental music. It's the perfect mix for taking a break, taking a breather, and enjoying the moment.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/CABD1200030YP_20250618T231510_BRANDED.png" />
     <rating>
-      <value>TV-PG</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200036YT" start="20261006020000 +0000" stop="20261006040000 +0000">
@@ -4238,12 +3894,12 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA47000031R" start="20261006000000 +0000" stop="20261006020000 +0000">
-    <title>Stingray Country Greats</title>
-    <desc>Before today's Hot Country and the New Country trends of the ‘90s was Classic Country from the early-‘50s up to the mid-‘80s. Listen to the legends of Nashville's Grand Ole Opry such as Waylon, Willie, Johnny, Loretta, George, Merle, Marty, Buck, Dolly, Tammy, Conway, and Emmylou.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490435970_0_20250612T143939274Z_103_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
+ <programme channel="dc-CABD1200036YT" start="20261006080000 +0000" stop="20261006100000 +0000">
+    <title>Stingray Classic Rock</title>
+    <desc>Relive the wonders of classic rock, the sound that revolutionized the world of music from the ‘60s to the ‘80s. Listen to the genre's biggest legends.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490548955_0_20250612T143939237Z_92_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CA47000031R" start="20261006020000 +0000" stop="20261006040000 +0000">
@@ -4270,20 +3926,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ3400003T7" start="20261006005907 +0000" stop="20261006015903 +0000">
-    <title>Hawaii Palms &amp; Waves</title>
-    <desc>Relax and enjoy a stunning coastal scene featuring coastal palms, green grass and blue waves in the early morning light. Captured in real-time, the scene showcasing the slowly changing morning light which illuminates the palm trees and distant blue waves - all with a backdrop of stereo nature sounds shot on location. Filmed in 4K UHD in Oahu, Hawaii at the Turtle Bay Resort.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2406090790_0_20260111T152934948Z_142_imageprocessorclient-tvplus-linear-584c967455-8f7lv.jpeg" />
+ <programme channel="dc-CA47000031R" start="20261006080000 +0000" stop="20261006100000 +0000">
+    <title>Stingray Country Greats</title>
+    <desc>Before today's Hot Country and the New Country trends of the ‘90s was Classic Country from the early-‘50s up to the mid-‘80s. Listen to the legends of Nashville's Grand Ole Opry such as Waylon, Willie, Johnny, Loretta, George, Merle, Marty, Buck, Dolly, Tammy, Conway, and Emmylou.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490435970_0_20250612T143939274Z_103_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
     <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ3400003T7" start="20261006015903 +0000" stop="20261006025859 +0000">
-    <title>Magical Mcway Cove</title>
-    <desc>Enjoy the wondrous sights &amp; sounds of one of the best coastal views in the world - Big Sur - in full 4K glory. Prepare your senses for a relaxation experience only Big Sur and 4K can offer.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2530299977_1_20260211T145829481Z_155_imageprocessorclient-tvplus-linear-584c967455-z7vql.jpeg" />
-    <rating>
-      <value>G</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ3400003T7" start="20261006025859 +0000" stop="20261006040000 +0000">
@@ -4326,30 +3974,23 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme start="20261006014209 +0000" stop="20261006021358 +0000" channel="dc-99992304">
-<title>The Rifleman</title>
-<desc>Mark discovers that the new preacher and his wife are impostors planning a robbery.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="https://image.xumo.com/v1/assets/asset/XM0RH7O6MDCO3R/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
-</programme>
- <programme start="20261006021358 +0000" stop="20261006024612 +0000" channel="dc-99992304">
-<title>The Rifleman</title>
-<desc>After Mark contracts typhoid fever and has a vision of his dead mother he no longer seems interested in getting well.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="https://image.xumo.com/v1/assets/asset/XM0QMF2D2P2JLD/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
-</programme>
- <programme start="20261006024612 +0000" stop="20261006031820 +0000" channel="dc-99992304">
-<title>The Rifleman</title>
-<desc>An old friend of Lucas's returns to town in the company of a shady gambler and is accused of cheating at cards.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="https://image.xumo.com/v1/assets/asset/XM0TMTCXK3YT5V/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
-</programme>
- <programme start="20261006031820 +0000" stop="20261006035018 +0000" channel="dc-99992304">
-<title>The Rifleman</title>
-<desc>Several men are vying for a prosperous rancher's daughter's affections. When she is found dead, one of them becomes the prime suspect in her murder.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="https://image.xumo.com/v1/assets/asset/XM0N78N2VZYK5X/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
-</programme>
+ <programme channel="dc-CAAJ3400003T7" start="20261006075943 +0000" stop="20261006085939 +0000">
+    <title>Far North Beaches: New Zealand</title>
+    <desc>Take in the tranquil beaches of New Zealand's Far North, complete with scenery that depicts the small coves, white sand, and alternating rocky outcrop that paint this region's coastline.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3460635324_0_20260911T145614652Z_130_imageprocessorclient-tvplus-linear-6b56cc9f55-ns22h.jpeg" />
+    <episode-num system="onscreen">S02E02</episode-num>
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CAAJ3400003T7" start="20261006085939 +0000" stop="20261006100000 +0000">
+    <title>Cliffside beach: Indonesia</title>
+    <desc>Experience the thrilling view of a cliff-top lookout of one of Indonesia's most breathtaking spots.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2539343514_0_20260213T150020094Z_1_imageprocessorclient-tvplus-linear-584c967455-nsd9m.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
  <programme start="20261006035018 +0000" stop="20261006042225 +0000" channel="dc-99992304">
 <title>The Rifleman</title>
 <desc>Lucas receives a series of mysterious threatening notes from an ex-convict with a grudge.</desc>
@@ -4410,11 +4051,29 @@
 <rating><value>TV-G</value></rating>
 <icon src="https://image.xumo.com/v1/assets/asset/XM0NFV1TVQWRE9/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
 </programme>
- <programme start="20261006012517 +0000" stop="20261006023520 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Clearing the Range</title>
-<desc>Hoot Gibson stars in this reworking of the Zorro legend with a western setting. For trivia buffs: Hoot was married to his leading lady, Sally Eilers, at the time this film was released.</desc>
+ <programme start="20261006091032 +0000" stop="20261006094230 +0000" channel="dc-99992304">
+<title>The Rifleman</title>
+<desc>When an outlaw leader lures Marshall Torrance out of town, Only Lucas can stop him from lynching a local man.</desc>
 <rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
+<icon src="https://image.xumo.com/v1/assets/asset/XM03QCRK64O0G0/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
+</programme>
+ <programme start="20261006094230 +0000" stop="20261006101418 +0000" channel="dc-99992304">
+<title>The Rifleman</title>
+<desc>A former army captain comes to North Fork to kill the man who shot down his son in a gunfight - Lucas McCain.</desc>
+<rating><value>TV-G</value></rating>
+<icon src="https://image.xumo.com/v1/assets/asset/XM0GXTN6XF6KZ5/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
+</programme>
+ <programme start="20261006101418 +0000" stop="20261006104608 +0000" channel="dc-99992304">
+<title>The Rifleman</title>
+<desc>A new store owner upsets the town by demanding all credit accounts be paid off.</desc>
+<rating><value>TV-G</value></rating>
+<icon src="https://image.xumo.com/v1/assets/asset/XM007HB3K3ZBV2/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
+</programme>
+ <programme start="20261006104608 +0000" stop="20261006111759 +0000" channel="dc-99992304">
+<title>The Rifleman</title>
+<desc>The widow of a bandit killed by Lucas plots a grotesque revenge.</desc>
+<rating><value>TV-G</value></rating>
+<icon src="https://image.xumo.com/v1/assets/asset/XM077ZVMN1GQZ9/768x432.jpg?fb=https%3A%2F%2Fimage.xumo.com%2Fv1%2Fchannels%2Fchannel%2F99992304%2F768x432.jpg%3Ftype%3DchannelTile" />
 </programme>
  <programme start="20261006023520 +0000" stop="20261006040001 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
 <title>Adventures of Gallant Bess</title>
@@ -4452,17 +4111,29 @@
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
- <programme start="20261006005700 +0000" stop="20261006020000 +0000" channel="dc-us-world_poker_tour_wpt_1">
-<title>World Poker Tour</title>
-<desc>Poker players compete in a series of tournaments at casinos around the world. From Las Vegas.</desc>
-<rating><value>TV-14</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
+ <programme start="20261006090008 +0000" stop="20261006093005 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
+<title>Cowboy G-Men</title>
+<desc>In an episode called Koniakers, G-Men Pat Gallagher and Stoney Crockett investigate how U.S. currency in a bank vault was replaced by counterfeit money. Starring Russell Hayden, Jackie Coogan.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
- <programme start="20261006020000 +0000" stop="20261006030000 +0000" channel="dc-us-world_poker_tour_wpt_1">
-<title>World Poker Tour</title>
-<desc>Professional poker action from a series of international tournaments.</desc>
-<rating><value>TV-14</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
+ <programme start="20261006093005 +0000" stop="20261006100009 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
+<title>Cowboy G-Men</title>
+<desc>Pat Gallagher and his sidekick Stoney Crockett are Secret Service agents in the Old West. In this episode, Pat and Stoney get reports that a man is selling salted mines to investors. The two G-men are determined to discover the truth. Starring Russell Hayden, Jackie Coogan.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
+</programme>
+ <programme start="20261006100009 +0000" stop="20261006103011 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
+<title>Cowboy G-Men</title>
+<desc>Pat Gallagher and Stoney Crockett are Secret Service agents in the Old West, sent by the government to investigate crimes threatening the young nation. In Mysterious Decoy, Pat and Stony get involved with the famous half-way house that settled the Utah-Arizona boundary. Starring Russell Hayden, Jackie Coogan.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
+</programme>
+ <programme start="20261006103011 +0000" stop="20261006110008 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
+<title>Cowboy G-Men</title>
+<desc>Pat Gallagher and his sidekick Stoney Crockett are Secret Service agents in the Old West, dispatched by the government to investigate crimes threatening the young nation. Starring Russell Hayden, Jackie Coogan. In this episode, the boys rout out Ole Gimpy's ghost.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
  <programme start="20261006030000 +0000" stop="20261006040100 +0000" channel="dc-us-world_poker_tour_wpt_1">
 <title>World Poker Tour</title>
@@ -4506,11 +4177,17 @@
 <rating><value>TV-14</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
- <programme start="20261006000000 +0000" stop="20261006020000 +0000" channel="dc-us-tripleb_billiardtv_1">
-<title>American Poolplayers Association Billiards</title>
-<desc>Yellow Tier Final: Victoria Parker vs. Shelby Sutton from April 28, 2026.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
+ <programme start="20261006100000 +0000" stop="20261006110000 +0000" channel="dc-us-world_poker_tour_wpt_1">
+<title>World Poker Tour</title>
+<desc>More high-stakes action in Las Vegas with pros running huge bluffs for tons of cash.</desc>
+<rating><value>TV-14</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
+</programme>
+ <programme start="20261006110000 +0000" stop="20261006120000 +0000" channel="dc-us-world_poker_tour_wpt_1">
+<title>World Poker Tour</title>
+<desc>$200/$400 Blind.</desc>
+<rating><value>TV-14</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
  <programme start="20261006020000 +0000" stop="20261006040000 +0000" channel="dc-us-tripleb_billiardtv_1">
 <title>New Zealand World Championship Billiards</title>
@@ -4542,11 +4219,11 @@
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
 </programme>
- <programme start="20261005231446 +0000" stop="20261006020158 +0000" channel="dc-formula1tv_frla1_US">
-<title>2026 Azerbaijan Grand Prix</title>
-<desc>Race</desc>
-<rating><value>TV-14</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_c120c06f33f3347a60ea2b84a8a0e559ecb69b443b5ff256aeffcf3fd020148e_1000010385landscapewebjpg_768_432.jpeg" />
+ <programme start="20261006093000 +0000" stop="20261006123000 +0000" channel="dc-us-tripleb_billiardtv_1">
+<title>Billiards</title>
+<desc>Massé WPA Women's World 9-Ball Championship Semifinal: Rubilen Amit vs. Kristina Tkach from Sept. 7, 2024.</desc>
+<rating><value>TV-G</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
 </programme>
  <programme start="20261006020158 +0000" stop="20261006043355 +0000" channel="dc-formula1tv_frla1_US">
 <title>2006 Bahrain Grand Prix</title>
@@ -4578,17 +4255,11 @@
 <rating><value>TV-14</value></rating>
 <icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_db5cac144bcf6f68375104189e418d4cc9885b1d378e19df66d2230a3e21ccaf_1000009323landscapewebjpg_768_432.jpeg" />
 </programme>
- <programme start="20261006014549 +0000" stop="20261006024410 +0000" channel="dc-johnnycarson_jhcrn_US">
-<title>The Johnny Carson Show</title>
-<desc>James Garner on bypass surgery, 9,000 get-well cards. The operation has not, thankfully, hurt his golf game.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_fc9afa7a652d8be66d5b7c27f631d091bdbb86d85d84e5a29959c4acfebb90bf_thejohnnycarsonshowhollywoodiconsofthe60s1920x1080jpg_768_432.jpeg" />
-</programme>
- <programme start="20261006024410 +0000" stop="20261006034227 +0000" channel="dc-johnnycarson_jhcrn_US">
-<title>The Johnny Carson Show</title>
-<desc>Ricky Schroder juggles plastic eggs. Johnny tries, unaware Ricky swapped in real eggs. What a mess!</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_6ccd467398817b205eff76ef8c750b1f086cb3c0a7da4ae0ae3d390804f5b267_thejohnnycarsonshowhollywoodiconsofthe80s1920x1080jpg_768_432.jpeg" />
+ <programme start="20261006102428 +0000" stop="20261006110352 +0000" channel="dc-formula1tv_frla1_US">
+<title>F1 Race in 30 - Saudi Arabia 2021</title>
+<desc>Hamilton wins Saudi Arabia 2021 in a dramatic last-lap battle with Verstappen</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_47f09157f70f1c9c11dc965b83ac1349415fcd07175d3ed0959bbe0756b85d28_1000005029landscapewebjpg_768_432.jpeg" />
 </programme>
  <programme start="20261006034227 +0000" stop="20261006044048 +0000" channel="dc-johnnycarson_jhcrn_US">
 <title>The Johnny Carson Show</title>
@@ -4620,17 +4291,17 @@
 <rating><value>TV-PG</value></rating>
 <icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_7ffa8f5235b956bebb2043c8b208e2a06f216cd7a96d573c26ba7318a946e390_thejohnnycarsonshowanimalantics1920x1080jpg_768_432.jpeg" />
 </programme>
- <programme start="20261006012734 +0000" stop="20261006021857 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels</title>
-<desc>All aboard the nostalgia express as we take a trip through the past.</desc>
+ <programme start="20261006092350 +0000" stop="20261006102303 +0000" channel="dc-johnnycarson_jhcrn_US">
+<title>The Johnny Carson Show</title>
+<desc>For his first appearance on “The Tonight Show” Louie Anderson pays tribute to his parents and his home state.</desc>
 <rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_8de116973be21dbc0b613e39531631a26b49300ceb0f0e2fd14b4e003c6046f8_thejohnnycarsonshowcomiclegendsofthe80s1920x1080jpg_768_432.jpeg" />
 </programme>
- <programme start="20261006021857 +0000" stop="20261006031031 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels</title>
-<desc>It's an art. It's a science. It's a marriage of vapor and water.</desc>
+ <programme start="20261006102303 +0000" stop="20261006112056 +0000" channel="dc-johnnycarson_jhcrn_US">
+<title>The Johnny Carson Show</title>
+<desc>Animal trainer Jim Fowler brings a baby baboon and golden eagle onto the set. Plus, Gore Vidal is a guest.</desc>
 <rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/episodemeta/21089941/lg/c1be7c/lg_episode_thumbnail768x432_v1.jpeg" />
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_7ffa8f5235b956bebb2043c8b208e2a06f216cd7a96d573c26ba7318a946e390_thejohnnycarsonshowanimalantics1920x1080jpg_768_432.jpeg" />
 </programme>
  <programme start="20261006031031 +0000" stop="20261006040000 +0000" channel="dc-us-aenetworks_modernmarvels_1">
 <title>Modern Marvels</title>
@@ -4673,6 +4344,18 @@
 <desc>Every 15 minutes, Americans insert over 3.5 million coins into vending machines.</desc>
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/episodemeta/17243001/lg/83f1f2/lg_episode_thumbnail768x432_v1.jpeg" />
+</programme>
+ <programme start="20261006092154 +0000" stop="20261006101548 +0000" channel="dc-us-aenetworks_modernmarvels_1">
+<title>Modern Marvels</title>
+<desc>Cutting, digging, picking, stripping, shaking, and raking.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/episodemeta/17039895/lg/72067b/lg_episode_thumbnail768x432_v1.jpeg" />
+</programme>
+ <programme start="20261006101548 +0000" stop="20261006110927 +0000" channel="dc-us-aenetworks_modernmarvels_1">
+<title>Modern Marvels</title>
+<desc>Think dirt is dull? Modern Marvels reveals the mysteries of soil.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
 </programme>
  <programme channel="dc-400000008" start="20261005050000 +0000" stop="20261005053000 +0000"><title>2025 Series Recap | Golden Knights vs Mammoth</title><desc>Relive every hit, goal, and glove save from a wild Round 1 packed with playoff intensity.</desc></programme>
  <programme channel="dc-400000008" start="20261005053000 +0000" stop="20261005060000 +0000"><title>2025 Series Recap | Oilers vs Ducks</title><desc>Relive every hit, goal, and glove save from a wild Round 1 packed with playoff intensity.</desc></programme>
@@ -5487,4 +5170,5 @@
  <programme channel="dc-715950" start="20261006173509 +0000" stop="20261006193324 +0000"><title>No Reservations</title><desc>The life of a top chef changes when she becomes the guardian of her niece.</desc></programme>
  <programme channel="dc-715950" start="20261006193324 +0000" stop="20261006220557 +0000"><title>Sphere (1998)</title><desc>Researchers unearth the mystery of a 300-year-old spaceship.</desc></programme>
  <programme channel="dc-715950" start="20261006220557 +0000" stop="20261007001419 +0000"><title>Preacher's Kid</title><desc>After joining a traveling show, Angie discovers life on the road is tough.</desc></programme>
+ <programme start="20261006041442 +0000" stop="20261007041442 +0000" channel="6a1610bebdf296985fd95603-6449369eb3ff17382cae5801"><title lang="en">No Information</title><desc lang="en">No Information</desc></programme>
 </tv>
