@@ -152,6 +152,10 @@
 <display-name>Billiard TV</display-name>
 <icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-Logo-PNG-100x100_v2.png" />
 </channel>
+ <channel id="dc-formula1tv_frla1_US">
+<display-name>F1 Channel</display-name>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/feeds/images/C15studio/F1_Channel_800x200_white.png" />
+</channel>
  <channel id="dc-johnnycarson_jhcrn_US">
 <display-name>Johnny Carson TV</display-name>
 <icon src="https://d3bd0tgyk368z1.cloudfront.net/feeds/images/shoutfactory/LG_JCARTV_Logo_800x200_WHITE.png" />
@@ -178,7 +182,7 @@
  <channel id="dc-673500"><display-name>CINEVAULT: Classics</display-name><icon src="https://canvas-lb.tubitv.com/opts/yeukiWgw3Zn-lQ==/07448ddf-973b-4340-8779-32376a973248/CHgQeDoFMS4xLjlAAQ==" /></channel>
  <channel id="dc-400000059"><display-name>Classic Doctor Who</display-name><icon src="https://canvas-lb.tubitv.com/opts/xKIf6J3HCq8sfQ==/2d6dbfc0-0fca-4d2c-abcc-bce692499401/CHgQeDoFMS4xLjlAAQ==" /></channel>
  <channel id="dc-555130"><display-name>CBC News</display-name><icon src="https://canvas-lb.tubitv.com/opts/YMZxvZaVEX0HtA==/4de90f79-d72c-4016-a740-93916a615dc2/CHgQeDoFMS4xLjlAAQ==" /></channel>
- <programme start="20261118161414 +0000" stop="20261119161414 +0000" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>
+ <programme start="20261118181118 +0000" stop="20261119181118 +0000" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>
  <programme channel="6a1610bebdf296985fd95603-65622ac05dbccec83a87b641" start="20261117232801 +0000" stop="20261118000228 +0000">
     <title lang="en">Red Dwarf</title>
     <sub-title lang="en">Skipper</sub-title>
@@ -1793,16 +1797,6 @@
     <desc lang="en">The story about 12 year old Corey that emotionally torments his sister so that she will write the ultimate lyrics for his garage band.</desc>
     <episode-num system="plex">plex://movie/6abe53808ad32b16adc3ded3</episode-num>
   </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118145700 +0000" stop="20261118154900 +0000">
-        <title>The Outer Limits: Quality of Mercy</title>
-        <desc>A fighter pilot is taken prisoner during an intergalactic war and locked in a cell with a woman who is being transformed into an alien.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118154900 +0000" stop="20261118164100 +0000">
-        <title>The Outer Limits: The New Breed</title>
-        <desc>A scientist's experimental potion yields disastrous results when his close friend decides to test it upon himself.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118164100 +0000" stop="20261118173300 +0000">
         <title>The Outer Limits: The Voyage Home</title>
         <desc>Astronauts (Matt Craven, Jay O. Sanders, Michael Dorn) returning from Mars carry an alien in their craft.</desc>
@@ -1818,25 +1812,15 @@
         <desc>A woman who has been deaf since birth receives coded messages from aliens after having a revolutionary device implanted in her ear.</desc>
         <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261118150000 +0000" stop="20261118153000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118191800 +0000" stop="20261118201000 +0000">
+        <title>The Outer Limits: I, Robot</title>
+        <desc>A humanoid robot (Jake McKinnon) is accused of murdering its creator; with Leonard Nimoy, Cyndy Preston; directed by Adam Nimoy.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261118153000 +0000" stop="20261118160000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261118160000 +0000" stop="20261118163000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261118163000 +0000" stop="20261118170000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118201000 +0000" stop="20261118210200 +0000">
+        <title>The Outer Limits: If These Walls Could Talk</title>
+        <desc>A haunted house develops an appetite for a grieving mother (Alberta Watson) and a scientific researcher (Dwight Schultz).</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261118170000 +0000" stop="20261118173000 +0000">
         <title>Global News National</title>
@@ -1863,31 +1847,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118191800 +0000" stop="20261118201000 +0000">
-        <title>The Outer Limits: I, Robot</title>
-        <desc>A humanoid robot (Jake McKinnon) is accused of murdering its creator; with Leonard Nimoy, Cyndy Preston; directed by Adam Nimoy.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118201000 +0000" stop="20261118210200 +0000">
-        <title>The Outer Limits: If These Walls Could Talk</title>
-        <desc>A haunted house develops an appetite for a grieving mother (Alberta Watson) and a scientific researcher (Dwight Schultz).</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118210200 +0000" stop="20261118215400 +0000">
-        <title>The Outer Limits: Birthright</title>
-        <desc>Following a press conference, Sen. Richard Adams is involved in a serious car accident and his doctor discovers he is an alien.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118215400 +0000" stop="20261118224600 +0000">
-        <title>The Outer Limits: Voice of Reason</title>
-        <desc>A man with strong military connections tries to convince a powerful committee that aliens are trying to take over the human race.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118224600 +0000" stop="20261118233900 +0000">
-        <title>The Outer Limits</title>
-        <desc>An FBI agent's investigation of a baffling 30-year string of murders leads her to a doctor's laboratory.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261118193000 +0000" stop="20261118200000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -1907,6 +1866,31 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118210200 +0000" stop="20261118215400 +0000">
+        <title>The Outer Limits: Birthright</title>
+        <desc>Following a press conference, Sen. Richard Adams is involved in a serious car accident and his doctor discovers he is an alien.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118215400 +0000" stop="20261118224600 +0000">
+        <title>The Outer Limits: Voice of Reason</title>
+        <desc>A man with strong military connections tries to convince a powerful committee that aliens are trying to take over the human race.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118224600 +0000" stop="20261118233900 +0000">
+        <title>The Outer Limits</title>
+        <desc>An FBI agent's investigation of a baffling 30-year string of murders leads her to a doctor's laboratory.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118233900 +0000" stop="20261119003100 +0000">
+        <title>The Outer Limits</title>
+        <desc>Two androids (Nick Mancuso, Heather Graham) try revitalizing mankind after biological warfare eliminates all human life on Earth. With Dana Ashbrook.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119003100 +0000" stop="20261119012300 +0000">
+        <title>The Outer Limits</title>
+        <desc>Two expectant parents who desire a perfect child opt for an illegal and risky procedure designed to genetically enhance their baby.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261118213000 +0000" stop="20261118220000 +0000">
         <title>Global News National</title>
@@ -1928,26 +1912,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261118233900 +0000" stop="20261119003100 +0000">
-        <title>The Outer Limits</title>
-        <desc>Two androids (Nick Mancuso, Heather Graham) try revitalizing mankind after biological warfare eliminates all human life on Earth. With Dana Ashbrook.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119003100 +0000" stop="20261119012300 +0000">
-        <title>The Outer Limits</title>
-        <desc>Two expectant parents who desire a perfect child opt for an illegal and risky procedure designed to genetically enhance their baby.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119012300 +0000" stop="20261119021600 +0000">
-        <title>The Outer Limits</title>
-        <desc>A persistent reporter latches onto the trail of a deadly stranger after she overhears a message on her cellular phone.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119021600 +0000" stop="20261119030900 +0000">
-        <title>The Outer Limits</title>
-        <desc>A doctor (Mark Hamill) uses his revolutionary virtual-reality device to enter the mind of a comatose colleague. Also starring Debrah Farentino and Peter Breck.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261118233000 +0000" stop="20261119000000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -1967,6 +1931,31 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119012300 +0000" stop="20261119021600 +0000">
+        <title>The Outer Limits</title>
+        <desc>A persistent reporter latches onto the trail of a deadly stranger after she overhears a message on her cellular phone.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119021600 +0000" stop="20261119030900 +0000">
+        <title>The Outer Limits</title>
+        <desc>A doctor (Mark Hamill) uses his revolutionary virtual-reality device to enter the mind of a comatose colleague. Also starring Debrah Farentino and Peter Breck.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119030900 +0000" stop="20261119040100 +0000">
+        <title>The Outer Limits</title>
+        <desc>Thoughts of alien abduction continue to torment a troubled patient undergoing therapy at a medical institute.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119040100 +0000" stop="20261119045400 +0000">
+        <title>The Outer Limits</title>
+        <desc>A man's relationship with his wife drastically changes following the celebration of their first year of marriage.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119045400 +0000" stop="20261119054600 +0000">
+        <title>The Outer Limits</title>
+        <desc>A new student at a renowned academy discovers his classmates are being controlled by computer chips implanted in their brains.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119013000 +0000" stop="20261119020000 +0000">
         <title>Global News National</title>
@@ -1988,31 +1977,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119030900 +0000" stop="20261119040100 +0000">
-        <title>The Outer Limits</title>
-        <desc>Thoughts of alien abduction continue to torment a troubled patient undergoing therapy at a medical institute.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119040100 +0000" stop="20261119045400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A man's relationship with his wife drastically changes following the celebration of their first year of marriage.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119045400 +0000" stop="20261119054600 +0000">
-        <title>The Outer Limits</title>
-        <desc>A new student at a renowned academy discovers his classmates are being controlled by computer chips implanted in their brains.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119054600 +0000" stop="20261119063800 +0000">
-        <title>The Outer Limits</title>
-        <desc>Alien ships are headed for Earth, and a newly sworn-in U.S. president must make his first foreign-policy decision.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119063800 +0000" stop="20261119073000 +0000">
-        <title>The Outer Limits</title>
-        <desc>A presumed-dead astronaut from a doomed mission 20 years past re-establishes contact with Earth from another world.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119033000 +0000" stop="20261119040000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2032,6 +1996,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119054600 +0000" stop="20261119063800 +0000">
+        <title>The Outer Limits</title>
+        <desc>Alien ships are headed for Earth, and a newly sworn-in U.S. president must make his first foreign-policy decision.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119063800 +0000" stop="20261119073000 +0000">
+        <title>The Outer Limits</title>
+        <desc>A presumed-dead astronaut from a doomed mission 20 years past re-establishes contact with Earth from another world.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119073000 +0000" stop="20261119082200 +0000">
+        <title>The Outer Limits</title>
+        <desc>A man finds himself in a desolate world where the ruler, a sadistic industrialist, pits his "guests" against one another for his own entertainment.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119082200 +0000" stop="20261119091500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A lonely physics professor discovers the sun is burning out and uses the Earth's final hours to make up for lost time.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119053000 +0000" stop="20261119060000 +0000">
         <title>Global News National</title>
@@ -2053,31 +2037,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119073000 +0000" stop="20261119082200 +0000">
-        <title>The Outer Limits</title>
-        <desc>A man finds himself in a desolate world where the ruler, a sadistic industrialist, pits his "guests" against one another for his own entertainment.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119082200 +0000" stop="20261119091500 +0000">
-        <title>The Outer Limits</title>
-        <desc>A lonely physics professor discovers the sun is burning out and uses the Earth's final hours to make up for lost time.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119091500 +0000" stop="20261119100700 +0000">
-        <title>The Outer Limits</title>
-        <desc>When townspeople are infected with ancient parasites unearthed by miners, their only hope for survival is a mentally challenged boy.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119100700 +0000" stop="20261119110000 +0000">
-        <title>The Outer Limits</title>
-        <desc>Ready for the unknown? For a new experience that could challenge everything? Because beyond the familiar reality lurks the unfathomable. Cross the border into a world beyond imagination: The Unknown Dimension.</desc>
-        <icon src="https://images.pluto.tv/series/69300b7363142c96a9356328/tile_1787286189367.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119110000 +0000" stop="20261119115200 +0000">
-        <title>The Outer Limits</title>
-        <desc>A convicted murderer (Clancy Brown) agrees to participate in a secret military experiment to avoid being executed.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119073000 +0000" stop="20261119080000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2097,6 +2056,31 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119091500 +0000" stop="20261119100700 +0000">
+        <title>The Outer Limits</title>
+        <desc>When townspeople are infected with ancient parasites unearthed by miners, their only hope for survival is a mentally challenged boy.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119100700 +0000" stop="20261119110000 +0000">
+        <title>The Outer Limits</title>
+        <desc>Ready for the unknown? For a new experience that could challenge everything? Because beyond the familiar reality lurks the unfathomable. Cross the border into a world beyond imagination: The Unknown Dimension.</desc>
+        <icon src="https://images.pluto.tv/series/69300b7363142c96a9356328/tile_1787286189367.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119110000 +0000" stop="20261119115200 +0000">
+        <title>The Outer Limits</title>
+        <desc>A convicted murderer (Clancy Brown) agrees to participate in a secret military experiment to avoid being executed.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119115200 +0000" stop="20261119124400 +0000">
+        <title>The Outer Limits</title>
+        <desc>A rebel leader concocts a plan for freedom on a dark future Earth that has been conquered and programmed for slavery by aliens.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119124400 +0000" stop="20261119133700 +0000">
+        <title>The Outer Limits</title>
+        <desc>A sheriff investigating the disappearances of several elderly women finds they are not actually missing.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119093000 +0000" stop="20261119100000 +0000">
         <title>Global News National</title>
@@ -2118,26 +2102,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119115200 +0000" stop="20261119124400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A rebel leader concocts a plan for freedom on a dark future Earth that has been conquered and programmed for slavery by aliens.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119124400 +0000" stop="20261119133700 +0000">
-        <title>The Outer Limits</title>
-        <desc>A sheriff investigating the disappearances of several elderly women finds they are not actually missing.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119133700 +0000" stop="20261119142900 +0000">
-        <title>The Outer Limits</title>
-        <desc>Three astronauts fight to save humanity from destruction; with Wil Wheaton, Robert Patrick and Graham Greene.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119142900 +0000" stop="20261119152100 +0000">
-        <title>The Outer Limits</title>
-        <desc>A fading female rock star receives a visit from a futuristic time traveler who changes her life -- though not necessarily for the better.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119113000 +0000" stop="20261119120000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2157,6 +2121,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119133700 +0000" stop="20261119142900 +0000">
+        <title>The Outer Limits</title>
+        <desc>Three astronauts fight to save humanity from destruction; with Wil Wheaton, Robert Patrick and Graham Greene.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119142900 +0000" stop="20261119152100 +0000">
+        <title>The Outer Limits</title>
+        <desc>A fading female rock star receives a visit from a futuristic time traveler who changes her life -- though not necessarily for the better.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119152100 +0000" stop="20261119161300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A scientist becomes trapped in another dimension while testing theories concerning out-of-body experiences.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119161300 +0000" stop="20261119170500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A man's life disintegrates as he inexplicably moves from one world to another.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119133000 +0000" stop="20261119140000 +0000">
         <title>Global News National</title>
@@ -2178,11 +2162,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119152100 +0000" stop="20261119190000 +0000">
-        <title>The Outer Limits</title>
-        <desc>no info available</desc>
-        <icon src="https://images.pluto.tv/channels/6874ad743ffa5e0c917f6e20/featuredImage_1756200180819.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261119153000 +0000" stop="20261119160000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2193,20 +2172,30 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261119163000 +0000" stop="20261119190000 +0000">
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261119163000 +0000" stop="20261119170000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261119170000 +0000" stop="20261119173000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119170500 +0000" stop="20261119180300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A doctor invents a virtual reality device that allows convicts to mentally serve a life sentence in a few hours.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261119180300 +0000" stop="20261119210000 +0000">
+        <title>The Outer Limits</title>
+        <desc>no info available</desc>
+        <icon src="https://images.pluto.tv/channels/6874ad743ffa5e0c917f6e20/featuredImage_1756200180819.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261119173000 +0000" stop="20261119210000 +0000">
         <title>Global News National</title>
         <desc>no info available</desc>
         <icon src="https://images.pluto.tv/channels/62cbef9ebb857100072fc187/featuredImage.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
-    </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261118150000 +0000" stop="20261118160000 +0000">
-        <title>In Case You Missed It</title>
-        <desc>Check out the most interesting and unforgettable moments from CNN… in case you missed it!</desc>
-        <icon src="https://images.pluto.tv/series/685d695d9d079f48dbe9bb62/tile_1785190101934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261118160000 +0000" stop="20261118170000 +0000">
-        <title>CNN Headline Express</title>
-        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
-        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261118170000 +0000" stop="20261118180000 +0000">
         <title>CNN Headline Express</title>
@@ -2323,7 +2312,22 @@
         <desc>Check out the most interesting and unforgettable moments from CNN… in case you missed it!</desc>
         <icon src="https://images.pluto.tv/series/685d695d9d079f48dbe9bb62/tile_1785190101934.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261119160000 +0000" stop="20261119190000 +0000">
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261119160000 +0000" stop="20261119170000 +0000">
+        <title>CNN Headline Express</title>
+        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
+        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261119170000 +0000" stop="20261119180000 +0000">
+        <title>CNN Headline Express</title>
+        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
+        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261119180000 +0000" stop="20261119190000 +0000">
+        <title>CNN Headline Express</title>
+        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
+        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261119190000 +0000" stop="20261119210000 +0000">
         <title>CNN HEADLINES</title>
         <desc>no info available</desc>
         <icon src="https://images.pluto.tv/channels/5421f71da6af422839419cb3/featuredImage_1755034025648.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
@@ -4016,18 +4020,6 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme start="20261118150014 +0000" stop="20261118160013 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Bonanza</title>
-<desc>The son of a neighboring rancher intends to sell their land for a mining operation that will ruin the water rights agreement that Andy and Ben made years ago. Starring Michael Landon as Joe, Dan Blocker as Hoss, Lorne Green as Ben, and Pernell Roberts as Adam. This beloved western drama ran for 14 seasons on NBC. Created by David Dortort.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
-</programme>
- <programme start="20261118160013 +0000" stop="20261118170013 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Bonanza</title>
-<desc>The Cartwrights take a young boy to the Ponderosa after the death of his mother. Hoss is the only one that is able to get through the boy's hostility and bitterness, but, as the two begin to get close, the boy's father breaks out of prison and comes to retrieve the boy.Starring Michael Landon as Joe, Dan Blocker as Hoss, Lorne Green as Ben, and Pernell Roberts as Adam. This beloved western drama ran for 14 seasons on NBC. Created by David Dortort.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
-</programme>
  <programme start="20261118170013 +0000" stop="20261118180013 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
 <title>Bonanza</title>
 <desc>Little Joe Cartwright tries to help a gypsy girl who was abandoned by her people - because they believed she was a werewolf.Starring Michael Landon as Joe, Dan Blocker as Hoss, Lorne Green as Ben, and Pernell Roberts as Adam. This beloved western drama ran for 14 seasons on NBC. Created by David Dortort.</desc>
@@ -4064,23 +4056,17 @@
 <rating><value>TV-14</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
- <programme start="20261118150000 +0000" stop="20261118160000 +0000" channel="dc-us-world_poker_tour_wpt_1">
-<title>World Poker Tour</title>
-<desc>High-stakes tournament poker from some of the world's famous casinos and card rooms.</desc>
-<rating><value>TV-14</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
+ <programme start="20261118235908 +0000" stop="20261119005925 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
+<title>West of the Divide</title>
+<desc>John Wayne stars as Ted Hayden, a tough hombre who goes undercover to join a gang led by a heartless fiend known only as Mr. Gentry (Lloyd Whitlock). Gentry is out to take over a ranch belonging to one of Hayden's friends, but as Hayden finds out, Gentry has a lot more than that up his sleeve. You'll have to watch this two-fisted Western to find out the rest!</desc>
+<rating><value>TV-G</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
- <programme start="20261118160000 +0000" stop="20261118170000 +0000" channel="dc-us-world_poker_tour_wpt_1">
-<title>World Poker Tour</title>
-<desc>High-stakes tournament poker from some of the world's famous casinos and card rooms.</desc>
-<rating><value>TV-14</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
-</programme>
- <programme start="20261118170000 +0000" stop="20261118175900 +0000" channel="dc-us-world_poker_tour_wpt_1">
-<title>World Poker Tour: Season 7</title>
-<desc>From Las Vegas.</desc>
-<rating><value>TV-14</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
+ <programme start="20261119005925 +0000" stop="20261119022027 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
+<title>The Legend of the Lone Ranger</title>
+<desc>The Butch Cavendish gang ambushes a group of Texas Rangers, killing all but one. The surviving ranger is nursed back to health by Native American Tonto, and takes on the identity of a masked vigilante, determined to bring all outlaws to justice. Culled from episodes of the popular TV series, this feature is great fun for fans of the Lone Ranger. Starring Clayton Moore and Jay Silverheels.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
  <programme start="20261118175900 +0000" stop="20261118190000 +0000" channel="dc-us-world_poker_tour_wpt_1">
 <title>World Poker Tour: Season 7</title>
@@ -4106,11 +4092,11 @@
 <rating><value>TV-14</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
- <programme start="20261118143000 +0000" stop="20261118170000 +0000" channel="dc-us-tripleb_billiardtv_1">
-<title>2024 WPBA Dr. Pool Jacoby Tour Championship</title>
-<desc>Winner Round 6: Kristina Zlateva vs. Bojana Sarac from Dec. 15, 2024.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
+ <programme start="20261119010000 +0000" stop="20261119020000 +0000" channel="dc-us-world_poker_tour_wpt_1">
+<title>World Poker Tour</title>
+<desc>The WPT World Championship at Wynn Las Vegas wraps up Season 22 for the WPT.</desc>
+<rating><value>TV-14</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
  <programme start="20261118170000 +0000" stop="20261118183000 +0000" channel="dc-us-tripleb_billiardtv_1">
 <title>Predator US Pro Billiard Ohio Open</title>
@@ -4136,17 +4122,41 @@
 <rating><value>TV-G</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
 </programme>
- <programme start="20261118151812 +0000" stop="20261118161749 +0000" channel="dc-johnnycarson_jhcrn_US">
-<title>The Johnny Carson Show</title>
-<desc>Actor/pilot John Travolta on flying lessons, dropping out of high school and getting his first part.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_158da4f013e4d93117f9581d5762e402b302fa923dd1044d619755c6aa02386b_thejohnnycarsonshowhollywoodiconsofthe70s1920x1080jpg_768_432.jpeg" />
+ <programme start="20261119010000 +0000" stop="20261119030000 +0000" channel="dc-us-tripleb_billiardtv_1">
+<title>Billiards</title>
+<desc>Day 5 Women's Final - Chieh-Yu Chou vs Kelly Fisher from September 24, 2023.</desc>
+<rating><value>TV-G</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
 </programme>
- <programme start="20261118161749 +0000" stop="20261118173621 +0000" channel="dc-johnnycarson_jhcrn_US">
-<title>The Johnny Carson Show</title>
-<desc>Orson Welles (Citizen Kane) discusses his radio, theatre and movie career which spanned over 5 decades.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_982664874624ce70356bbb47e5c858e833b45d5b7c087f6d40bf579b8cc53592_thejohnnycarsonshowhollywoodiconsofthe50s1920x1080jpg_768_432.jpeg" />
+ <programme start="20261118141526 +0000" stop="20261118181125 +0000" channel="dc-formula1tv_frla1_US">
+<title>2026 Mexico City Grand Prix</title>
+<desc>Race</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_503d090a267aa7616ed9cc95fffd3f054df64e7620bdba069ba20c5c897bb45c_1000010420landscapewebjpg_768_432.jpeg" />
+</programme>
+ <programme start="20261118181125 +0000" stop="20261118192740 +0000" channel="dc-formula1tv_frla1_US">
+<title>Post-Race Show - Mexico</title>
+<desc>Interviews, reaction and expert analysis from the race.</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_38bbdeed9f640303b21b341e0237b2659037f73b45b975026febb4438c508722_1000010419landscapewebjpg_768_432.jpeg" />
+</programme>
+ <programme start="20261118192740 +0000" stop="20261118231514 +0000" channel="dc-formula1tv_frla1_US">
+<title>F1 2023 Dutch Grand Prix</title>
+<desc>Verstappen wins a thrilling 2023 Dutch GP at Zandvoort, holding off fierce competition and home crowd!</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_fe8397bf443eeeff43491b93bc18a61733e869fd37f70f64b3d29d07d33cb0a9_1000006788landscapewebjpg_768_432.jpeg" />
+</programme>
+ <programme start="20261118231514 +0000" stop="20261119001002 +0000" channel="dc-formula1tv_frla1_US">
+<title>1990 US Grand Prix - Highlights</title>
+<desc>1990 US Grand Prix - Highlights</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_e640bf32dbbbc58f56bc8cd2e86bcdff7bbe5ea93c1e53cae5ee98525be874f6_1000002963landscapewebjpg_768_432.jpeg" />
+</programme>
+ <programme start="20261119001002 +0000" stop="20261119040200 +0000" channel="dc-formula1tv_frla1_US">
+<title>2026 Mexico City Grand Prix</title>
+<desc>Race</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_503d090a267aa7616ed9cc95fffd3f054df64e7620bdba069ba20c5c897bb45c_1000010420landscapewebjpg_768_432.jpeg" />
 </programme>
  <programme start="20261118173621 +0000" stop="20261118183458 +0000" channel="dc-johnnycarson_jhcrn_US">
 <title>The Johnny Carson Show</title>
@@ -4178,23 +4188,17 @@
 <rating><value>TV-PG</value></rating>
 <icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_fc9afa7a652d8be66d5b7c27f631d091bdbb86d85d84e5a29959c4acfebb90bf_thejohnnycarsonshowhollywoodiconsofthe60s1920x1080jpg_768_432.jpeg" />
 </programme>
- <programme start="20261118154210 +0000" stop="20261118163305 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels</title>
-<desc>Modern Marvels is going big, and counting down.</desc>
+ <programme start="20261118232207 +0000" stop="20261119001844 +0000" channel="dc-johnnycarson_jhcrn_US">
+<title>The Johnny Carson Show</title>
+<desc>Garry Shandling is ALWAYS funny, whether he's talking about his hair, pets, or traffic tickets.</desc>
 <rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_a64af6e9745c6165784c358f4f79f8a07f650af2c5d4ba62cafd9de9b74f9240_thejohnnycarsonshowthebestofgarryshandling1920x1080jpg_768_432.jpeg" />
 </programme>
- <programme start="20261118163305 +0000" stop="20261118170000 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels: Essentials</title>
-<desc>It's one of the most dangerous jobs in the world.</desc>
+ <programme start="20261119001844 +0000" stop="20261119011633 +0000" channel="dc-johnnycarson_jhcrn_US">
+<title>The Johnny Carson Show</title>
+<desc>James Woods talks body casts, Peter Billingsley plans to quit acting when he turns 18 + Martin Mull appears.</desc>
 <rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
-</programme>
- <programme start="20261118170000 +0000" stop="20261118175316 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels</title>
-<desc>Explore history and changes in military, police, civilian firing ranges.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_6ccd467398817b205eff76ef8c750b1f086cb3c0a7da4ae0ae3d390804f5b267_thejohnnycarsonshowhollywoodiconsofthe80s1920x1080jpg_768_432.jpeg" />
 </programme>
  <programme start="20261118175316 +0000" stop="20261118184620 +0000" channel="dc-us-aenetworks_modernmarvels_1">
 <title>Modern Marvels</title>
@@ -4231,6 +4235,18 @@
 <desc>All it takes to set off a booby trap is an unsuspecting victim.</desc>
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/episodemeta/17610717/lg/1e2b6a/lg_episode_thumbnail768x432_v1.jpeg" />
+</programme>
+ <programme start="20261118231416 +0000" stop="20261119000759 +0000" channel="dc-us-aenetworks_modernmarvels_1">
+<title>Modern Marvels</title>
+<desc>Cotton: a soft fiber influencing history, from empires to daily fabric.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
+</programme>
+ <programme start="20261119000759 +0000" stop="20261119010202 +0000" channel="dc-us-aenetworks_modernmarvels_1">
+<title>Modern Marvels</title>
+<desc>Blade implements have been a part of civilized man's arsenal.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/episodemeta/17795596/lg/962a59/lg_episode_thumbnail768x432_v1.jpeg" />
 </programme>
  <programme channel="dc-556174" start="20261117070000 +0000" stop="20261117090000 +0000"><title>Dateline NBC</title><desc>A woman's disappearance tears her young children apart; a sting operation catches an unlikely villain.</desc></programme>
  <programme channel="dc-556174" start="20261117090000 +0000" stop="20261117100000 +0000"><title>Dateline NBC</title><desc>When a young Army medic based at Ft. Bragg, N.C., goes missing, police can't solve the case despite having a suspect until an unorthodox private investigator steps in to help.</desc></programme>
