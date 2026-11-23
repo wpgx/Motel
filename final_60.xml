@@ -13,10 +13,6 @@
     <display-name>Dick Van Dyke</display-name>
     <icon src="https://provider-static.plex.tv/epg/cms/production/03fe73df-6585-49b7-bdd5-5ea605c4086f/FilmRise_DickVanDykeShow_Logo_Color.png" />
   </channel>
- <channel id="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814">
-    <display-name>The Ed Sullivan Show</display-name>
-    <icon src="https://provider-static.plex.tv/0/epg/channels/logos/gracenote/0d7687fcfd8b218d2c4f0a9337b7a68f.png" />
-  </channel>
  <channel id="6a1610bebdf296985fd95603-68e03664c63d8255360a2cd7">
     <display-name>That Girl</display-name>
     <icon src="https://provider-static.plex.tv/epg/cms/production/6b38aaa6-5232-47c9-b139-da66586aee88/ThatGirl_Logo_ColorRDX.png" />
@@ -28,6 +24,10 @@
  <channel id="6a1610bebdf296985fd95603-5f170d60b898490041b49359">
     <display-name>Toon Goggles</display-name>
     <icon src="https://provider-static.plex.tv/epg/cms/production/1a85f23b-2648-4636-af3d-1d69b3721200/toongoggles_logo_light_1500x1000.png" />
+  </channel>
+ <channel id="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814">
+    <display-name>The Ed Sullivan Show</display-name>
+    <icon src="https://provider-static.plex.tv/0/epg/channels/logos/gracenote/0d7687fcfd8b218d2c4f0a9337b7a68f.png" />
   </channel>
  <channel id="dc-6874ad743ffa5e0c917f6e20">
         <display-name>The Outer Limits</display-name>
@@ -182,7 +182,7 @@
  <channel id="dc-673500"><display-name>CINEVAULT: Classics</display-name><icon src="https://canvas-lb.tubitv.com/opts/yeukiWgw3Zn-lQ==/07448ddf-973b-4340-8779-32376a973248/CHgQeDoFMS4xLjlAAQ==" /></channel>
  <channel id="dc-400000059"><display-name>Classic Doctor Who</display-name><icon src="https://canvas-lb.tubitv.com/opts/xKIf6J3HCq8sfQ==/2d6dbfc0-0fca-4d2c-abcc-bce692499401/CHgQeDoFMS4xLjlAAQ==" /></channel>
  <channel id="dc-555130"><display-name>CBC News</display-name><icon src="https://canvas-lb.tubitv.com/opts/YMZxvZaVEX0HtA==/4de90f79-d72c-4016-a740-93916a615dc2/CHgQeDoFMS4xLjlAAQ==" /></channel>
- <programme start="20261123121331 +0000" stop="20261124121331 +0000" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>
+ <programme start="20261123141403 +0000" stop="20261124141403 +0000" channel="welcome"><title lang="en">Welcome to Cairns Motel</title></programme>
  <programme channel="6a1610bebdf296985fd95603-65622ac05dbccec83a87b641" start="20261122235556 +0000" stop="20261123003013 +0000">
     <title lang="en">Red Dwarf</title>
     <sub-title lang="en">Mechocracy</sub-title>
@@ -902,264 +902,6 @@
     <sub-title lang="en">A Nice, Friendly Game of Cards</sub-title>
     <desc lang="en">A social game of poker turns sour when it's discovered Rob has been playing with a marked deck.</desc>
     <episode-num system="plex">plex://episode/5d9c13d2d4f2a9001f82ae0b</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123000000 +0000" stop="20261123003000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">1965</sub-title>
-    <desc lang="en">1965: The Four Tops; Sonny and Cher; Herman's Hermits; Four Seasons; The Lovin' Spoonful; Tom Jones; Rolling Stones.</desc>
-    <episode-num system="plex">plex://episode/5fc6d21a0e1001002d6f80da</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123003000 +0000" stop="20261123010000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Joan Rivers; The West Point Glee Club; Peter Gennaro.</desc>
-    <episode-num system="plex">plex://episode/64828fddd80d2faf42628328</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123010000 +0000" stop="20261123013000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Jackie Wilson; Don Adams; Roberta Peters.</desc>
-    <episode-num system="plex">plex://episode/64828fddd6aa0fb881391a56</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123013000 +0000" stop="20261123020000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">1968</sub-title>
-    <desc lang="en">1968: Gary Puckett and the Union Gap; Tommy James and the Shondells; The Chamber Brothers; the Beach Boys; Spanky and Our Gang; Tom Jones.</desc>
-    <episode-num system="plex">plex://episode/5fc6ca083f000e002df819e6</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123020000 +0000" stop="20261123023000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Elvis Presley</sub-title>
-    <desc lang="en">Elvis Presley performs "Don't Be Cruel," "When My Blue Moon Turns to Gold," "Hound Dog" and others.</desc>
-    <episode-num system="plex">plex://episode/5fc6c78db823d4002d7916c6</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123023000 +0000" stop="20261123030000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Liza Minnelli, and Gary Puckett and the Union Gap.</desc>
-    <episode-num system="plex">plex://episode/646fc72117578fa75a579587</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123030000 +0000" stop="20261123033000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Tom Jones, Topo Gigio and John Byner.</desc>
-    <episode-num system="plex">plex://episode/647053281ab7d6c433fa9540</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123033000 +0000" stop="20261123040000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">Norm Crosby, Corbett Monica, Eric Morecambe, Ernie Wise, Fiore and Eldridge</sub-title>
-    <desc lang="en">Ed Sullivan presents Norm Crosby, Corbett Monica, Eric Morecambe, Ernie Wise, Fiore and Eldridge.</desc>
-    <episode-num system="plex">plex://episode/646fc70a8c0dab12d43dac70</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123040000 +0000" stop="20261123043000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">Red Buttons, Joe E. Lewis, Dan Rowan, Dick Martin, John Byner</sub-title>
-    <desc lang="en">Ed Sullivan presents Red Buttons, Joe E. Lewis, Dan Rowan, Dick Martin and John Byner.</desc>
-    <episode-num system="plex">plex://episode/646fc72105ad1737005fba98</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123043000 +0000" stop="20261123050000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Temptations</sub-title>
-    <desc lang="en">The Temptations perform "Just My Imagination," "I Can't Get Next to You" and others.</desc>
-    <episode-num system="plex">plex://episode/5fc6c831c8d56d002e006ed7</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123050000 +0000" stop="20261123053000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Gone Too Soon</sub-title>
-    <desc lang="en">Performances by Janis Joplin, Elvis Presley, Buddy Holly, Bobby Darin, the Carpenters and the Mamas &amp; the Papas.</desc>
-    <episode-num system="plex">plex://episode/5fc6cbdf1a65df002dd9502d</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123053000 +0000" stop="20261123060000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents The Mamas &amp; The Papas, John Byner, and Topo Gigio.</desc>
-    <episode-num system="plex">plex://episode/646f3af100b36ad98e292e18</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123060000 +0000" stop="20261123063000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Ella Fitzgerald, Stiller and Meara, and The Temptations.</desc>
-    <episode-num system="plex">plex://episode/646f1e108a34e8c778c0e780</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123063000 +0000" stop="20261123070000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">Joan Rivers, Rowan and Martin, Rich Little, Jackie Gleason and Art Carney</sub-title>
-    <desc lang="en">Ed Sullivan presents Joan Rivers "Fashion, Housework, Kids, Dog," Rowan and Martin "Spies, Rich Little Impressions," Jackie Gleason and Art Carney "Honeymooners: Ralph and Alice Get Ready to go Out."</desc>
-    <episode-num system="plex">plex://episode/65bd5203b8b0ea0f24e1163f</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123070000 +0000" stop="20261123073000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">George Carlin, Professor Backwards, Hendra and Ullett, Jackie Vernon, Stiller and Meara</sub-title>
-    <desc lang="en">Ed Sullivan presents George Carlin's election year, Professor Backward's letter to mother, Hendra and Ullett's Mets fan explains baseball to a Brit, Jacke Vernon's dull men's club, Stiller and Meara's mother of student demonstrator.</desc>
-    <episode-num system="plex">plex://episode/65bd52024da2087c26ef8227</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123073000 +0000" stop="20261123080000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Smash Hits of the Sixties</sub-title>
-    <desc lang="en">The '60s: The Beatles; the Beach Boys; the Mamas &amp; the Papas; the Four Seasons.</desc>
-    <episode-num system="plex">plex://episode/5fc6cc6806b6f5002d604499</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123080000 +0000" stop="20261123083000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents The Mamas and The Papas, Topo Gigio, and Joan Rivers.</desc>
-    <episode-num system="plex">plex://episode/64602d2989e06490de13c5a0</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123083000 +0000" stop="20261123090000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">Rodney Dangerfield, Bert Lahr, Shecky Green, Flip Wilson</sub-title>
-    <desc lang="en">Ed Sullivan presents Rodney Dangerfield "No Respect, Self-Loathing Home Life," Bert Lahr "Near-Sighted Doctor," Shecky Greene "Composers," Flip Wilson "Hecklers," Ray Charles, Troops.</desc>
-    <episode-num system="plex">plex://episode/65bd52024db0f9e846d7a245</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123090000 +0000" stop="20261123093000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">Alan King, Jack Carter, Bobby Ramsen, Rowan and Martin</sub-title>
-    <desc lang="en">Alan King's Dogs; Jack Carter's Ed's Travels, T.V. Westerns, Pop Singers; Bobby Ramsen's Movies.</desc>
-    <episode-num system="plex">plex://episode/6312960cd790f0bd72f9ce3d</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123093000 +0000" stop="20261123100000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Elvis Presley</sub-title>
-    <desc lang="en">Elvis Presley performs "Don't Be Cruel," "When My Blue Moon Turns to Gold," "Hound Dog" and others.</desc>
-    <episode-num system="plex">plex://episode/5fc6c78db823d4002d7916c6</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123100000 +0000" stop="20261123103000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">1968</sub-title>
-    <desc lang="en">1968: Gary Puckett and the Union Gap; Tommy James and the Shondells; The Chamber Brothers; the Beach Boys; Spanky and Our Gang; Tom Jones.</desc>
-    <episode-num system="plex">plex://episode/5fc6ca083f000e002df819e6</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123103000 +0000" stop="20261123110000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents The Temptations, Myron Cohen and Vanilla Fudge.</desc>
-    <episode-num system="plex">plex://episode/64602d2ccebcca3e278be620</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123110000 +0000" stop="20261123113000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">The Cowsills; Patti Page; Stiller &amp; Meara.</desc>
-    <episode-num system="plex">plex://episode/6482ac1fd6aa0fb88139d407</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123113000 +0000" stop="20261123120000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Teen Idols</sub-title>
-    <desc lang="en">Performers include Elvis Presley, Ricky Nelson, Tom Jones, Paul Anka, Bobby Darin, and Dino, Desi and Billy.</desc>
-    <episode-num system="plex">plex://episode/5fc6ce68088e7d002d46dbef</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123120000 +0000" stop="20261123123000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">The Sweet Sound of Soul</sub-title>
-    <desc lang="en">Soul music: The Supremes; the Jackson Five; James Brown; the Righteous Brothers; The Temptations; the Four Tops.</desc>
-    <episode-num system="plex">plex://episode/5fc6c766c40548002d4d4f31</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123123000 +0000" stop="20261123130000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Gary Puckett and the Union Gap, Diahann Carroll, and Richard Pryor.</desc>
-    <episode-num system="plex">plex://episode/64703709dddd63c7957c2dbe</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123130000 +0000" stop="20261123133000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents The Rolling Stones, Petula Clark, The Muppets, and Alan King.</desc>
-    <episode-num system="plex">plex://episode/646fc6cacb6c55eeb86584f0</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123133000 +0000" stop="20261123140000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Temptations</sub-title>
-    <desc lang="en">The Temptations perform "Just My Imagination," "I Can't Get Next to You" and others.</desc>
-    <episode-num system="plex">plex://episode/5fc6c831c8d56d002e006ed7</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123140000 +0000" stop="20261123143000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">The San Francisco Scene</sub-title>
-    <desc lang="en">Performances by Jefferson Airplane, Santana, Janis Joplin, Creedence Clearwater Revival and Sly and the Family Stone.</desc>
-    <episode-num system="plex">plex://episode/5fc6ca78598c41002d9d7179</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123143000 +0000" stop="20261123150000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Liberace, Liza Minnelli, Rudi Schweitzer, Rod McKuen and Bill Dana.</desc>
-    <episode-num system="plex">plex://episode/6480ea0160b6b04976369d3a</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123150000 +0000" stop="20261123153000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Lesley Gore; Morecambe &amp; Wise; Tony Bennett.</desc>
-    <episode-num system="plex">plex://episode/64813e5e1ab2ff572648b3f8</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123153000 +0000" stop="20261123163000 +0000">
-    <title lang="en">Rock 'n' Roll Forever: Ed Sullivan's Greatest Hits</title>
-    <sub-title lang="en">Rock 'n' Roll Forever: Ed Sullivan's Greatest Hits</sub-title>
-    <desc lang="en">Performances by Elvis Presley, the Beatles, Ray Charles, the Supremes, the Doors, Janis Joplin, the Mamas and the Papas.</desc>
-    <episode-num system="plex">plex://episode/6af134930c9c3015c6e016db</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123163000 +0000" stop="20261123170000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Top Hits of 1969</sub-title>
-    <desc lang="en">1969: Smith; Oliver; Brooklyn Bridge; the Fifth Dimension; Creedence Clearwater Revival.</desc>
-    <episode-num system="plex">plex://episode/5fc6cd1b0e1001002d6ecb90</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123170000 +0000" stop="20261123173000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Teen Idols</sub-title>
-    <desc lang="en">Performers include Elvis Presley, Ricky Nelson, Tom Jones, Paul Anka, Bobby Darin, and Dino, Desi and Billy.</desc>
-    <episode-num system="plex">plex://episode/5fc6ce68088e7d002d46dbef</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123173000 +0000" stop="20261123180000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">George Carlin, Phyllis Diller, Alan King, Rodney Dangerfield</sub-title>
-    <desc lang="en">Comedic performances by George Carlin's Al Sleet, Hippy-Dippy Weatherman; Phyllis Diller's Husbands, Kids, Face Lift; Alan King's Airline Horror Story; Rodney Dangerfield's Dating, Marriage and Money.</desc>
-    <episode-num system="plex">plex://episode/6351247bd08330cdaa2a5592</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123180000 +0000" stop="20261123183000 +0000">
-    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
-    <sub-title lang="en">Totie Fields, Abbott and Costello, Pat Henry, Wayne and Shuster</sub-title>
-    <desc lang="en">Totie Fields' Skiing; Abbott and Costello's Tax Collector; Pat Henry's Kid's Toys.</desc>
-    <episode-num system="plex">plex://episode/631295e6daaa1cf2a2fb7eb7</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123183000 +0000" stop="20261123190000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Tom Jones, Robert Goulet &amp; Jane Powell, Wayne Newton, and Martha and the Vandellas.</desc>
-    <episode-num system="plex">plex://episode/646f1e0bd5f37a53af116e15</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123190000 +0000" stop="20261123193000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents Tony Bennett, Flip Wilson, and Tiny Tim.</desc>
-    <episode-num system="plex">plex://episode/64703717e04c754ad3787224</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123193000 +0000" stop="20261123203000 +0000">
-    <title lang="en">A Really Big Show: Ed Sullivan's 50th Anniversary</title>
-    <sub-title lang="en">A Really Big Show: Ed Sullivan's 50th Anniversary</sub-title>
-    <desc lang="en">The Smothers Brothers introduce memorable moments from the variety show of the '60s: comedy, rock, soul; celebrity interviews, impersonators, novelty acts.</desc>
-    <episode-num system="plex">plex://episode/6af134930c9c3015c6e016dc</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123203000 +0000" stop="20261123210000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">Top Hits of 1969</sub-title>
-    <desc lang="en">1969: Smith; Oliver; Brooklyn Bridge; the Fifth Dimension; Creedence Clearwater Revival.</desc>
-    <episode-num system="plex">plex://episode/5fc6cd1b0e1001002d6ecb90</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123210000 +0000" stop="20261123213000 +0000">
-    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
-    <sub-title lang="en">1965</sub-title>
-    <desc lang="en">1965: The Four Tops; Sonny and Cher; Herman's Hermits; Four Seasons; The Lovin' Spoonful; Tom Jones; Rolling Stones.</desc>
-    <episode-num system="plex">plex://episode/5fc6d21a0e1001002d6f80da</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123213000 +0000" stop="20261123233000 +0000">
-    <title lang="en">All Star Comedy From the Ed Sullivan Show</title>
-    <sub-title lang="en">All Star Comedy From the Ed Sullivan Show</sub-title>
-    <desc lang="en">Host Mary Tyler Moore shows clips of Sullivan's 23-year variety series. With Milton Berle; John Byner; Jack Carter; Shecky Greene; Alan King; Shari Lewis; Rich Little; Dick Martin; Joan Rivers; Flip Wilson; Victor Borge.</desc>
-    <episode-num system="plex">plex://episode/6af134930c9c3015c6e016dd</episode-num>
-  </programme>
- <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123233000 +0000" stop="20261124000000 +0000">
-    <title lang="en">The Best of The Ed Sullivan Show</title>
-    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
-    <desc lang="en">Ed Sullivan presents The Supremes, Ricky Nelson, The Martin Brothers, and Ethel Merman.</desc>
-    <episode-num system="plex">plex://episode/64602d29c2f8b8dd6faaf208</episode-num>
   </programme>
  <programme channel="6a1610bebdf296985fd95603-68e03664c63d8255360a2cd7" start="20261122234222 +0000" stop="20261123001434 +0000">
     <title lang="en">That Girl</title>
@@ -1889,21 +1631,264 @@
     <desc lang="en">The story about 12 year old Corey that emotionally torments his sister so that she will write the ultimate lyrics for his garage band.</desc>
     <episode-num system="plex">plex://movie/6abe53848ad32b16adc3df2c</episode-num>
   </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123103400 +0000" stop="20261123110400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A biogeneticist illegally clones his comatose wife.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123110400 +0000" stop="20261123113100 +0000">
-        <title>The Outer Limits</title>
-        <desc>A biogeneticist illegally clones his comatose wife.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123113100 +0000" stop="20261123122800 +0000">
-        <title>The Outer Limits</title>
-        <desc>A space station technician lives with aliens to learn the secrets of long-distance space travel.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123000000 +0000" stop="20261123003000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">1965</sub-title>
+    <desc lang="en">1965: The Four Tops; Sonny and Cher; Herman's Hermits; Four Seasons; The Lovin' Spoonful; Tom Jones; Rolling Stones.</desc>
+    <episode-num system="plex">plex://episode/5fc6d21a0e1001002d6f80da</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123003000 +0000" stop="20261123010000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Joan Rivers; The West Point Glee Club; Peter Gennaro.</desc>
+    <episode-num system="plex">plex://episode/64828fddd80d2faf42628328</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123010000 +0000" stop="20261123013000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Jackie Wilson; Don Adams; Roberta Peters.</desc>
+    <episode-num system="plex">plex://episode/64828fddd6aa0fb881391a56</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123013000 +0000" stop="20261123020000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">1968</sub-title>
+    <desc lang="en">1968: Gary Puckett and the Union Gap; Tommy James and the Shondells; The Chamber Brothers; the Beach Boys; Spanky and Our Gang; Tom Jones.</desc>
+    <episode-num system="plex">plex://episode/5fc6ca083f000e002df819e6</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123020000 +0000" stop="20261123023000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Elvis Presley</sub-title>
+    <desc lang="en">Elvis Presley performs "Don't Be Cruel," "When My Blue Moon Turns to Gold," "Hound Dog" and others.</desc>
+    <episode-num system="plex">plex://episode/5fc6c78db823d4002d7916c6</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123023000 +0000" stop="20261123030000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Liza Minnelli, and Gary Puckett and the Union Gap.</desc>
+    <episode-num system="plex">plex://episode/646fc72117578fa75a579587</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123030000 +0000" stop="20261123033000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Tom Jones, Topo Gigio and John Byner.</desc>
+    <episode-num system="plex">plex://episode/647053281ab7d6c433fa9540</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123033000 +0000" stop="20261123040000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">Norm Crosby, Corbett Monica, Eric Morecambe, Ernie Wise, Fiore and Eldridge</sub-title>
+    <desc lang="en">Ed Sullivan presents Norm Crosby, Corbett Monica, Eric Morecambe, Ernie Wise, Fiore and Eldridge.</desc>
+    <episode-num system="plex">plex://episode/646fc70a8c0dab12d43dac70</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123040000 +0000" stop="20261123043000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">Red Buttons, Joe E. Lewis, Dan Rowan, Dick Martin, John Byner</sub-title>
+    <desc lang="en">Ed Sullivan presents Red Buttons, Joe E. Lewis, Dan Rowan, Dick Martin and John Byner.</desc>
+    <episode-num system="plex">plex://episode/646fc72105ad1737005fba98</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123043000 +0000" stop="20261123050000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Temptations</sub-title>
+    <desc lang="en">The Temptations perform "Just My Imagination," "I Can't Get Next to You" and others.</desc>
+    <episode-num system="plex">plex://episode/5fc6c831c8d56d002e006ed7</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123050000 +0000" stop="20261123053000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Gone Too Soon</sub-title>
+    <desc lang="en">Performances by Janis Joplin, Elvis Presley, Buddy Holly, Bobby Darin, the Carpenters and the Mamas &amp; the Papas.</desc>
+    <episode-num system="plex">plex://episode/5fc6cbdf1a65df002dd9502d</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123053000 +0000" stop="20261123060000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents The Mamas &amp; The Papas, John Byner, and Topo Gigio.</desc>
+    <episode-num system="plex">plex://episode/646f3af100b36ad98e292e18</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123060000 +0000" stop="20261123063000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Ella Fitzgerald, Stiller and Meara, and The Temptations.</desc>
+    <episode-num system="plex">plex://episode/646f1e108a34e8c778c0e780</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123063000 +0000" stop="20261123070000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">Joan Rivers, Rowan and Martin, Rich Little, Jackie Gleason and Art Carney</sub-title>
+    <desc lang="en">Ed Sullivan presents Joan Rivers "Fashion, Housework, Kids, Dog," Rowan and Martin "Spies, Rich Little Impressions," Jackie Gleason and Art Carney "Honeymooners: Ralph and Alice Get Ready to go Out."</desc>
+    <episode-num system="plex">plex://episode/65bd5203b8b0ea0f24e1163f</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123070000 +0000" stop="20261123073000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">George Carlin, Professor Backwards, Hendra and Ullett, Jackie Vernon, Stiller and Meara</sub-title>
+    <desc lang="en">Ed Sullivan presents George Carlin's election year, Professor Backward's letter to mother, Hendra and Ullett's Mets fan explains baseball to a Brit, Jacke Vernon's dull men's club, Stiller and Meara's mother of student demonstrator.</desc>
+    <episode-num system="plex">plex://episode/65bd52024da2087c26ef8227</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123073000 +0000" stop="20261123080000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Smash Hits of the Sixties</sub-title>
+    <desc lang="en">The '60s: The Beatles; the Beach Boys; the Mamas &amp; the Papas; the Four Seasons.</desc>
+    <episode-num system="plex">plex://episode/5fc6cc6806b6f5002d604499</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123080000 +0000" stop="20261123083000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents The Mamas and The Papas, Topo Gigio, and Joan Rivers.</desc>
+    <episode-num system="plex">plex://episode/64602d2989e06490de13c5a0</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123083000 +0000" stop="20261123090000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">Rodney Dangerfield, Bert Lahr, Shecky Green, Flip Wilson</sub-title>
+    <desc lang="en">Ed Sullivan presents Rodney Dangerfield "No Respect, Self-Loathing Home Life," Bert Lahr "Near-Sighted Doctor," Shecky Greene "Composers," Flip Wilson "Hecklers," Ray Charles, Troops.</desc>
+    <episode-num system="plex">plex://episode/65bd52024db0f9e846d7a245</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123090000 +0000" stop="20261123093000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">Alan King, Jack Carter, Bobby Ramsen, Rowan and Martin</sub-title>
+    <desc lang="en">Alan King's Dogs; Jack Carter's Ed's Travels, T.V. Westerns, Pop Singers; Bobby Ramsen's Movies.</desc>
+    <episode-num system="plex">plex://episode/6312960cd790f0bd72f9ce3d</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123093000 +0000" stop="20261123100000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Elvis Presley</sub-title>
+    <desc lang="en">Elvis Presley performs "Don't Be Cruel," "When My Blue Moon Turns to Gold," "Hound Dog" and others.</desc>
+    <episode-num system="plex">plex://episode/5fc6c78db823d4002d7916c6</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123100000 +0000" stop="20261123103000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">1968</sub-title>
+    <desc lang="en">1968: Gary Puckett and the Union Gap; Tommy James and the Shondells; The Chamber Brothers; the Beach Boys; Spanky and Our Gang; Tom Jones.</desc>
+    <episode-num system="plex">plex://episode/5fc6ca083f000e002df819e6</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123103000 +0000" stop="20261123110000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents The Temptations, Myron Cohen and Vanilla Fudge.</desc>
+    <episode-num system="plex">plex://episode/64602d2ccebcca3e278be620</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123110000 +0000" stop="20261123113000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">The Cowsills; Patti Page; Stiller &amp; Meara.</desc>
+    <episode-num system="plex">plex://episode/6482ac1fd6aa0fb88139d407</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123113000 +0000" stop="20261123120000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Teen Idols</sub-title>
+    <desc lang="en">Performers include Elvis Presley, Ricky Nelson, Tom Jones, Paul Anka, Bobby Darin, and Dino, Desi and Billy.</desc>
+    <episode-num system="plex">plex://episode/5fc6ce68088e7d002d46dbef</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123120000 +0000" stop="20261123123000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">The Sweet Sound of Soul</sub-title>
+    <desc lang="en">Soul music: The Supremes; the Jackson Five; James Brown; the Righteous Brothers; The Temptations; the Four Tops.</desc>
+    <episode-num system="plex">plex://episode/5fc6c766c40548002d4d4f31</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123123000 +0000" stop="20261123130000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Gary Puckett and the Union Gap, Diahann Carroll, and Richard Pryor.</desc>
+    <episode-num system="plex">plex://episode/64703709dddd63c7957c2dbe</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123130000 +0000" stop="20261123133000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents The Rolling Stones, Petula Clark, The Muppets, and Alan King.</desc>
+    <episode-num system="plex">plex://episode/646fc6cacb6c55eeb86584f0</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123133000 +0000" stop="20261123140000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Temptations</sub-title>
+    <desc lang="en">The Temptations perform "Just My Imagination," "I Can't Get Next to You" and others.</desc>
+    <episode-num system="plex">plex://episode/5fc6c831c8d56d002e006ed7</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123140000 +0000" stop="20261123143000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">The San Francisco Scene</sub-title>
+    <desc lang="en">Performances by Jefferson Airplane, Santana, Janis Joplin, Creedence Clearwater Revival and Sly and the Family Stone.</desc>
+    <episode-num system="plex">plex://episode/5fc6ca78598c41002d9d7179</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123143000 +0000" stop="20261123150000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Liberace, Liza Minnelli, Rudi Schweitzer, Rod McKuen and Bill Dana.</desc>
+    <episode-num system="plex">plex://episode/6480ea0160b6b04976369d3a</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123150000 +0000" stop="20261123153000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Lesley Gore; Morecambe &amp; Wise; Tony Bennett.</desc>
+    <episode-num system="plex">plex://episode/64813e5e1ab2ff572648b3f8</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123153000 +0000" stop="20261123163000 +0000">
+    <title lang="en">Rock 'n' Roll Forever: Ed Sullivan's Greatest Hits</title>
+    <sub-title lang="en">Rock 'n' Roll Forever: Ed Sullivan's Greatest Hits</sub-title>
+    <desc lang="en">Performances by Elvis Presley, the Beatles, Ray Charles, the Supremes, the Doors, Janis Joplin, the Mamas and the Papas.</desc>
+    <episode-num system="plex">plex://episode/6af134930c9c3015c6e016db</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123163000 +0000" stop="20261123170000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Top Hits of 1969</sub-title>
+    <desc lang="en">1969: Smith; Oliver; Brooklyn Bridge; the Fifth Dimension; Creedence Clearwater Revival.</desc>
+    <episode-num system="plex">plex://episode/5fc6cd1b0e1001002d6ecb90</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123170000 +0000" stop="20261123173000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Teen Idols</sub-title>
+    <desc lang="en">Performers include Elvis Presley, Ricky Nelson, Tom Jones, Paul Anka, Bobby Darin, and Dino, Desi and Billy.</desc>
+    <episode-num system="plex">plex://episode/5fc6ce68088e7d002d46dbef</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123173000 +0000" stop="20261123180000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">George Carlin, Phyllis Diller, Alan King, Rodney Dangerfield</sub-title>
+    <desc lang="en">Comedic performances by George Carlin's Al Sleet, Hippy-Dippy Weatherman; Phyllis Diller's Husbands, Kids, Face Lift; Alan King's Airline Horror Story; Rodney Dangerfield's Dating, Marriage and Money.</desc>
+    <episode-num system="plex">plex://episode/6351247bd08330cdaa2a5592</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123180000 +0000" stop="20261123183000 +0000">
+    <title lang="en">Comedy Legends from The Ed Sullivan Show</title>
+    <sub-title lang="en">Totie Fields, Abbott and Costello, Pat Henry, Wayne and Shuster</sub-title>
+    <desc lang="en">Totie Fields' Skiing; Abbott and Costello's Tax Collector; Pat Henry's Kid's Toys.</desc>
+    <episode-num system="plex">plex://episode/631295e6daaa1cf2a2fb7eb7</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123183000 +0000" stop="20261123190000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Tom Jones, Robert Goulet &amp; Jane Powell, Wayne Newton, and Martha and the Vandellas.</desc>
+    <episode-num system="plex">plex://episode/646f1e0bd5f37a53af116e15</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123190000 +0000" stop="20261123193000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents Tony Bennett, Flip Wilson, and Tiny Tim.</desc>
+    <episode-num system="plex">plex://episode/64703717e04c754ad3787224</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123193000 +0000" stop="20261123203000 +0000">
+    <title lang="en">A Really Big Show: Ed Sullivan's 50th Anniversary</title>
+    <sub-title lang="en">A Really Big Show: Ed Sullivan's 50th Anniversary</sub-title>
+    <desc lang="en">The Smothers Brothers introduce memorable moments from the variety show of the '60s: comedy, rock, soul; celebrity interviews, impersonators, novelty acts.</desc>
+    <episode-num system="plex">plex://episode/6af134930c9c3015c6e016dc</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123203000 +0000" stop="20261123210000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">Top Hits of 1969</sub-title>
+    <desc lang="en">1969: Smith; Oliver; Brooklyn Bridge; the Fifth Dimension; Creedence Clearwater Revival.</desc>
+    <episode-num system="plex">plex://episode/5fc6cd1b0e1001002d6ecb90</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123210000 +0000" stop="20261123213000 +0000">
+    <title lang="en">Ed Sullivan's Rock 'n' Roll Classics</title>
+    <sub-title lang="en">1965</sub-title>
+    <desc lang="en">1965: The Four Tops; Sonny and Cher; Herman's Hermits; Four Seasons; The Lovin' Spoonful; Tom Jones; Rolling Stones.</desc>
+    <episode-num system="plex">plex://episode/5fc6d21a0e1001002d6f80da</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123213000 +0000" stop="20261123233000 +0000">
+    <title lang="en">All Star Comedy From the Ed Sullivan Show</title>
+    <sub-title lang="en">All Star Comedy From the Ed Sullivan Show</sub-title>
+    <desc lang="en">Host Mary Tyler Moore shows clips of Sullivan's 23-year variety series. With Milton Berle; John Byner; Jack Carter; Shecky Greene; Alan King; Shari Lewis; Rich Little; Dick Martin; Joan Rivers; Flip Wilson; Victor Borge.</desc>
+    <episode-num system="plex">plex://episode/6af134930c9c3015c6e016dd</episode-num>
+  </programme>
+ <programme channel="6a1610bebdf296985fd95603-640205c68ecb41f2d89d5814" start="20261123233000 +0000" stop="20261124000000 +0000">
+    <title lang="en">The Best of The Ed Sullivan Show</title>
+    <sub-title lang="en">The Best of The Ed Sullivan Show</sub-title>
+    <desc lang="en">Ed Sullivan presents The Supremes, Ricky Nelson, The Martin Brothers, and Ethel Merman.</desc>
+    <episode-num system="plex">plex://episode/64602d29c2f8b8dd6faaf208</episode-num>
+  </programme>
  <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123122800 +0000" stop="20261123132400 +0000">
         <title>The Outer Limits</title>
         <desc>Unsuspecting patrons of a mysterious store receive strangely empowering objects from the alien shopkeeper. With Jonathon Schaech, Michelle Harrison and Alex Diakun.</desc>
@@ -1919,25 +1904,15 @@
         <desc>A female astrophysicist takes a journey with a crew investigating the flip side of a quantum hole in space.</desc>
         <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261123110000 +0000" stop="20261123113000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123151700 +0000" stop="20261123161400 +0000">
+        <title>The Outer Limits</title>
+        <desc>A young couple faces their greatest challenge when an alien plant species assumes the form of a powerful female seductress.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261123113000 +0000" stop="20261123120000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261123120000 +0000" stop="20261123123000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261123123000 +0000" stop="20261123130000 +0000">
-        <title>Global News National</title>
-        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
-        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123161400 +0000" stop="20261123171600 +0000">
+        <title>The Outer Limits</title>
+        <desc>The spirit of a man killed in a science experiment confronts the scientist who was forced to take his life.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261123130000 +0000" stop="20261123133000 +0000">
         <title>Global News National</title>
@@ -1964,26 +1939,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123151700 +0000" stop="20261123161400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A young couple faces their greatest challenge when an alien plant species assumes the form of a powerful female seductress.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123161400 +0000" stop="20261123171600 +0000">
-        <title>The Outer Limits</title>
-        <desc>The spirit of a man killed in a science experiment confronts the scientist who was forced to take his life.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123171600 +0000" stop="20261123180700 +0000">
-        <title>The Outer Limits</title>
-        <desc>Dr. Candace McGuire puts her sanity on the line when testing a psychological tool allowing her to enter her patients' minds.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123180700 +0000" stop="20261123190400 +0000">
-        <title>The Outer Limits</title>
-        <desc>A chance at changing her father's destiny gives a young woman (Kristin Lehman) the incentive to travel back into time.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261123153000 +0000" stop="20261123160000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2003,6 +1958,31 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123171600 +0000" stop="20261123180700 +0000">
+        <title>The Outer Limits</title>
+        <desc>Dr. Candace McGuire puts her sanity on the line when testing a psychological tool allowing her to enter her patients' minds.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123180700 +0000" stop="20261123190400 +0000">
+        <title>The Outer Limits</title>
+        <desc>A chance at changing her father's destiny gives a young woman (Kristin Lehman) the incentive to travel back into time.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123190400 +0000" stop="20261123200600 +0000">
+        <title>The Outer Limits</title>
+        <desc>Five students in high school face a choice between life or death at the hands of a mysterious alien. With Zachary Ty Bryan.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123200600 +0000" stop="20261123205700 +0000">
+        <title>The Outer Limits</title>
+        <desc>A judge tries to establish law and order on a remote alien mining colony. With Michael Rooker and David Cubitt.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123205700 +0000" stop="20261123215300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A high-school wrestling coach takes a chance by giving his team an experimental drug to help get them into the state championships.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261123173000 +0000" stop="20261123180000 +0000">
         <title>Global News National</title>
@@ -2024,31 +2004,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123190400 +0000" stop="20261123200600 +0000">
-        <title>The Outer Limits</title>
-        <desc>Five students in high school face a choice between life or death at the hands of a mysterious alien. With Zachary Ty Bryan.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123200600 +0000" stop="20261123205700 +0000">
-        <title>The Outer Limits</title>
-        <desc>A judge tries to establish law and order on a remote alien mining colony. With Michael Rooker and David Cubitt.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123205700 +0000" stop="20261123215300 +0000">
-        <title>The Outer Limits</title>
-        <desc>A high-school wrestling coach takes a chance by giving his team an experimental drug to help get them into the state championships.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123215300 +0000" stop="20261123225500 +0000">
-        <title>The Outer Limits</title>
-        <desc>A computer whiz must destroy a deadly artificial intelligence.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123225500 +0000" stop="20261123234600 +0000">
-        <title>The Outer Limits</title>
-        <desc>An alien abductee (Nora Dunn) tries to protect her daughter from the same fate. With Katharine Isabelle and Andrew Airlie.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261123193000 +0000" stop="20261123200000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2068,6 +2023,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123215300 +0000" stop="20261123225500 +0000">
+        <title>The Outer Limits</title>
+        <desc>A computer whiz must destroy a deadly artificial intelligence.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123225500 +0000" stop="20261123234600 +0000">
+        <title>The Outer Limits</title>
+        <desc>An alien abductee (Nora Dunn) tries to protect her daughter from the same fate. With Katharine Isabelle and Andrew Airlie.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123234600 +0000" stop="20261124004300 +0000">
+        <title>The Outer Limits</title>
+        <desc>A space commander (Robert Duncan McNeil) must convince an android assistant that humanity is worthy of existence.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124004300 +0000" stop="20261124013900 +0000">
+        <title>The Outer Limits</title>
+        <desc>A decorated soldier (Jason Gedrick) undergoes life-threatening tests for a mysterious mission.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261123213000 +0000" stop="20261123220000 +0000">
         <title>Global News National</title>
@@ -2089,26 +2064,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261123234600 +0000" stop="20261124004300 +0000">
-        <title>The Outer Limits</title>
-        <desc>A space commander (Robert Duncan McNeil) must convince an android assistant that humanity is worthy of existence.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124004300 +0000" stop="20261124013900 +0000">
-        <title>The Outer Limits</title>
-        <desc>A decorated soldier (Jason Gedrick) undergoes life-threatening tests for a mysterious mission.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124013900 +0000" stop="20261124023900 +0000">
-        <title>The Outer Limits: The Sandkings</title>
-        <desc>A scientist searches for a way to continue his experiments when the top-secret government project he is working on is shut down.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124023900 +0000" stop="20261124033000 +0000">
-        <title>The Outer Limits: The Sandkings</title>
-        <desc>A scientist searches for a way to continue his experiments when the top-secret government project he is working on is shut down.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261123233000 +0000" stop="20261124000000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2128,6 +2083,26 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124013900 +0000" stop="20261124023900 +0000">
+        <title>The Outer Limits: The Sandkings</title>
+        <desc>A scientist searches for a way to continue his experiments when the top-secret government project he is working on is shut down.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124023900 +0000" stop="20261124033000 +0000">
+        <title>The Outer Limits: The Sandkings</title>
+        <desc>A scientist searches for a way to continue his experiments when the top-secret government project he is working on is shut down.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124033000 +0000" stop="20261124042200 +0000">
+        <title>The Outer Limits: Valerie 23</title>
+        <desc>A robotic companion's emotional shortcomings prove dangerous when a paraplegic scientist becomes involved with his therapist.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124042200 +0000" stop="20261124051400 +0000">
+        <title>The Outer Limits: Blood Brothers</title>
+        <desc>Two brothers wrestle for control of their late father's pharmaceutical company and a newly discovered vaccine.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261124013000 +0000" stop="20261124020000 +0000">
         <title>Global News National</title>
@@ -2149,31 +2124,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124033000 +0000" stop="20261124042200 +0000">
-        <title>The Outer Limits: Valerie 23</title>
-        <desc>A robotic companion's emotional shortcomings prove dangerous when a paraplegic scientist becomes involved with his therapist.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124042200 +0000" stop="20261124051400 +0000">
-        <title>The Outer Limits: Blood Brothers</title>
-        <desc>Two brothers wrestle for control of their late father's pharmaceutical company and a newly discovered vaccine.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124051400 +0000" stop="20261124060700 +0000">
-        <title>The Outer Limits</title>
-        <desc>Aliens exchange advanced technology for human cadavers, which they use as hosts for their dying spirits.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124060700 +0000" stop="20261124065900 +0000">
-        <title>The Outer Limits: White Light Fever</title>
-        <desc>An eccentric billionaire (William Hickey) finances a research project in a selfish attempt to prolong his life. With Bruce Davidson, Michelle Beaudoin.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124065900 +0000" stop="20261124075100 +0000">
-        <title>The Outer Limits: The Choice</title>
-        <desc>Parents face a difficult decision when their young daughter exhibits psychic abilities and is kicked out of school.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261124033000 +0000" stop="20261124040000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2193,6 +2143,31 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124051400 +0000" stop="20261124060700 +0000">
+        <title>The Outer Limits</title>
+        <desc>Aliens exchange advanced technology for human cadavers, which they use as hosts for their dying spirits.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124060700 +0000" stop="20261124065900 +0000">
+        <title>The Outer Limits: White Light Fever</title>
+        <desc>An eccentric billionaire (William Hickey) finances a research project in a selfish attempt to prolong his life. With Bruce Davidson, Michelle Beaudoin.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124065900 +0000" stop="20261124075100 +0000">
+        <title>The Outer Limits: The Choice</title>
+        <desc>Parents face a difficult decision when their young daughter exhibits psychic abilities and is kicked out of school.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124075100 +0000" stop="20261124084300 +0000">
+        <title>The Outer Limits: Virtual Future</title>
+        <desc>A billionaire's ambitious dreams of power are fueled by a graduate student's accidental discovery of time travel.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124084300 +0000" stop="20261124093600 +0000">
+        <title>The Outer Limits</title>
+        <desc>An armed robber's 35-year-old victim learns his only chance of survival is to have an experimental chip implanted in his brain.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261124053000 +0000" stop="20261124060000 +0000">
         <title>Global News National</title>
@@ -2214,31 +2189,6 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124075100 +0000" stop="20261124084300 +0000">
-        <title>The Outer Limits: Virtual Future</title>
-        <desc>A billionaire's ambitious dreams of power are fueled by a graduate student's accidental discovery of time travel.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124084300 +0000" stop="20261124093600 +0000">
-        <title>The Outer Limits</title>
-        <desc>An armed robber's 35-year-old victim learns his only chance of survival is to have an experimental chip implanted in his brain.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124093600 +0000" stop="20261124102800 +0000">
-        <title>The Outer Limits: Corner of the Eye</title>
-        <desc>A disillusioned priest (Len Cariou) is approached by three aliens who claim they want to help mankind. With Chris Sarandon, Justin Louis, Bill Croft, Callum Keith Rennie.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124102800 +0000" stop="20261124110000 +0000">
-        <title>The Outer Limits</title>
-        <desc>A little girl's (Colleen Rennison) bizarre claim of a bogeyman is the only clue in a search for her missing brother. With Laura Bruneau, Timothy Busfield, Barbara Williams.</desc>
-        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124110000 +0000" stop="20261124150000 +0000">
-        <title>The Outer Limits</title>
-        <desc>Ready for the unknown? For a new experience that could challenge everything? Because beyond the familiar reality lurks the unfathomable. Cross the border into a world beyond imagination: The Unknown Dimension.</desc>
-        <icon src="https://images.pluto.tv/series/69300b7363142c96a9356328/tile_1787286189367.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261124073000 +0000" stop="20261124080000 +0000">
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
@@ -2258,6 +2208,21 @@
         <title>Global News National</title>
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124093600 +0000" stop="20261124102800 +0000">
+        <title>The Outer Limits: Corner of the Eye</title>
+        <desc>A disillusioned priest (Len Cariou) is approached by three aliens who claim they want to help mankind. With Chris Sarandon, Justin Louis, Bill Croft, Callum Keith Rennie.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124102800 +0000" stop="20261124110000 +0000">
+        <title>The Outer Limits</title>
+        <desc>A little girl's (Colleen Rennison) bizarre claim of a bogeyman is the only clue in a search for her missing brother. With Laura Bruneau, Timothy Busfield, Barbara Williams.</desc>
+        <icon src="https://images.pluto.tv/series/69300b4563142c96a934e80a/tile_1764756294667.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124110000 +0000" stop="20261124150000 +0000">
+        <title>The Outer Limits</title>
+        <desc>Ready for the unknown? For a new experience that could challenge everything? Because beyond the familiar reality lurks the unfathomable. Cross the border into a world beyond imagination: The Unknown Dimension.</desc>
+        <icon src="https://images.pluto.tv/series/69300b7363142c96a9356328/tile_1787286189367.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-62cbef9ebb857100072fc187" start="20261124093000 +0000" stop="20261124100000 +0000">
         <title>Global News National</title>
@@ -2279,20 +2244,45 @@
         <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
         <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-62cbef9ebb857100072fc187" start="20261124113000 +0000" stop="20261124150000 +0000">
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124113000 +0000" stop="20261124120000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124120000 +0000" stop="20261124123000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124123000 +0000" stop="20261124130000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124130000 +0000" stop="20261124133000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-6874ad743ffa5e0c917f6e20" start="20261124150000 +0000" stop="20261124170000 +0000">
+        <title>The Outer Limits</title>
+        <desc>no info available</desc>
+        <icon src="https://images.pluto.tv/channels/6874ad743ffa5e0c917f6e20/featuredImage_1756200180819.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124133000 +0000" stop="20261124140000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124140000 +0000" stop="20261124143000 +0000">
+        <title>Global News National</title>
+        <desc>Providing Canadians with the day’s top international, national, and local news stories, 24-hours a day, 365 days/week.</desc>
+        <icon src="https://images.pluto.tv/series/633fe4b65aa987000723b468/tile.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-62cbef9ebb857100072fc187" start="20261124143000 +0000" stop="20261124170000 +0000">
         <title>Global News National</title>
         <desc>no info available</desc>
         <icon src="https://images.pluto.tv/channels/62cbef9ebb857100072fc187/featuredImage.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
-    </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261123110000 +0000" stop="20261123120000 +0000">
-        <title>Headlines from CNN</title>
-        <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
-        <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
-    </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261123120000 +0000" stop="20261123130000 +0000">
-        <title>CNN Headline Express</title>
-        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
-        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
  <programme channel="dc-5421f71da6af422839419cb3" start="20261123130000 +0000" stop="20261123140000 +0000">
         <title>CNN Headline Express</title>
@@ -2409,38 +2399,21 @@
         <desc>The most trusted name in news keeps you informed on the latest headlines from around the world.</desc>
         <icon src="https://images.pluto.tv/series/672cf51a1fd643e7008b00f2/tile_1785190102397.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
     </programme>
- <programme channel="dc-5421f71da6af422839419cb3" start="20261124120000 +0000" stop="20261124150000 +0000">
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261124120000 +0000" stop="20261124130000 +0000">
+        <title>CNN Headline Express</title>
+        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
+        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261124130000 +0000" stop="20261124140000 +0000">
+        <title>CNN Headline Express</title>
+        <desc>The biggest headlines and most buzzworthy stories with live updates throughout the day.</desc>
+        <icon src="https://images.pluto.tv/series/685d695d0186ecea3a4ad398/tile_1785190100942.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=660&amp;q=75&amp;w=660" />
+    </programme>
+ <programme channel="dc-5421f71da6af422839419cb3" start="20261124140000 +0000" stop="20261124170000 +0000">
         <title>CNN HEADLINES</title>
         <desc>no info available</desc>
         <icon src="https://images.pluto.tv/channels/5421f71da6af422839419cb3/featuredImage_1755034025648.jpg?fill=blur&amp;fit=fill&amp;fm=jpg&amp;h=900&amp;q=75&amp;w=1600" />
     </programme>
- <programme channel="dc-CA1400004AE" start="20261123110000 +0000" stop="20261123113000 +0000">
-    <title>CTV National News with Heather Butts</title>
-    <sub-title>CTV National News for Sunday, November 22, 2026</sub-title>
-    <desc>Watch CTV National News with Heather Butts</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488016015_0_20260917T113420749Z_77_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA1400004AE" start="20261123113000 +0000" stop="20261123120000 +0000">
-    <title>CTV News</title>
-    <sub-title>CTV News: Your Canada for Monday, Nov. 23, 2026</sub-title>
-    <desc>Stories that showcase what makes Canada unique.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488014668_0_20260917T113421205Z_63_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA1400004AE" start="20261123120000 +0000" stop="20261123130000 +0000">
-    <title>CTV News</title>
-    <sub-title>CTV News Toronto at Six for Sunday, Nov. 22, 2026</sub-title>
-    <desc>CTV News Toronto at Six</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488014666_0_20260917T113420855Z_66_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
  <programme channel="dc-CA1400004AE" start="20261123130000 +0000" stop="20261123133000 +0000">
     <title>CTV National News with Heather Butts</title>
     <sub-title>CTV National News for Sunday, November 22, 2026</sub-title>
@@ -2504,26 +2477,29 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA390002621" start="20261123110000 +0000" stop="20261123113000 +0000">
-    <title>CBS News Mornings</title>
-    <desc>CBS News Mornings broadcasts on weekdays and offers viewers up-to-date news, comprehensive weather forecasts, and highlights from the world of sports.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064713605_0_20260616T223530508Z_46_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
+ <programme channel="dc-CA1400004AE" start="20261123173000 +0000" stop="20261123180000 +0000">
+    <title>CTV News</title>
+    <sub-title>CTV News: Your Canada for Monday, Nov. 23, 2026</sub-title>
+    <desc>Stories that showcase what makes Canada unique.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488014668_0_20260917T113421205Z_63_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA390002621" start="20261123113000 +0000" stop="20261123120000 +0000">
-    <title>CBS News Mornings</title>
-    <desc>CBS News Mornings broadcasts on weekdays and offers viewers up-to-date news, comprehensive weather forecasts, and highlights from the world of sports.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064713605_0_20260616T223530508Z_46_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
+ <programme channel="dc-CA1400004AE" start="20261123180000 +0000" stop="20261123190000 +0000">
+    <title>Question Period</title>
+    <sub-title>Question Period for Sunday, November 22, 2026</sub-title>
+    <desc>Question Period, the national political landmark program, is a must-see for political junkies.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488055950_0_20260917T113420598Z_78_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA390002621" start="20261123120000 +0000" stop="20261123130000 +0000">
-    <title>CBS Morning News</title>
-    <desc>Join Errol Barnett for the CBS Morning News weekdays at 7AM ET. Featuring the latest breaking news, in depth original reporting and news making interviews plus all the big stories impacting Americans from coast to coast.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064713604_0_20260616T223532005Z_49_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
+ <programme channel="dc-CA1400004AE" start="20261123190000 +0000" stop="20261123193000 +0000">
+    <title>CTV National News with Heather Butts</title>
+    <sub-title>CTV National News for Sunday, November 22, 2026</sub-title>
+    <desc>Watch CTV National News with Heather Butts</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3488016015_0_20260917T113420749Z_77_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
     <rating>
       <value>NA</value>
     </rating>
@@ -2561,28 +2537,20 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600007UE" start="20261123110000 +0000" stop="20261123120000 +0000">
-    <title>The National</title>
-    <desc>The National is CBC's flagship nightly news program, featuring the day's top stories with in-depth journalism.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_542515027_0_20240529T053048179Z_120.jpeg" />
+ <programme channel="dc-CA390002621" start="20261123180000 +0000" stop="20261123190000 +0000">
+    <title>CBS News 24/7</title>
+    <desc>Coverage, reporting and storytelling from CBS News and Stations  a look at how news coverage comes together.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064740595_0_20260616T223530706Z_74_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
     <rating>
-      <value>G</value>
+      <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600007UE" start="20261123120000 +0000" stop="20261123123000 +0000">
-    <title>Nova Scotia Now</title>
-    <desc>News, investigations and community stories in Nova Scotia and beyond.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093603_0_20241218T055251911Z_1_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
+ <programme channel="dc-CA390002621" start="20261123190000 +0000" stop="20261123200000 +0000">
+    <title>CBS News 24/7</title>
+    <desc>Coverage, reporting and storytelling from CBS News and Stations  a look at how news coverage comes together.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3064740595_0_20260616T223530706Z_74_imageprocessorclient-tvplus-linear-75df688c49-ssd94.jpeg" />
     <rating>
-      <value>G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA4600007UE" start="20261123123000 +0000" stop="20261123130000 +0000">
-    <title>CBC News: Atlantic Focus</title>
-    <desc>A roundup of the top stories of the week from across Atlantic Canada.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2590708798_0_20260225T164109473Z_107_imageprocessorclient-tvplus-linear-584c967455-jtw46.jpeg" />
-    <rating>
-      <value>G</value>
+      <value>NA</value>
     </rating>
   </programme>
  <programme channel="dc-CA4600007UE" start="20261123130000 +0000" stop="20261123140000 +0000">
@@ -2649,26 +2617,34 @@
       <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600002Z5" start="20261123110000 +0000" stop="20261123120000 +0000">
-    <title>The National</title>
-    <desc>The National is CBC's flagship nightly news program, featuring the day's top stories with in-depth journalism.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_542515027_0_20240529T053048179Z_120.jpeg" />
+ <programme channel="dc-CA4600007UE" start="20261123173000 +0000" stop="20261123180000 +0000">
+    <title>Nova Scotia Now</title>
+    <desc>News, investigations and community stories in Nova Scotia and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093603_0_20241218T055251911Z_1_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
     <rating>
       <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600002Z5" start="20261123120000 +0000" stop="20261123123000 +0000">
-    <title>PEI Now</title>
-    <desc>News, investigations and community stories in PEI and beyond.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405903_0_20241217T114622203Z_40_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
+ <programme channel="dc-CA4600007UE" start="20261123180000 +0000" stop="20261123183000 +0000">
+    <title>Nova Scotia Now</title>
+    <desc>News, investigations and community stories in Nova Scotia and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093603_0_20241218T055251911Z_1_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
     <rating>
       <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CA4600002Z5" start="20261123123000 +0000" stop="20261123130000 +0000">
-    <title>CBC News: Atlantic Focus</title>
-    <desc>A roundup of the top stories of the week from across Atlantic Canada.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2590708798_0_20260225T164109473Z_107_imageprocessorclient-tvplus-linear-584c967455-jtw46.jpeg" />
+ <programme channel="dc-CA4600007UE" start="20261123183000 +0000" stop="20261123190000 +0000">
+    <title>Nova Scotia Now</title>
+    <desc>News, investigations and community stories in Nova Scotia and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093603_0_20241218T055251911Z_1_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
+    <rating>
+      <value>G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA4600007UE" start="20261123190000 +0000" stop="20261123193000 +0000">
+    <title>Nova Scotia Now</title>
+    <desc>News, investigations and community stories in Nova Scotia and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_558093603_0_20241218T055251911Z_1_imageprocessorclient-tvplus-linear-5dc4fd45f6-ftks4.jpeg" />
     <rating>
       <value>G</value>
     </rating>
@@ -2737,20 +2713,36 @@
       <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CABC23000223U" start="20261123110000 +0000" stop="20261123120000 +0000">
-    <title>Weather AM</title>
-    <desc>Get your local forecast and weather headlines from right here in Canada, and around the globe.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1617094425_0_20250703T184641377Z_57_imageprocessorclient-tvplus-linear-d7c8c765b-fzvr9.jpeg" />
+ <programme channel="dc-CA4600002Z5" start="20261123173000 +0000" stop="20261123180000 +0000">
+    <title>PEI Now</title>
+    <desc>News, investigations and community stories in PEI and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405903_0_20241217T114622203Z_40_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CABC23000223U" start="20261123120000 +0000" stop="20261123130000 +0000">
-    <title>Weather AM</title>
-    <desc>Get your local forecast and weather headlines from right here in Canada, and around the globe.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1617094425_0_20250703T184641377Z_57_imageprocessorclient-tvplus-linear-d7c8c765b-fzvr9.jpeg" />
+ <programme channel="dc-CA4600002Z5" start="20261123180000 +0000" stop="20261123183000 +0000">
+    <title>PEI Now</title>
+    <desc>News, investigations and community stories in PEI and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405903_0_20241217T114622203Z_40_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA4600002Z5" start="20261123183000 +0000" stop="20261123190000 +0000">
+    <title>PEI Now</title>
+    <desc>News, investigations and community stories in PEI and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405903_0_20241217T114622203Z_40_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
+    <rating>
+      <value>G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA4600002Z5" start="20261123190000 +0000" stop="20261123193000 +0000">
+    <title>PEI Now</title>
+    <desc>News, investigations and community stories in PEI and beyond.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_554405903_0_20241217T114622203Z_40_imageprocessorclient-tvplus-linear-5dc4fd45f6-fqr4t.jpeg" />
+    <rating>
+      <value>G</value>
     </rating>
   </programme>
  <programme channel="dc-CABC23000223U" start="20261123130000 +0000" stop="20261123140000 +0000">
@@ -2793,12 +2785,20 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ2700014EE" start="20261123100839 +0000" stop="20261123124151 +0000">
-    <title>K-19: The Widowmaker</title>
-    <desc>Follows Captain Alexei Vostrikov who, at the height of the Cold War, is ordered to take over command of the nuclear missile submarine K-19, pride of the Soviet Navy. His assignment: Prepare the K-19 for sea and take her out on patrol -- no matter what the cost. But problems with the K-19 arise that may lead to a core meltdown and explosion that will certainly kill all aboard, and possibly trigger a nuclear war. Vostrikov must choose between his orders and the lives of his men.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3673818110_0_20261026T191709279Z_65_imageprocessorclient-tvplus-linear-6b56cc9f55-zzrrj.jpeg" />
+ <programme channel="dc-CABC23000223U" start="20261123180000 +0000" stop="20261123190000 +0000">
+    <title>Weather AM</title>
+    <desc>Get your local forecast and weather headlines from right here in Canada, and around the globe.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1617094425_0_20250703T184641377Z_57_imageprocessorclient-tvplus-linear-d7c8c765b-fzvr9.jpeg" />
     <rating>
-      <value>PG</value>
+      <value>TV-PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABC23000223U" start="20261123190000 +0000" stop="20261123200000 +0000">
+    <title>Your Weather Today</title>
+    <desc>National and local forecast details for across the country</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1176632344_0_20250417T122612093Z_52_imageprocessorclient-tvplus-linear-b76dd9bbb-28957.jpeg" />
+    <rating>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ2700014EE" start="20261123124151 +0000" stop="20261123144002 +0000">
@@ -2825,40 +2825,12 @@
       <value>NC-17</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ27000159K" start="20261123105328 +0000" stop="20261123112540 +0000">
-    <title>The Rifleman</title>
-    <sub-title>Obituary</sub-title>
-    <desc>After Lucas accuses a newspaper writer's misleading articles of causing an innocent man's death, the writer begins writing articles about Lucas.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734933947_2_20260401T070624904Z_98_imageprocessorclient-tvplus-linear-796646965d-bsm4j.jpeg" />
+ <programme channel="dc-CAAJ2700014EE" start="20261123180343 +0000" stop="20261123194321 +0000">
+    <title>Freeway [Broadcast Edit]</title>
+    <desc>A crazed driver with a deeply troubled past goes on a nightly shooting spree across the highways of America.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3129397715_9_20260701T093819792Z_1_imageprocessorclient-tvplus-linear-75df688c49-wfh5g.jpeg" />
     <rating>
-      <value>PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ27000159K" start="20261123112540 +0000" stop="20261123115759 +0000">
-    <title>The Rifleman</title>
-    <sub-title>Tension</sub-title>
-    <desc>Gavin and Ezra Martin think that Lucas killed their son Clemmie while taking part in a train robbery and Lucas refuses to tell them what really happened.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734934048_3_20260401T070611679Z_32_imageprocessorclient-tvplus-linear-796646965d-zfwhk.jpeg" />
-    <rating>
-      <value>PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ27000159K" start="20261123115759 +0000" stop="20261123123008 +0000">
-    <title>The Rifleman</title>
-    <sub-title>Eddie's Daughter</sub-title>
-    <desc>Eddie's daughter causes trouble for Lucas when two strangers threaten her life after she arrives with criminal information and stolen money.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734873547_23_20260401T070617080Z_89_imageprocessorclient-tvplus-linear-796646965d-96ghk.jpeg" />
-    <rating>
-      <value>PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ27000159K" start="20261123123008 +0000" stop="20261123130226 +0000">
-    <title>The Rifleman</title>
-    <sub-title>Panic</sub-title>
-    <desc>Town character Brett Conway blackmails Lucas when a young couple Lucas rescued is suffering from yellow fever.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2735022111_32_20260401T070619915Z_80_imageprocessorclient-tvplus-linear-796646965d-pnqz4.jpeg" />
-    <rating>
-      <value>PG</value>
+      <value>NA</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ27000159K" start="20261123130226 +0000" stop="20261123133224 +0000">
@@ -2942,40 +2914,31 @@
       <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA2900008Y0" start="20261123105959 +0000" stop="20261123112921 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>The Telescope Eye</sub-title>
-    <desc>A veteran with a habit of telling tall tales sets out to clear a youth of murder.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+ <programme channel="dc-CAAJ27000159K" start="20261123175050 +0000" stop="20261123182313 +0000">
+    <title>The Rifleman</title>
+    <sub-title>A Case of Identity</sub-title>
+    <desc>Mark finds himself in danger when two detectives searching for a man's long-lost son claim that it's Mark.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734991413_14_20260401T070617553Z_52_imageprocessorclient-tvplus-linear-796646965d-6gw6c.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA2900008Y0" start="20261123112921 +0000" stop="20261123115952 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>The Mystery of Suicide Gulch</sub-title>
-    <desc>A boy runs away from home and into the arms of an outlaw after a falling out with his father.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+ <programme channel="dc-CAAJ27000159K" start="20261123182313 +0000" stop="20261123185523 +0000">
+    <title>The Rifleman</title>
+    <sub-title>The Visitor</sub-title>
+    <desc>Lucas is drawn to a young widow passing through town on her way to claim an inheritance but others who covet it are trying to kill her.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734904411_12_20260401T070612692Z_121_imageprocessorclient-tvplus-linear-796646965d-v2sx8.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA2900008Y0" start="20261123115952 +0000" stop="20261123123017 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>The Big Rendezvous</sub-title>
-    <desc>Kit Carson falls for the Native girl he rescued from a Canadian trapper.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+ <programme channel="dc-CAAJ27000159K" start="20261123185523 +0000" stop="20261123192746 +0000">
+    <title>The Rifleman</title>
+    <sub-title>Hero</sub-title>
+    <desc>After a young stablehand kills a notorious gunslinger, he is baffled by the hostility of the townspeople about giving him the reward.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2734962348_13_20260401T070618585Z_102_imageprocessorclient-tvplus-linear-796646965d-xstp7.jpeg" />
     <rating>
-      <value>TV-PG</value>
-    </rating>
-  </programme>
- <programme channel="dc-CA2900008Y0" start="20261123123017 +0000" stop="20261123130047 +0000">
-    <title>Death Valley Days</title>
-    <sub-title>The Girl Who Walked with a Giant</sub-title>
-    <desc>Sam Houston, known for his strong fight for Texas independence, is intent on marrying Margaret Lea.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
-    <rating>
-      <value>TV-PG</value>
+      <value>PG</value>
     </rating>
   </programme>
  <programme channel="dc-CA2900008Y0" start="20261123130047 +0000" stop="20261123133119 +0000">
@@ -3059,12 +3022,40 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABC2300007YT" start="20261123110000 +0000" stop="20261123130000 +0000">
-    <title>Borderline</title>
-    <desc>A police officer goes undercover in Mexico with drug smugglers, putting herself in constant danger.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3462703631_0_20260912T012823213Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-4hrj4.jpeg" />
+ <programme channel="dc-CA2900008Y0" start="20261123173435 +0000" stop="20261123180457 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>Perilous Cargo</sub-title>
+    <desc>Tom Horn and his gang overtake an all-female stagecoach that turns out to be future brides for men out West.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
     <rating>
-      <value>CAN_ENG_PG</value>
+      <value>TV-PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA2900008Y0" start="20261123180457 +0000" stop="20261123183519 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>The Gambler and the Lady</sub-title>
+    <desc>Gambler Brad Forrester meets a formidable opponent in schoolteacher Ruth Stewart.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+    <rating>
+      <value>TV-PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA2900008Y0" start="20261123183519 +0000" stop="20261123190553 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>Quong Kee</sub-title>
+    <desc>A politician tries to ruin a senatorial candidate's chances by linking him with a dance hall girl.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+    <rating>
+      <value>TV-PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA2900008Y0" start="20261123190553 +0000" stop="20261123193621 +0000">
+    <title>Death Valley Days</title>
+    <sub-title>Old Gabe</sub-title>
+    <desc>Jim Bridger returns from an Army assignment to learn his life at home has changed drastically.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_552807079_0_20241212T002810969Z_37_imageprocessorclient-tvplus-linear-5dc4fd45f6-qtwlw.jpeg" />
+    <rating>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABC2300007YT" start="20261123130000 +0000" stop="20261123140000 +0000">
@@ -3111,40 +3102,22 @@
       <value>CAN_ENG_PG</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261123110000 +0000" stop="20261123113147 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>The Psychiatrist Gets Clampetted</sub-title>
-    <desc>Jethro is finally told that he can finish the fifth grade by Doctor Twombly, but the doctor still wants to see Grannie  her love potion for Pearl misfires, leaving Twombly confused.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3780293539_7_20261117T184151867Z_29_imageprocessorclient-tvplus-linear-6b56cc9f55-xsq55.jpeg" />
+ <programme channel="dc-CABC2300007YT" start="20261123180000 +0000" stop="20261123190000 +0000">
+    <title>Ultimate Cowboy Showdown</title>
+    <sub-title>End of the Trail</sub-title>
+    <desc>The remaining cowboys face off in a dramatic final challenge, and Trace crowns a winner.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3419238596_1_20260902T172248409Z_112_imageprocessorclient-tvplus-linear-6b56cc9f55-vfpsd.jpeg" />
     <rating>
-      <value>G</value>
+      <value>CAN_ENG_PG</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261123113147 +0000" stop="20261123120300 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Elly Becomes a Secretary</sub-title>
-    <desc>Jed takes over Drysdale's job for one afternoon and wins him the Banker of the Year title  Drysdale accidentally uses the wrong speech for his conference, and a new teller makes an impact.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3780335629_0_20261117T184153206Z_119_imageprocessorclient-tvplus-linear-6b56cc9f55-7fbs8.jpeg" />
+ <programme channel="dc-CABC2300007YT" start="20261123190000 +0000" stop="20261123192800 +0000">
+    <title>Handcrafted America</title>
+    <sub-title>Saddle Shoes, Fluted Ceramic Stoneware, Spanish Lanterns</sub-title>
+    <desc>Jill meets a Nebraska shoemaker, a South Carolina potter, and a California lantern maker.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3419238593_0_20260902T172251378Z_68_imageprocessorclient-tvplus-linear-6b56cc9f55-wrt8j.jpeg" />
     <rating>
-      <value>G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261123120300 +0000" stop="20261123123427 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Jethro's Friend</sub-title>
-    <desc>One of Jethro's school friends spends a day at the Clampett mansion, and the hillbillies show the over-protected boy how to have fun.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3780293475_2_20261117T184154359Z_23_imageprocessorclient-tvplus-linear-6b56cc9f55-mwj2d.jpeg" />
-    <rating>
-      <value>G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CAAJ2700008QA" start="20261123123427 +0000" stop="20261123130611 +0000">
-    <title>The Beverly Hillbillies</title>
-    <sub-title>Jed Gets the Misery</sub-title>
-    <desc>To humor Granny, Jed fakes illness so that she can resume the doctoring that brought her fame back home.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3780313430_3_20261117T184151644Z_86_imageprocessorclient-tvplus-linear-6b56cc9f55-2kdtt.jpeg" />
-    <rating>
-      <value>G</value>
+      <value>CAN_ENG_G</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ2700008QA" start="20261123130611 +0000" stop="20261123133751 +0000">
@@ -3219,49 +3192,22 @@
       <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200002T9" start="20261123110000 +0000" stop="20261123112559 +0000">
-    <title>Struggle Meals</title>
-    <sub-title>Meals Under $7</sub-title>
-    <desc>These minimal ingredient recipes are the keys to creating filling, flavorful meals for 4 people for under $7.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587160120_0_20261008T110550431Z_102_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+ <programme channel="dc-CAAJ2700008QA" start="20261123174949 +0000" stop="20261123184943 +0000">
+    <title>Bonanza</title>
+    <sub-title>Denver McKee</sub-title>
+    <desc>Ranchers are being killed, cattle stolen, even after the U.S. deputy marshal sends posses after the suspects.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3780275932_4_20261117T184150420Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-6lw45.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>G</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200002T9" start="20261123112559 +0000" stop="20261123115159 +0000">
-    <title>Struggle Meals</title>
-    <sub-title>Grubby Good Food</sub-title>
-    <desc>Send your taste buds on a flavorful food tour without leaving the Struggle Kitchen.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587160120_0_20261008T110550431Z_102_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+ <programme channel="dc-CAAJ2700008QA" start="20261123184943 +0000" stop="20261123194938 +0000">
+    <title>Bonanza</title>
+    <sub-title>Day of Reckoning</sub-title>
+    <desc>Prejudice erupts on both sides when Ben gives an Indian named Matsou and his wife some of his land after Matsou saves Ben's life from a renegade Indian who almost killed him on the Ponderosa.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3780235023_6_20261117T184155042Z_52_imageprocessorclient-tvplus-linear-6b56cc9f55-7bxq7.jpeg" />
     <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABD1200002T9" start="20261123115159 +0000" stop="20261123121759 +0000">
-    <title>Struggle Meals</title>
-    <sub-title>Thanksgiving Leftovers</sub-title>
-    <desc>Reinvent those endless Thanksgiving leftovers with revamped dishes the family will love.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587160120_0_20261008T110550431Z_102_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABD1200002T9" start="20261123121759 +0000" stop="20261123124359 +0000">
-    <title>Struggle Meals</title>
-    <sub-title>Breakfast for Dinner</sub-title>
-    <desc>If breakfast is the most important meal of the day, why not eat it for dinner too?</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587160120_0_20261008T110550431Z_102_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
-    <rating>
-      <value>NA</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABD1200002T9" start="20261123124359 +0000" stop="20261123130959 +0000">
-    <title>Struggle Meals</title>
-    <sub-title>100th Episode</sub-title>
-    <desc>Frankie celebrates the 100th episode of Struggle Meals with a look back on memorable moments.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587160120_0_20261008T110550431Z_102_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
-    <rating>
-      <value>NA</value>
+      <value>G</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200002T9" start="20261123130959 +0000" stop="20261123133559 +0000">
@@ -3354,6 +3300,42 @@
       <value>NA</value>
     </rating>
   </programme>
+ <programme channel="dc-CABD1200002T9" start="20261123173000 +0000" stop="20261123175601 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>This Sandwich is Defying Gravity</sub-title>
+    <desc>What meals rank in the 70s and how are they related to disco? Let's find out!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587252502_0_20261008T110550431Z_42_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABD1200002T9" start="20261123175601 +0000" stop="20261123182203 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>Old Bay and Old Spice Don't Mix</sub-title>
+    <desc>Things get contemptuous as our panel argues over a dish in the 60s. There is no right or wrong, we all win!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587252502_0_20261008T110550431Z_42_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABD1200002T9" start="20261123182203 +0000" stop="20261123184804 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>A Favorite of Youngins and Felons Alike</sub-title>
+    <desc>You may not agree with some meals on this episode... but that's okay, because the panel agrees with you!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587252502_0_20261008T110550431Z_42_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABD1200002T9" start="20261123184804 +0000" stop="20261123191405 +0000">
+    <title>Forking Delicious: 100 Iconic Dishes</title>
+    <sub-title>Baja Breaking all the Rules</sub-title>
+    <desc>We're halfway through our list, but somehow just getting started!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3587252502_0_20261008T110550431Z_42_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
  <programme channel="dc-CA1400001PI" start="20261123103054 +0000" stop="20261123144554 +0000">
     <title>3/23/09: 2009 World Baseball Classic: JPN vs. KOR</title>
     <desc>Team Japan defeats Team South Korea, 5-3, to win the 2009 World Baseball Classic.</desc>
@@ -3416,28 +3398,48 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA1400003R3" start="20261123103431 +0000" stop="20261123113354 +0000">
-    <title>Dodge Juggle 3</title>
-    <desc>It's a cross between juggling and dodgeball. There are different formats to this game, and all of them are hilarious.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3522468760_1_20260924T190803058Z_118_imageprocessorclient-tvplus-linear-6b56cc9f55-vfpsd.jpeg" />
+ <programme channel="dc-CA1400001PI" start="20261123172054 +0000" stop="20261123174554 +0000">
+    <title>Prime 9</title>
+    <sub-title>Third-Basemen</sub-title>
+    <desc>Check out the list of greatest third-basemen on Prime 9.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_924274443_0_20250301T012134010Z_112_imageprocessorclient-tvplus-linear-b76dd9bbb-7227f.jpeg" />
     <rating>
-      <value>NA</value>
+      <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA1400003R3" start="20261123113354 +0000" stop="20261123120615 +0000">
-    <title>Lawn Mower Racing</title>
-    <desc>Sometimes referred to as counntryside NASCAR, find out who is the best lawn mower racer.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3522414809_0_20260924T190759422Z_72_imageprocessorclient-tvplus-linear-6b56cc9f55-b6b8l.jpeg" />
+ <programme channel="dc-CA1400001PI" start="20261123174554 +0000" stop="20261123181054 +0000">
+    <title>Prime 9</title>
+    <sub-title>Left Fielders</sub-title>
+    <desc>Check out the top left fielders of all time on Prime 9</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_924274443_0_20250301T012134010Z_112_imageprocessorclient-tvplus-linear-b76dd9bbb-7227f.jpeg" />
     <rating>
-      <value>NA</value>
+      <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA1400003R3" start="20261123120615 +0000" stop="20261123130426 +0000">
-    <title>DGPT Best of Disc Golf</title>
-    <desc>Think you know golf? Wait until you see Disc Golf! These competitors combine precision with high-flying action.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3559878312_1_20261002T165300564Z_65_imageprocessorclient-tvplus-linear-6b56cc9f55-tqrh6.jpeg" />
+ <programme channel="dc-CA1400001PI" start="20261123181054 +0000" stop="20261123183554 +0000">
+    <title>Prime 9</title>
+    <sub-title>Center Fielders</sub-title>
+    <desc>Check out the list of greatest center fielders on Prime 9.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_924274443_0_20250301T012134010Z_112_imageprocessorclient-tvplus-linear-b76dd9bbb-7227f.jpeg" />
     <rating>
-      <value>NA</value>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA1400001PI" start="20261123183554 +0000" stop="20261123190554 +0000">
+    <title>Prime 9</title>
+    <sub-title>Right Fielders</sub-title>
+    <desc>Check out the top right fielders of all time on Prime 9.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_924274443_0_20250301T012134010Z_112_imageprocessorclient-tvplus-linear-b76dd9bbb-7227f.jpeg" />
+    <rating>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA1400001PI" start="20261123190554 +0000" stop="20261123193554 +0000">
+    <title>MLB's Carded: Jo Adell adds to his collection</title>
+    <desc>On Carded, rip rare packs with Jo Adell and take a tour of Orel Hershiser's new memorabilia shop.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_761950602_0_20250128T051948725Z_138_imageprocessorclient-tvplus-linear-5dc4fd45f6-qvh4n.jpeg" />
+    <rating>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CA1400003R3" start="20261123130426 +0000" stop="20261123133432 +0000">
@@ -3496,12 +3498,20 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200008JG" start="20261123095742 +0000" stop="20261123121011 +0000">
-    <title>Vietnam v Netherlands | Group E | FIFA Women's World Cup Australia &amp; New Zealand 2023™ | Full Match Replay</title>
-    <desc>Watch the full match replay between Vietnam and Netherlands at Dunedin Stadium, Dunedin.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3480024115_0_20260915T185924065Z_1_imageprocessorclient-tvplus-linear-6b56cc9f55-wrt8j.jpeg" />
+ <programme channel="dc-CA1400003R3" start="20261123175135 +0000" stop="20261123181859 +0000">
+    <title>Bed Racing</title>
+    <desc>Few sports let you lie down on the job, and none of them are half as exciting as bed racing.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3522468759_2_20260924T190759735Z_107_imageprocessorclient-tvplus-linear-6b56cc9f55-cwddm.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>NA</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CA1400003R3" start="20261123181859 +0000" stop="20261123191711 +0000">
+    <title>Best of Chess Boxing</title>
+    <desc>Combining brains and brawn, Chess Boxing feature alterante rounds of rapid chess and boxing between two opponents.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3522496350_0_20260924T190759421Z_89_imageprocessorclient-tvplus-linear-6b56cc9f55-b6b8l.jpeg" />
+    <rating>
+      <value>NA</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200008JG" start="20261123121011 +0000" stop="20261123140434 +0000">
@@ -3528,13 +3538,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA700002VS" start="20261123100525 +0000" stop="20261123115959 +0000">
-    <title>NASCAR Classics</title>
-    <sub-title>Truck Series</sub-title>
-    <desc>Relive the 2022 O'Reilly Auto Parts 150 at Mid-Ohio Sports Car Course in this NASCAR Truck Series race replay.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1564862236_0_20250625T012928519Z_130_imageprocessorclient-tvplus-linear-95576dcd4-mkzzs.jpeg" />
+ <programme channel="dc-CABD1200008JG" start="20261123184348 +0000" stop="20261123191204 +0000">
+    <title>The Best of FIFA Women's World Cup USA 1999™</title>
+    <desc>A showcase of the tournament's top goals, assists, and award-winning moments from USA 1999.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3359433245_0_20260820T185851435Z_23_imageprocessorclient-tvplus-linear-6b56cc9f55-b6b8l.jpeg" />
     <rating>
-      <value>NA</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CA700002VS" start="20261123115959 +0000" stop="20261123150127 +0000">
@@ -3555,31 +3564,13 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABC2300015UM" start="20261123105507 +0000" stop="20261123113017 +0000">
-    <title>Bob Ross</title>
-    <sub-title>Black Waterfall</sub-title>
-    <desc>Hear the sounds of a bubbling stream and distant waterfall against the most tumultuous of all skies.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
+ <programme channel="dc-CA700002VS" start="20261123173633 +0000" stop="20261123195458 +0000">
+    <title>NASCAR Classics</title>
+    <sub-title>Truck Series</sub-title>
+    <desc>Relive the 2023 Speedycash.com 250 at Texas Motor Speedway in this NASCAR Truck Series race replay.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1564862236_0_20250625T012928519Z_130_imageprocessorclient-tvplus-linear-95576dcd4-mkzzs.jpeg" />
     <rating>
-      <value>TV-G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABC2300015UM" start="20261123113017 +0000" stop="20261123120517 +0000">
-    <title>Bob Ross</title>
-    <sub-title>Mountain Waterfall</sub-title>
-    <desc>Slip away into a wondrous plush green forest where Bob Ross creates an almost invisible mountain overlooking.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
-    <rating>
-      <value>TV-G</value>
-    </rating>
-  </programme>
- <programme channel="dc-CABC2300015UM" start="20261123120517 +0000" stop="20261123124017 +0000">
-    <title>Bob Ross</title>
-    <sub-title>Final Grace</sub-title>
-    <desc>Beautiful foliage and fierce skies with an almighty mountain overlooking a calm lake.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
-    <rating>
-      <value>TV-G</value>
+      <value>NA</value>
     </rating>
   </programme>
  <programme channel="dc-CABC2300015UM" start="20261123124017 +0000" stop="20261123131519 +0000">
@@ -3654,20 +3645,40 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ3400017AE" start="20261123105539 +0000" stop="20261123115942 +0000">
-    <title>Animal Doctors</title>
-    <desc>Can animals develop their own health care strategies? Learn more in this humorous investigation.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2289915876_0_20251216T023847251Z_85_imageprocessorclient-tvplus-linear-584c967455-jtw46.jpeg" />
+ <programme channel="dc-CABC2300015UM" start="20261123172028 +0000" stop="20261123175518 +0000">
+    <title>Bob Ross</title>
+    <sub-title>Golden Glow</sub-title>
+    <desc>Even a tiny shanty by the pond can be a warm place in the dead of winter  Bob Ross shows us how to make a.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ3400017AE" start="20261123115942 +0000" stop="20261123123126 +0000">
-    <title>Coral: The Heart of the Ocean</title>
-    <desc>This Phillippines marine park is a model for sustainable development and a true laboratory of the future.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1173913226_0_20250417T002541964Z_111_imageprocessorclient-tvplus-linear-b76dd9bbb-cnffn.jpeg" />
+ <programme channel="dc-CABC2300015UM" start="20261123175518 +0000" stop="20261123183028 +0000">
+    <title>Bob Ross</title>
+    <sub-title>Roadside Barn</sub-title>
+    <desc>Follow the old dirt road to that quaint country barn nestled in natures greenery  Bob Ross paints your.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
     <rating>
-      <value>TV-14</value>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABC2300015UM" start="20261123183028 +0000" stop="20261123190527 +0000">
+    <title>Bob Ross</title>
+    <sub-title>Happy Accident</sub-title>
+    <desc>Supple sky, fluffy trees and playful rushing river are created by Bob Ross.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
+    <rating>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABC2300015UM" start="20261123190527 +0000" stop="20261123194029 +0000">
+    <title>Bob Ross</title>
+    <sub-title>Golden Knoll</sub-title>
+    <desc>Bob Ross paints a beautiful monochromatic scene with delicate leafless trees and rich grassy meadow cuddling.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1151744873_0_20250412T232357378Z_1_imageprocessorclient-tvplus-linear-b76dd9bbb-q7qks.jpeg" />
+    <rating>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ3400017AE" start="20261123123126 +0000" stop="20261123133541 +0000">
@@ -3714,10 +3725,19 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA600001C3" start="20261123110734 +0000" stop="20261123121053 +0000">
-    <title>Omaha Beach: Honor and Sacrifice</title>
-    <desc>Searching for closure, veterans return to Omaha Beach in Normandy decades after they landed there on D-Day.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_544069066_0_20240703T003126290Z_81.jpeg" />
+ <programme channel="dc-CAAJ3400017AE" start="20261123175311 +0000" stop="20261123185753 +0000">
+    <title>Wild Pyrenees</title>
+    <sub-title>The Pirate of the Mountains The Bearded Vulture</sub-title>
+    <desc>With wingspans over two meters (seven feet), these vultures soar. They feast on scarce prey as winter ends.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2125943472_0_20251107T003836557Z_27_imageprocessorclient-tvplus-linear-76c46fff7-xncc6.jpeg" />
+    <rating>
+      <value>TV-PG</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CAAJ3400017AE" start="20261123185753 +0000" stop="20261123200209 +0000">
+    <title>Extraordinary Ecosystems</title>
+    <desc>From Namibia, to Tasmania, to the Baltic Sea, view Earth's unique ecosystems and their many native creatures.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2232814644_0_20251202T020528869Z_64_imageprocessorclient-tvplus-linear-584c967455-qj7j7.jpeg" />
     <rating>
       <value>TV-PG</value>
     </rating>
@@ -3773,31 +3793,31 @@
       <value>TV-MA</value>
     </rating>
   </programme>
- <programme channel="dc-CABA3700003NA" start="20261123110000 +0000" stop="20261123113054 +0000">
-    <title>Gecko's Garage</title>
-    <sub-title>Epic Rescues with Grandma Gecko!</sub-title>
-    <desc>It's an epic rescue with Grandma Gecko! She helps stop a runaway car &amp; changes lots of flat tires!</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_534176903_0_20231020T102041295Z_52.jpeg" />
+ <programme channel="dc-CA600001C3" start="20261123175034 +0000" stop="20261123182051 +0000">
+    <title>Behind the Wings</title>
+    <sub-title>B-52 Bomber</sub-title>
+    <desc>Explore a B-52 bomber, the Peace Garden State, and one of only two active B-52 bases in the U.S.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_539627106_0_20240319T135218125Z_53.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABA3700003NA" start="20261123113054 +0000" stop="20261123120656 +0000">
-    <title>Gecko's Garage</title>
-    <sub-title>Gecko's Genius Outdoor Fixes!</sub-title>
-    <desc>Gecko has some genius outdoor fixes! He builds a water wheel &amp; uses a bouncy castle to rescue a flying Weasel!</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_534176903_0_20231020T102041295Z_52.jpeg" />
+ <programme channel="dc-CA600001C3" start="20261123182051 +0000" stop="20261123185103 +0000">
+    <title>Behind the Wings</title>
+    <sub-title>Denver Airport</sub-title>
+    <desc>Millions have flown from Denver International Airport, but few have seen inside the impressive operation.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_539627106_0_20240319T135218125Z_53.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABA3700003NA" start="20261123120656 +0000" stop="20261123124819 +0000">
-    <title>Blippi</title>
-    <sub-title>Blippi Climbs to New Heights</sub-title>
-    <desc>Blippi climbs to new heights! He climbs the region's tallest rock wall &amp; races to the top of the Space Needle!</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1286095336_0_20250507T082847492Z_67_imageprocessorclient-tvplus-linear-b76dd9bbb-wf66n.jpeg" />
+ <programme channel="dc-CA600001C3" start="20261123185103 +0000" stop="20261123192131 +0000">
+    <title>Behind the Wings</title>
+    <sub-title>EA-6B Prowler</sub-title>
+    <desc>Explore the world of electronic attack, from the recently retired EA-6B Prowler to the next generation.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_539627106_0_20240319T135218125Z_53.jpeg" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABA3700003NA" start="20261123124819 +0000" stop="20261123131107 +0000">
@@ -3881,12 +3901,40 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CA4700006LN" start="20261123110000 +0000" stop="20261123130000 +0000">
-    <title>Stingray Soft Hits</title>
-    <desc>Need a break? These relaxing, easy-listening pop songs from the ‘70s, ‘80s, and ‘90s set the mood to put your feet up and take a breather.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490463984_0_20250612T143933396Z_27_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
+ <programme channel="dc-CABA3700003NA" start="20261123173353 +0000" stop="20261123175755 +0000">
+    <title>The Melon Patch</title>
+    <sub-title>Let's Ride The School Bus!</sub-title>
+    <desc>Ms. Appleberry and friends teach kids about the school bus—how it works and where it takes us!</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3100903700_2_20260625T014313076Z_69_imageprocessorclient-tvplus-linear-75df688c49-ctcwn.jpeg" />
     <rating>
-      <value>TV-PG</value>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABA3700003NA" start="20261123175755 +0000" stop="20261123182518 +0000">
+    <title>The Melon Patch</title>
+    <sub-title>Let's Squish Things!</sub-title>
+    <desc>Ms. Appleberry and friends explore the sense of touch with things that are squishy, soft and sticky.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3100903700_2_20260625T014313076Z_69_imageprocessorclient-tvplus-linear-75df688c49-ctcwn.jpeg" />
+    <rating>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABA3700003NA" start="20261123182518 +0000" stop="20261123190213 +0000">
+    <title>CeCe Time</title>
+    <sub-title>Kittens, Tutus &amp; Fun Tea Parties!</sub-title>
+    <desc>Splash and roar in Singapore! Tackle giant water slides, slide down an ice luge, and dig for dino fossils.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3114542926_0_20260628T020204632Z_91_imageprocessorclient-tvplus-linear-75df688c49-wzfkg.png" />
+    <rating>
+      <value>TV-G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CABA3700003NA" start="20261123190213 +0000" stop="20261123193017 +0000">
+    <title>Dance Party</title>
+    <sub-title>JJ's Favorite Classic Sing-Alongs!</sub-title>
+    <desc>Use your imagination and dance! Explore outer space, rock out on stage, and play the Freeze Dance game.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_3100876360_0_20260625T014313016Z_56_imageprocessorclient-tvplus-linear-75df688c49-dtjdp.png" />
+    <rating>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CA4700006LN" start="20261123130000 +0000" stop="20261123150000 +0000">
@@ -3913,12 +3961,12 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200030YP" start="20261123110000 +0000" stop="20261123130000 +0000">
-    <title>Stingray Easy Listening</title>
-    <desc>Sit back and relax to this selection of instrumental music. It's the perfect mix for taking a break, taking a breather, and enjoying the moment.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/CABD1200030YP_20250618T231510_BRANDED.png" />
+ <programme channel="dc-CA4700006LN" start="20261123190000 +0000" stop="20261123210000 +0000">
+    <title>Stingray Soft Hits</title>
+    <desc>Need a break? These relaxing, easy-listening pop songs from the ‘70s, ‘80s, and ‘90s set the mood to put your feet up and take a breather.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490463984_0_20250612T143933396Z_27_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200030YP" start="20261123130000 +0000" stop="20261123150000 +0000">
@@ -3945,12 +3993,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CABD1200036YT" start="20261123110000 +0000" stop="20261123130000 +0000">
-    <title>Stingray Classic Rock</title>
-    <desc>Relive the wonders of classic rock, the sound that revolutionized the world of music from the ‘60s to the ‘80s. Listen to the genre's biggest legends.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490548955_0_20250612T143939237Z_92_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
+ <programme channel="dc-CABD1200030YP" start="20261123190000 +0000" stop="20261123210000 +0000">
+    <title>Stingray Easy Listening</title>
+    <desc>Sit back and relax to this selection of instrumental music. It's the perfect mix for taking a break, taking a breather, and enjoying the moment.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/CABD1200030YP_20250618T231510_BRANDED.png" />
     <rating>
-      <value>TV-PG</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CABD1200036YT" start="20261123130000 +0000" stop="20261123150000 +0000">
@@ -3977,12 +4025,12 @@
       <value>TV-PG</value>
     </rating>
   </programme>
- <programme channel="dc-CA47000031R" start="20261123110000 +0000" stop="20261123130000 +0000">
-    <title>Stingray Country Greats</title>
-    <desc>Before today's Hot Country and the New Country trends of the ‘90s was Classic Country from the early-‘50s up to the mid-‘80s. Listen to the legends of Nashville's Grand Ole Opry such as Waylon, Willie, Johnny, Loretta, George, Merle, Marty, Buck, Dolly, Tammy, Conway, and Emmylou.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490435970_0_20250612T143939274Z_103_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
+ <programme channel="dc-CABD1200036YT" start="20261123190000 +0000" stop="20261123210000 +0000">
+    <title>Stingray Classic Rock</title>
+    <desc>Relive the wonders of classic rock, the sound that revolutionized the world of music from the ‘60s to the ‘80s. Listen to the genre's biggest legends.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490548955_0_20250612T143939237Z_92_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
     <rating>
-      <value>TV-G</value>
+      <value>TV-PG</value>
     </rating>
   </programme>
  <programme channel="dc-CA47000031R" start="20261123130000 +0000" stop="20261123150000 +0000">
@@ -4009,12 +4057,12 @@
       <value>TV-G</value>
     </rating>
   </programme>
- <programme channel="dc-CAAJ3400003T7" start="20261123110000 +0000" stop="20261123130001 +0000">
-    <title>World's Best Beaches</title>
-    <desc>The world's most beautiful beaches, paired with melodies to soothe the soul.</desc>
-    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_544092007_0_20240703T104229998Z_56.png" />
+ <programme channel="dc-CA47000031R" start="20261123190000 +0000" stop="20261123210000 +0000">
+    <title>Stingray Country Greats</title>
+    <desc>Before today's Hot Country and the New Country trends of the ‘90s was Classic Country from the early-‘50s up to the mid-‘80s. Listen to the legends of Nashville's Grand Ole Opry such as Waylon, Willie, Johnny, Loretta, George, Merle, Marty, Buck, Dolly, Tammy, Conway, and Emmylou.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1490435970_0_20250612T143939274Z_103_imageprocessorclient-tvplus-linear-95576dcd4-96l7t.png" />
     <rating>
-      <value>CAN_ENG_PG</value>
+      <value>TV-G</value>
     </rating>
   </programme>
  <programme channel="dc-CAAJ3400003T7" start="20261123130001 +0000" stop="20261123135957 +0000">
@@ -4057,30 +4105,22 @@
       <value>NA</value>
     </rating>
   </programme>
- <programme start="20261123113006 +0000" stop="20261123120014 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Cowboy G-Men</title>
-<desc>Pat Gallagher and Stoney Crockett are Secret Service agents in the Old West, dispatched by the government to investigate crimes threatening the young nation. In this episode, the G-Men go to Denver to investigate a silver fraud. Starring Russel Hayden, Jackie Coogan.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
-</programme>
- <programme start="20261123120014 +0000" stop="20261123123009 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Petticoat Junction</title>
-<desc>Bobbie Jo falls head over heals for an edgy young poet from New York. He likes her, too, but he's not fond of Hooterville. Of coure, Kate has to show Bobby Jo what this pompous fool is all about. Uncle Joe Carson: Edgar Buchanan. Betty Jo Bradley: Linda Henning. Kate Bradley: Bea Benaderet. Sam Drucker: Frank Cady. Also starring Pat Woodall and Jeannine Riley. Series created by Paul Henning. Episode first aired in 1963. Look for Dennis Hopper as the beatnik.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
-</programme>
- <programme start="20261123123009 +0000" stop="20261123130008 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Petticoat Junction</title>
-<desc>The family wants Billie Jo to become a doctor, but she wants to go to Hollywood to become an actress. Uncle Joe Carson: Edgar Buchanan. Betty Jo Bradley: Linda Henning. Kate Bradley: Bea Benaderet. Sam Drucker: Frank Cady. Also starring Pat Woodall and Jeannine Riley. Directed by Jean Yarbrough. And be sure to look for Adam West in a pre-Batman role as Doctor Clayton Harris. Series created by Paul Henning. Episode first aired in January, 1964.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
-</programme>
- <programme start="20261123130008 +0000" stop="20261123133008 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
-<title>Petticoat Junction</title>
-<desc>Billie Jo recieves an endowment, but instead of using it for medical school, she wishes to go to Hollywood.Kate meets with Judge Drucker to see if she can legally prevent the girl from goinng. Uncle Joe Carson: Edgar Buchanan. Betty Jo Bradley: Linda Henning. Kate Bradley: Bea Benaderet. Sam Drucker: Frank Cady. Also starring Pat Woodall and Jeannine Riley. Directed by Jean Yarbrough.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
-</programme>
+ <programme channel="dc-CAAJ3400003T7" start="20261123175940 +0000" stop="20261123185936 +0000">
+    <title>Shark Paradise</title>
+    <desc>Leave your worries from the world above behind and dive into a vibrant undersea world inhabited by the iconic sharks, for 80 minutes of Nature Relaxation. Captured by filmmaker collaborator Peter Schneider, Shark Paradise features hundreds of unique real-time scenes captured from around the world, paired with gentle underwater sounds &amp; calming music for deep relaxation by Relax Moods.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_2530525058_1_20260211T145831071Z_95_imageprocessorclient-tvplus-linear-584c967455-z7vql.jpeg" />
+    <rating>
+      <value>CAN_ENG_G</value>
+    </rating>
+  </programme>
+ <programme channel="dc-CAAJ3400003T7" start="20261123185936 +0000" stop="20261123195931 +0000">
+    <title>Amazing view: Guadeloupe</title>
+    <desc>Feel the relaxing seaside breeze of this Caribbean paradise from the comfort of your balcony.</desc>
+    <icon src="https://tvpnlogopus.samsungcloud.tv/platform/image/contents/vc/00/LINEAR/CA_USQT620324A_1829643419_3_20250814T145746424Z_133_imageprocessorclient-tvplus-linear-d7c8c765b-97vkd.jpeg" />
+    <rating>
+      <value>NA</value>
+    </rating>
+  </programme>
  <programme start="20261123133008 +0000" stop="20261123140010 +0000" channel="dc-us-cinedigm_entertainment_corp_lonestar_1">
 <title>Petticoat Junction</title>
 <desc>A famous movie star (John Vivyan) stays at the Shady Rest Hotel. He wants to get away from the spotlight for a while, but it appears that Uncle Joe has told the entire valley that the hotel has a special guest. .Uncle Joe Carson: Edgar Buchanan. Betty Jo Bradley: Linda Henning. Kate Bradley: Bea Benaderet. Sam Drucker: Frank Cady. Also starring Pat Woodall and Jeannine Riley. Directed by Ralph Levy. Episode first aired January 28, 1964</desc>
@@ -4141,12 +4181,6 @@
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/1846/lg/f3a4fb/LG-768x432_v1.png" />
 </programme>
- <programme start="20261123115800 +0000" stop="20261123130000 +0000" channel="dc-us-world_poker_tour_wpt_1">
-<title>World Poker Tour</title>
-<desc>Poker players compete in a series of tournaments at casinos around the world.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
-</programme>
  <programme start="20261123130000 +0000" stop="20261123154500 +0000" channel="dc-us-world_poker_tour_wpt_1">
 <title>World Poker Tour</title>
 <desc>High-stakes tournament poker from some of the world's famous casinos and card rooms.</desc>
@@ -4177,17 +4211,17 @@
 <rating><value>TV-14</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
- <programme start="20261123103000 +0000" stop="20261123120000 +0000" channel="dc-us-tripleb_billiardtv_1">
-<title>Predator Pro Billiard Series: Indonesia</title>
-<desc>Round 1: Jasmin Ouschan vs. Siming Chen from Sept. 27, 2026.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
+ <programme start="20261123200000 +0000" stop="20261123210000 +0000" channel="dc-us-world_poker_tour_wpt_1">
+<title>World Poker Tour: Season 7</title>
+<desc>Four players remain. From the Bellagio in Las Vegas.</desc>
+<rating><value>TV-14</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
- <programme start="20261123120000 +0000" stop="20261123133000 +0000" channel="dc-us-tripleb_billiardtv_1">
-<title>Predator Pro Billiard Series: Indonesia</title>
-<desc>Round 1: Kledio Kaçi vs. Roland Garcia from Sept. 28, 2026.</desc>
-<rating><value>TV-G</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
+ <programme start="20261123210000 +0000" stop="20261123220000 +0000" channel="dc-us-world_poker_tour_wpt_1">
+<title>World Poker Tour: Season 7</title>
+<desc>From Mashantucket, Conn.</desc>
+<rating><value>TV-14</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/2131/lg/12ce40/LG-768x432_v1.png" />
 </programme>
  <programme start="20261123133000 +0000" stop="20261123150000 +0000" channel="dc-us-tripleb_billiardtv_1">
 <title>Predator Pro Billiard Series: Indonesia</title>
@@ -4207,11 +4241,11 @@
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
 </programme>
- <programme start="20261123104009 +0000" stop="20261123132133 +0000" channel="dc-formula1tv_frla1_US">
-<title>Formula 1 2014 Bahrain Grand Prix</title>
-<desc>2014 Bahrain Grand Prix</desc>
-<rating><value>TV-MA</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_29cc3fc47013faa69be7ecc8197f1bb97e06ad78f6a873b3cec43d243ca3ed49_1000002185landscapewebjpg_768_432.jpeg" />
+ <programme start="20261123200000 +0000" stop="20261124000000 +0000" channel="dc-us-tripleb_billiardtv_1">
+<title>Predator Pro Billiard Series: San Antonio</title>
+<desc>The 2026 Predator Pro Billiard Series: San Antonio brings together top professional pool players for a high-level competition featuring exciting matches and world-class talent; the event showcases the skill, strategy and precision of professional billiards as players compete for the title.</desc>
+<rating><value>TV-G</value></rating>
+<icon src="http://img.platform.wurl.dev/channel/1288/lg/0bc2e9/LG-768x432_v1.png" />
 </programme>
  <programme start="20261123132133 +0000" stop="20261123161532 +0000" channel="dc-formula1tv_frla1_US">
 <title>F1 2021 Abu Dhabi Grand Prix</title>
@@ -4231,17 +4265,11 @@
 <rating><value>TV-14</value></rating>
 <icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_7f54934980fa49c793e4b5d88d2b8127b70bd2550c04f8fccb5e9f9a809020ee_1000001939landscapewebjpg_768_432.jpeg" />
 </programme>
- <programme start="20261123112118 +0000" stop="20261123122055 +0000" channel="dc-johnnycarson_jhcrn_US">
-<title>The Johnny Carson Show</title>
-<desc>National Spelling Bee Champion Jon Pennington joins Johnny and George Carlin talks about losing things.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_7aa81f8f53a073e9a320227d1b5f353099f18c000015488f701e0eaedd47c95b_thejohnnycarsonshowthebestofgeorgecarlin1920x1080jpg_768_432.jpeg" />
-</programme>
- <programme start="20261123122055 +0000" stop="20261123132057 +0000" channel="dc-johnnycarson_jhcrn_US">
-<title>The Johnny Carson Show</title>
-<desc>Celebrated comic Richard Pryor shares his experience recovering from extensive burns.</desc>
-<rating><value>TV-PG</value></rating>
-<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_ceeac27159fa1ffd8e4519dbbc67536160f3f69ffb5cbeb29bdb369c95bb9419_thejohnnycarsonshowthebestofrichardpryor1920x1080jpg_768_432.jpeg" />
+ <programme start="20261123204608 +0000" stop="20261123233557 +0000" channel="dc-formula1tv_frla1_US">
+<title>2026 Miami Grand Prix</title>
+<desc>Race</desc>
+<rating><value>TV-14</value></rating>
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/FRLA1/resized_75ca9ba54085da3fb84d82f9d2d0d832445795d12ac60dbf88d5ca20cd9d9976_1000010244landscapewebjpg_768_432.jpeg" />
 </programme>
  <programme start="20261123132057 +0000" stop="20261123142008 +0000" channel="dc-johnnycarson_jhcrn_US">
 <title>The Johnny Carson Show</title>
@@ -4273,17 +4301,17 @@
 <rating><value>TV-PG</value></rating>
 <icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_7ffa8f5235b956bebb2043c8b208e2a06f216cd7a96d573c26ba7318a946e390_thejohnnycarsonshowanimalantics1920x1080jpg_768_432.jpeg" />
 </programme>
- <programme start="20261123114927 +0000" stop="20261123123957 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels</title>
-<desc>Explore the world of wood in history, modern uses, and timeless necessities.</desc>
+ <programme start="20261123191035 +0000" stop="20261123200928 +0000" channel="dc-johnnycarson_jhcrn_US">
+<title>The Johnny Carson Show</title>
+<desc>Calling all coffee fans: Jerry Seinfeld serves his take on the phenomenon.</desc>
 <rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_62f563efc638deecab5cd17de22cfbca54da2f639e46c37e020062aa6852aef8_thejohnnycarsonshowthebestofjerryseinfeld1920x1080jpg_768_432.jpeg" />
 </programme>
- <programme start="20261123123957 +0000" stop="20261123133132 +0000" channel="dc-us-aenetworks_modernmarvels_1">
-<title>Modern Marvels</title>
-<desc>City block building? Use 13,000 tons of steel, 36,000 cubic yards of concrete.</desc>
+ <programme start="20261123200928 +0000" stop="20261123210918 +0000" channel="dc-johnnycarson_jhcrn_US">
+<title>The Johnny Carson Show</title>
+<desc>Stand Up comedian Tim Thomerson announces he’s leaving comedy to act in grade B sci-fi movies.</desc>
 <rating><value>TV-PG</value></rating>
-<icon src="http://img.platform.wurl.dev/channel/1040/lg/d5193a/LG-768x432_v2.png" />
+<icon src="https://d3bd0tgyk368z1.cloudfront.net/resized_images/JHCRN/resized_6ccd467398817b205eff76ef8c750b1f086cb3c0a7da4ae0ae3d390804f5b267_thejohnnycarsonshowhollywoodiconsofthe80s1920x1080jpg_768_432.jpeg" />
 </programme>
  <programme start="20261123133132 +0000" stop="20261123142423 +0000" channel="dc-us-aenetworks_modernmarvels_1">
 <title>Modern Marvels</title>
@@ -4326,6 +4354,12 @@
 <desc>Host Ron Hazelton and two mechanics dissect a 2000 Ford Taurus.</desc>
 <rating><value>TV-PG</value></rating>
 <icon src="http://img.platform.wurl.dev/episodemeta/17242953/lg/e58ebf/lg_episode_thumbnail768x432_v1.jpeg" />
+</programme>
+ <programme start="20261123202810 +0000" stop="20261123211845 +0000" channel="dc-us-aenetworks_modernmarvels_1">
+<title>Modern Marvels</title>
+<desc>Delves into the little-known, hugely important, multi-billion-dollar industry.</desc>
+<rating><value>TV-PG</value></rating>
+<icon src="http://img.platform.wurl.dev/episodemeta/17040030/lg/793fc4/lg_episode_thumbnail768x432_v1.jpeg" />
 </programme>
  <programme channel="dc-556174" start="20261117070000 +0000" stop="20261117090000 +0000"><title>Dateline NBC</title><desc>A woman's disappearance tears her young children apart; a sting operation catches an unlikely villain.</desc></programme>
  <programme channel="dc-556174" start="20261117090000 +0000" stop="20261117100000 +0000"><title>Dateline NBC</title><desc>When a young Army medic based at Ft. Bragg, N.C., goes missing, police can't solve the case despite having a suspect until an unorthodox private investigator steps in to help.</desc></programme>
