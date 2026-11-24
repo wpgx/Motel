@@ -1,19 +1,28 @@
+
 name: tubiroku-sync
+
 on:
-  #schedule:
-   # - cron: '0 */6 * * *'
+  # schedule:
+  #   - cron: '0 */6 * * *'
   workflow_dispatch:
+
+concurrency:
+  group: tubiroku-sync
+  cancel-in-progress: false
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Grab from Cloudflare
         run: |
-          curl -L -o tubiroku.m3u https://tubiroku.donxman.workers.dev/all
-          curl -L -o tubiroku.xml https://tubiroku.donxman.workers.dev/epg.xml
+          curl -fL --retry 3 -o tubiroku.m3u https://tubiroku.donxman.workers.dev/all
+          curl -fL --retry 3 -o tubiroku.xml https://tubiroku.donxman.workers.dev/epg.xml
           wc -l tubiroku.m3u tubiroku.xml
 
       - uses: stefanzweifel/git-auto-commit-action@v5
