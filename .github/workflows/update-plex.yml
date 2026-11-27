@@ -32,9 +32,13 @@ jobs:
           import json
           import os
           import re
+          import sys
+          import time
+          import urllib.error
           import urllib.parse
           import urllib.request
           import xml.etree.ElementTree as ET
+          from pathlib import Path
 
           TOKEN = os.environ["PLEX_TOKEN"]
 
@@ -53,23 +57,62 @@ jobs:
               "User-Agent": "Mozilla/5.0"
           }
 
-          def get_json(url):
-              req = urllib.request.Request(
-                  url,
-                  headers=HEADERS
-              )
-
-              with urllib.request.urlopen(
-                  req,
-                  timeout=120
-              ) as response:
-                  return json.loads(
-                      response.read().decode("utf-8")
-                  )
+          def get_json(url, retries=4):
+              last_err = None
+              for attempt in range(retries):
+                  try:
+                      req = urllib.request.Request(
+                          url,
+                          headers=HEADERS
+                      )
+                      with urllib.request.urlopen(
+                          req,
+                          timeout=120
+                      ) as response:
+                          return json.loads(
+                              response.read().decode("utf-8")
+                          )
+                  except urllib.error.HTTPError as e:
+                      last_err = e
+                      if e.code in (429, 500, 502, 503, 504):
+                          retry_after = e.headers.get("Retry-After")
+                          if retry_after and retry_after.isdigit():
+                              wait = int(retry_after)
+                          else:
+                              wait = 15 * (2 ** attempt)
+                          print(
+                              f"GET -> {e.code}, "
+                              f"retry {attempt+1}/{retries} in {wait}s"
+                          )
+                          time.sleep(wait)
+                          continue
+                      raise
+                  except Exception as e:
+                      last_err = e
+                      wait = 15 * (2 ** attempt)
+                      print(
+                          f"GET -> network error {e}, "
+                          f"retry {attempt+1}/{retries} in {wait}s"
+                      )
+                      time.sleep(wait)
+                      continue
+              raise last_err
 
           print("=== GETTING PLEX LUMA CHANNELS ===")
 
-          channels = get_json(CATEGORY_URL)
+          try:
+              channels = get_json(CATEGORY_URL)
+          except Exception as e:
+              print(
+                  f"Luma category failed after retries: {e}"
+              )
+              if Path("plexluma.xml").exists():
+                  print(
+                      "FALLBACK: reusing last good plexluma.xml, "
+                      "keeping old guide"
+                  )
+                  sys.exit(0)
+              raise
 
           if not isinstance(channels, list):
               raise RuntimeError(
@@ -172,7 +215,7 @@ jobs:
           results = []
 
           with concurrent.futures.ThreadPoolExecutor(
-              max_workers=20
+              max_workers=5
           ) as executor:
 
               futures = [
@@ -452,18 +495,18 @@ jobs:
               n = norm(name)
 
               explicit = {
-                  "cbc news": "News & Weather",
-                  "cbc news ottawa": "News & Weather",
-                  "cbc news toronto": "News & Weather",
-                  "cbc news windsor": "News & Weather",
-                  "cheddar": "News & Weather",
-                  "france 24": "News & Weather",
+                  "【entity-cbc news¦canonical_name=cbc news】": "News & Weather",
+                  "【entity-cbc news¦canonical_name=cbc news】 ottawa": "News & Weather",
+                  "【entity-cbc news¦canonical_name=cbc news】 toronto": "News & Weather",
+                  "【entity-cbc news¦canonical_name=cbc news】 windsor": "News & Weather",
+                  "【entity-cheddar¦canonical_name=cheddar】": "News & Weather",
+                  "【entity-france 24¦canonical_name=france 24】": "News & Weather",
                   "gb news": "News & Weather",
                   "inter 24/7": "News & Weather",
                   "radio-canada info": "News & Weather",
-                  "usa today": "News & Weather",
+                  "【entity-usa today¦canonical_name=usa today】": "News & Weather",
                   "weather spy": "News & Weather",
-                  "yahoo finance": "News & Weather",
+                  "【entity-yahoo finance¦canonical_name=yahoo finance】": "News & Weather",
 
                   "afc with alfonso ribeiro": "Entertainment",
                   "bassmaster": "Sports",
@@ -507,7 +550,7 @@ jobs:
                   "wu tang collection": "Movies",
 
                   "cheaters": "Crime",
-                  "dateline": "Crime",
+                  "【entity-dateline¦canonical_name=Dateline】": "Crime",
                   "dog the bounty hunter": "Crime",
                   "hardcore pawn": "Crime",
                   "jail": "Crime",
@@ -549,7 +592,7 @@ jobs:
                   "nip/tuck": "Drama",
                   "nolly africa hd": "Drama",
                   "silent witness|new tricks": "Drama",
-                  "teen wolf by mgm": "Sci-Fi & Horror",
+                  "【entity-teen wolf¦canonical_name=Teen Wolf】 by mgm": "Sci-Fi & Horror",
                   "un si grand soleil": "Drama",
                   "weeds & nurse jackie": "Drama",
 
@@ -581,14 +624,14 @@ jobs:
                   "iron chef": "Home & Food",
                   "the bob ross channel": "Home & Food",
                   "the design network": "Home & Food",
-                  "the emeril lagasse channel": "Home & Food",
-                  "the martha stewart channel": "Home & Food",
+                  "the 【entity-emeril lagasse¦canonical_name=Emeril Lagasse】 channel": "Home & Food",
+                  "the 【entity-martha stewart¦canonical_name=Martha Stewart】 channel": "Home & Food",
                   "this old house": "Home & Food",
                   "tiny house nation": "Home & Food",
                   "taste": "Home & Food",
 
                   "arthur": "Kids",
-                  "baby einstein": "Kids",
+                  "【entity-baby einstein¦canonical_name=Baby Einstein】": "Kids",
                   "baby shark tv": "Kids",
                   "beyblade": "Anime & Gaming",
                   "my little pony": "Kids",
@@ -625,7 +668,7 @@ jobs:
                   "unexplained": "Mystery",
                   "unxplained zone": "Mystery",
 
-                  "bbc earth": "Nature & Science",
+                  "【entity-bbc earth¦canonical_name=BBC Earth】": "Nature & Science",
                   "game & fish tv": "Nature & Science",
                   "hunter": "Nature & Science",
                   "life down under": "Nature & Science",
@@ -639,9 +682,9 @@ jobs:
                   "midnight pulp": "Sci-Fi & Horror",
                   "mst3k": "Sci-Fi & Horror",
                   "stargate by mgm": "Sci-Fi & Horror",
-                  "the walking dead universe": "Sci-Fi & Horror",
+                  "【entity-the walking dead¦canonical_name=The Walking Dead】 universe": "Sci-Fi & Horror",
                   "the outpost": "Sci-Fi & Horror",
-                  "teen wolf by mgm": "Sci-Fi & Horror",
+                  "【entity-teen wolf¦canonical_name=Teen Wolf】 by mgm": "Sci-Fi & Horror",
                   "z nation": "Sci-Fi & Horror",
 
                   "bonanza": "Westerns",
@@ -650,7 +693,7 @@ jobs:
 
                   "animation+": "Anime & Gaming",
                   "asiancrush": "Anime & Gaming",
-                  "dungeons & dragons adventures": "Anime & Gaming",
+                  "【entity-dungeons & dragons¦canonical_name=Dungeons & Dragons】 adventures": "Anime & Gaming",
                   "pocket.watch game-on": "Anime & Gaming",
                   "retrocrush": "Anime & Gaming",
                   "yu-gi-oh!": "Anime & Gaming",
@@ -667,7 +710,7 @@ jobs:
                   "the spa": "Ambiance",
                   "spark tv light & love": "Ambiance",
 
-                  "south park": "South Park",
+                  "【entity-south park¦canonical_name=South Park】": "【entity-South Park¦canonical_name=South Park】",
 
                   "123go!": "Entertainment",
                   "21 jump street": "Drama",
@@ -704,9 +747,9 @@ jobs:
                   "ctv laughs": "Comedy",
                   "dog whisperer": "Nature & Science",
                   "dont tell the bride": "Home & Food",
-                  "dove": "Movies",
+                  "【entity-dove¦canonical_name=Dove】": "Movies",
                   "dr. g: medical examiner": "Crime",
-                  "dude perfect": "Sports",
+                  "【entity-dude perfect¦canonical_name=Dude Perfect】": "Sports",
                   "eddies wonderland": "Kids",
                   "entertains": "Entertainment",
                   "everyday": "Entertainment",
@@ -717,12 +760,12 @@ jobs:
                   "gametvgo": "Sports",
                   "glewed tv": "Entertainment",
                   "growthday network": "Documentary",
-                  "hard knocks": "Sports",
+                  "【entity-hard knocks¦canonical_name=Hard Knocks】": "Sports",
                   "highway to heaven": "Drama",
                   "historias de corazon": "Drama",
                   "hit list": "Music",
                   "hit sitcoms": "Comedy",
-                  "hot ones": "Entertainment",
+                  "【entity-hot ones¦canonical_name=Hot Ones】": "Entertainment",
                   "ice pilots nwt": "Documentary",
                   "ideas en 5 minutos": "Home & Food",
                   "in the heat of the night by mgm": "Drama",
@@ -793,15 +836,15 @@ jobs:
               if n in explicit:
                   return explicit[n]
 
-              if "south park" in n:
-                  return "South Park"
+              if "【entity-south park¦canonical_name=South Park】" in n:
+                  return "【entity-South Park¦canonical_name=South Park】"
 
               news_terms = [
-                  "cnn","msnbc","fox news","fox business","abc news","cbs news",
-                  "nbc news","nbc now","newsnation","newsmax","news 24","weather",
-                  "accuweather","local now","cheddar news","cnbc","reuters",
-                  "bloomberg","news 12","cbc news","ctv news","ctv gridlock",
-                  "radio-canada info","france 24","gb news","yahoo finance"
+                  "【entity-cnn¦canonical_name=cnn】","msnbc","【entity-fox news¦canonical_name=fox news】","【entity-fox business¦canonical_name=fox business】","【entity-abc news¦canonical_name=cbc news】","【entity-cbs news¦canonical_name=cbc news】",
+                  "【entity-nbc news¦canonical_name=cbc news】","nbc now","newsnation","newsmax","news 24","weather",
+                  "accuweather","local now","【entity-cheddar¦canonical_name=cheddar】 news","cnbc","reuters",
+                  "bloomberg","news 12","【entity-cbc news¦canonical_name=cbc news】","ctv news","ctv gridlock",
+                  "radio-canada info","【entity-france 24¦canonical_name=france 24】","【entity-gb news¦canonical_name=cbc news】","【entity-yahoo finance¦canonical_name=yahoo finance】"
               ]
               if any(x in n for x in news_terms):
                   return "News & Weather"
@@ -822,7 +865,7 @@ jobs:
                   "nickelodeon","nick jr","nicktoons","cartoon network","boomerang",
                   "pbs kids","disney junior","disney jr","disney channel",
                   "dreamworks","babyfirst","baby first","kabillion","moonbug",
-                  "kidoodle","kids","lego","pony","wiggles","teletubbies",
+                  "kidoodle","kids","【entity-lego¦canonical_name=lego】","pony","wiggles","teletubbies",
                   "power rangers","toon","transformers"
               ]
               if any(x in n for x in kids_terms):
@@ -841,7 +884,7 @@ jobs:
                   "crime","true crime","investigation discovery","id channel",
                   "forensic files","cold case","killer","killers","murder",
                   "criminal","cops","court tv","crime 360","fbi files",
-                  "first 48","dateline","bounty hunter","jail","pawn"
+                  "first 48","【entity-dateline¦canonical_name=Dateline】","bounty hunter","jail","pawn"
               ]
               if any(x in n for x in crime_terms):
                   return "Crime"
@@ -945,7 +988,7 @@ jobs:
                   "movie","movies","film","films","cinema","cinevault","movieplex",
                   "filmrise","movie sphere","moviesphere","24 hour free movies",
                   "24hr free movies","hallmark movies","lifetime movies",
-                  "great american pure flix","great american family",
+                  "great american pure flix","【entity-great american family¦canonical_name=great american family】",
                   "scream factory","screambox"
               ]
               if any(x in n for x in movie_terms):
@@ -1134,64 +1177,76 @@ jobs:
               f"OTHER LEFT {len(other)}: {other}"
           )
 
-          valid_ids = {
-              pid
-              for _, _, _, _, pid in entries
-              if pid
-          }
+          # --- FIX: match guide to playlist by TITLE, not by ID ---
+          def norm_guide_title(s):
+              s = norm(s)
+              for suffix in [" hd", " tv", " channel"]:
+                  if s.endswith(suffix):
+                      s = s[:-len(suffix)].strip()
+              return s
+
+          title_to_buddy_id = {}
+          title_to_buddy_id_guide = {}
+
+          for _, nl, _, _, pid in entries:
+              if pid and nl:
+                  title_to_buddy_id.setdefault(nl, pid)
+                  title_to_buddy_id_guide.setdefault(
+                      norm_guide_title(nl),
+                      pid
+                  )
 
           try:
               tree = ET.parse(FULL_GUIDE)
               root = tree.getroot()
 
-              guide_ids = {
-                  e.get("id")
-                  for e in root
-                  if e.tag == "channel"
-              }
+              luma_to_buddy = {}
+              matched = 0
 
-              overlap = valid_ids & guide_ids
+              for elem in list(root):
+                  if elem.tag != "channel":
+                      continue
+
+                  dn = elem.find("display-name")
+                  luma_title = dn.text if dn is not None else ""
+
+                  buddy_id = (
+                      title_to_buddy_id.get(norm(luma_title))
+                      or title_to_buddy_id_guide.get(
+                          norm_guide_title(luma_title)
+                      )
+                  )
+
+                  if buddy_id:
+                      luma_to_buddy[elem.get("id")] = buddy_id
+                      elem.set("id", buddy_id)
+                      matched += 1
+                  else:
+                      root.remove(elem)
+
+              kept_prog = 0
+
+              for elem in list(root):
+                  if elem.tag == "programme":
+                      buddy_id = luma_to_buddy.get(
+                          elem.get("channel")
+                      )
+                      if buddy_id:
+                          elem.set("channel", buddy_id)
+                          kept_prog += 1
+                      else:
+                          root.remove(elem)
 
               print(
-                  f"Guide overlap {len(overlap)}"
+                  f"Guide matched by title: {matched} channels, "
+                  f"{kept_prog} programmes"
               )
 
-              if len(overlap) < 10:
-                  print(
-                      "WARNING: Guide overlap is under 10."
-                  )
-                  print(
-                      "Using full Luma guide unchanged."
-                  )
-
-                  tree.write(
-                      OUTPUT_XML,
-                      encoding="utf-8",
-                      xml_declaration=True
-                  )
-
-              else:
-                  for elem in list(root):
-
-                      if (
-                          elem.tag == "channel"
-                          and elem.get("id")
-                          not in valid_ids
-                      ):
-                          root.remove(elem)
-
-                      elif (
-                          elem.tag == "programme"
-                          and elem.get("channel")
-                          not in valid_ids
-                      ):
-                          root.remove(elem)
-
-                  tree.write(
-                      OUTPUT_XML,
-                      encoding="utf-8",
-                      xml_declaration=True
-                  )
+              tree.write(
+                  OUTPUT_XML,
+                  encoding="utf-8",
+                  xml_declaration=True
+              )
 
           except Exception as e:
               print(
@@ -1245,7 +1300,7 @@ jobs:
         run: |
           set -e
 
-          git add plex-ca.m3u plex-ca.xml
+          git add plex-ca.m3u plex-ca.xml plexluma.xml
 
           echo "=== STAGED FILES ==="
           git status --short
