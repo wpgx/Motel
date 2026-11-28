@@ -31,6 +31,8 @@ jobs:
           import json
           import os
           import re
+          import time
+          import urllib.error
           import urllib.parse
           import urllib.request
           import xml.etree.ElementTree as ET
@@ -50,10 +52,30 @@ jobs:
               "User-Agent": "Mozilla/5.0"
           }
 
-          def get_json(url):
-              req = urllib.request.Request(url, headers=HEADERS)
-              with urllib.request.urlopen(req, timeout=60) as response:
-                  return json.loads(response.read().decode("utf-8"))
+          def get_json(url, retries=5):
+              last_err = None
+              for attempt in range(retries):
+                  try:
+                      req = urllib.request.Request(url, headers=HEADERS)
+                      with urllib.request.urlopen(req, timeout=60) as response:
+                          return json.loads(response.read().decode("utf-8"))
+                  except urllib.error.HTTPError as e:
+                      last_err = e
+                      if e.code in (429, 502, 503, 504) and attempt < retries - 1:
+                          wait = 5 * (2 ** attempt)
+                          print(f"HTTP {e.code} retry {attempt+1}/{retries} in {wait}s")
+                          time.sleep(wait)
+                          continue
+                      raise
+                  except Exception as e:
+                      last_err = e
+                      if attempt < retries - 1:
+                          wait = 5 * (2 ** attempt)
+                          print(f"Error {e} retry {attempt+1}/{retries} in {wait}s")
+                          time.sleep(wait)
+                          continue
+                      raise
+              raise last_err
 
           print("Getting Plex channel list...")
           channels = get_json(CATEGORY_URL)
@@ -78,17 +100,14 @@ jobs:
               return ""
 
           def get_stream_url(channel, channel_id):
-              # Prefer the real stream URL from Luma if present
               data = channel.get("data") or {}
               for field in ("key", "url", "streamUrl", "mediaUrl"):
                   v = str(data.get(field) or channel.get(field) or "").strip()
                   if v.startswith("http") and "plex.tv" in v:
-                      # If it's already a full parts URL, add token if missing
                       if "X-Plex-Token" not in v:
                           sep = "&" if "?" in v else "?"
                           v = f"{v}{sep}X-Plex-Token={TOKEN}"
                       return v
-              # Fallback: build from channel id, same format as before
               return f"https://epg.provider.plex.tv/library/parts/{urllib.parse.quote(channel_id, safe='')}/?X-Plex-Token={TOKEN}"
 
           def get_category(channel):
@@ -132,8 +151,6 @@ jobs:
                       print(f"Processed {index}/{len(channels)} channels")
 
           print("Building XMLTV + M3U...")
-
-          # Sort by title for stable chno 6500+
           results_sorted = sorted(results, key=lambda x: str(x[0].get("title") or "").lower())
 
           tv = ET.Element("tv", {"generator-info-name": "Plex Luma", "source-info-name": "Plex Canada"})
@@ -150,7 +167,6 @@ jobs:
               if not channel_id or not title:
                   continue
 
-              # --- XML channel ---
               channel_element = ET.SubElement(tv, "channel", {"id": channel_id})
               display_name = ET.SubElement(channel_element, "display-name")
               display_name.text = title
@@ -158,7 +174,6 @@ jobs:
                   ET.SubElement(channel_element, "icon", {"src": logo})
               total_channels += 1
 
-              # --- XML programmes ---
               for airing in airings:
                   data = airing.get("data") or {}
                   preview = airing.get("previewData") or {}
@@ -184,9 +199,7 @@ jobs:
                       ep.text = str(guid)
                   total_programmes += 1
 
-              # --- M3U channel - SAME id as XML ---
               category = get_category(channel)
-              # Escape quotes in names/logos
               safe_title = title.replace('"', '')
               safe_logo = logo.replace('"', '')
               safe_cat = str(category).replace('"', '')
@@ -195,7 +208,6 @@ jobs:
               m3u_lines.append(stream)
               chno += 1
 
-          # Write XML to both names DCMaster / others expect
           tree = ET.ElementTree(tv)
           try:
               ET.indent(tree, space="  ")
@@ -203,8 +215,6 @@ jobs:
               pass
           tree.write("plex-ca.xml", encoding="UTF-8", xml_declaration=True)
           tree.write("plexluma.xml", encoding="UTF-8", xml_declaration=True)
-
-          # Write M3U
           open("plex-ca.m3u", "w", encoding="utf-8").write("\n".join(m3u_lines) + "\n")
 
           print("")
