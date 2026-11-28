@@ -17,19 +17,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Samsung
+      - name: Run 【entity-Samsung¦canonical_name=Samsung】
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh workflow run samsung-render-pull.yml --ref main
           sleep 5
-          RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-          echo "Samsung run: $RUN_ID"
+          RUN_ID=$(gh run list --workflow=【entity-samsung¦canonical_name=Samsung】-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "【entity-Samsung¦canonical_name=Samsung】 run: $RUN_ID"
           if ! gh run watch "$RUN_ID" --exit-status; then
             echo "Samsung failed - retrying..."
             gh workflow run samsung-render-pull.yml --ref main
             sleep 5
-            RUN_ID=$(gh run list --workflow=samsung-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+            RUN_ID=$(gh run list --workflow=【entity-samsung¦canonical_name=Samsung】-render-pull.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
             echo "Samsung retry run: $RUN_ID"
             if ! gh run watch "$RUN_ID" --exit-status; then
               echo "Samsung failed twice - continuing chain."
@@ -55,22 +55,22 @@ jobs:
             fi
           fi
 
-      - name: Run Tubi
+      - name: Run 【entity-Tubi¦canonical_name=Tubi】
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh workflow run tubiroku-sync.yml --ref main
           sleep 5
           RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-          echo "Tubi run: $RUN_ID"
+          echo "【entity-Tubi¦canonical_name=Tubi】 run: $RUN_ID"
           if ! gh run watch "$RUN_ID" --exit-status; then
             echo "Tubi failed - retrying..."
             gh workflow run tubiroku-sync.yml --ref main
             sleep 5
             RUN_ID=$(gh run list --workflow=tubiroku-sync.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-            echo "Tubi retry run: $RUN_ID"
+            echo "【entity-Tubi¦canonical_name=Tubi】 retry run: $RUN_ID"
             if ! gh run watch "$RUN_ID" --exit-status; then
-              echo "Tubi failed twice - continuing chain."
+              echo "【entity-Tubi¦canonical_name=Tubi】 failed twice - continuing chain."
             fi
           fi
 
@@ -93,24 +93,26 @@ jobs:
             fi
           fi
 
-      - name: Run Plex
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run update-plex.yml --ref main
-          sleep 5
-          RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-          echo "Plex run: $RUN_ID"
-          if ! gh run watch "$RUN_ID" --exit-status; then
-            echo "Plex failed - retrying..."
-            gh workflow run update-plex.yml --ref main
-            sleep 5
-            RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
-            echo "Plex retry run: $RUN_ID"
-            if ! gh run watch "$RUN_ID" --exit-status; then
-              echo "Plex failed twice - continuing chain."
-            fi
-          fi
+      # --- PLEX DISABLED - runs on its own twice a day via update-plex.yml ---
+      # --- To bring it back, delete the # on every line below this ---
+      # - name: Run Plex
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+      #   run: |
+      #     gh workflow run update-plex.yml --ref main
+      #     sleep 5
+      #     RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+      #     echo "Plex run: $RUN_ID"
+      #     if ! gh run watch "$RUN_ID" --exit-status; then
+      #       echo "Plex failed - retrying..."
+      #       gh workflow run update-plex.yml --ref main
+      #       sleep 5
+      #       RUN_ID=$(gh run list --workflow=update-plex.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')
+      #       echo "Plex retry run: $RUN_ID"
+      #       if ! gh run watch "$RUN_ID" --exit-status; then
+      #         echo "Plex failed twice - continuing chain."
+      #       fi
+      #     fi
 
       - name: Run DCFULL
         env:
@@ -192,5 +194,6 @@ jobs:
         run: |
           echo "=========================================="
           echo "MASTER IPTV BUILD COMPLETE"
-          echo "Samsung -> Pluto -> Tubi -> LG -> Plex -> DCFULL -> DCMASTER -> DCCatalog -> Motel"
+          echo "Samsung -> Pluto -> Tubi -> LG -> Plex SKIPPED -> DCFULL -> DCMASTER -> DCCatalog -> Motel"
+          echo "Plex runs on its own twice a day via update-plex.yml"
           echo "=========================================="
