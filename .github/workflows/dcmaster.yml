@@ -12,16 +12,16 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Get Roku with backup
+      - name: Get 【entity-Roku¦canonical_name=Roku】 with backup
         run: |
-          curl -L -A "Mozilla/5.0" --retry 3 -o roku.m3u8 https://i.mjh.nz/Roku/us.m3u8
-          if [ ! -s roku.m3u8 ] || [ $(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0) -lt 10 ]; then
+          curl -L -A "Mozilla/5.0" --retry 3 -o 【entity-roku¦canonical_name=Roku】.m3u8 https://i.mjh.nz/Roku/us.m3u8
+          if [ ! -s 【entity-roku¦canonical_name=Roku】.m3u8 ] || [ $(grep -c EXTINF 【entity-roku¦canonical_name=Roku】.m3u8 2>/dev/null || echo 0) -lt 10 ]; then
             echo "i.mjh.nz blocked, trying raw github"
-            curl -L -o roku.m3u8 https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/us.m3u8
+            curl -L -o 【entity-roku¦canonical_name=Roku】.m3u8 https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/us.m3u8
           fi
-          echo "roku=$(grep -c EXTINF roku.m3u8 2>/dev/null || echo 0) plex=$(grep -c EXTINF plex-ca.m3u 2>/dev/null || echo 0) dcfull=$(grep -c EXTINF dcfull.m3u8 2>/dev/null || echo 0)"
+          echo "【entity-roku¦canonical_name=Roku】=$(grep -c EXTINF 【entity-roku¦canonical_name=Roku】.m3u8 2>/dev/null || echo 0) plex=$(grep -c EXTINF plex-ca.m3u 2>/dev/null || echo 0) dcfull=$(grep -c EXTINF dcfull.m3u8 2>/dev/null || echo 0)"
 
-      - name: Build dcmaster - Plex clean + dc- on tvg-id only for Sparkle
+      - name: Build dcmaster - Plex tvg-id aligned to guide + dc- on tvg-id only for Sparkle
         run: |
           python3 << 'PY'
           import os, re, gzip
@@ -45,27 +45,67 @@ jobs:
               m = re.search(r'<tv[^>]*>(.*)</tv>', txt, flags=re.I|re.S)
               return m.group(1) if m else txt
 
+          def norm_title(s):
+              if not s:
+                  return ""
+              s = s.strip().lower()
+              s = re.sub(r'^(us|ca|uk)\s*[-:]\s*', '', s)
+              s = re.sub(r'\s*\(.*?\)\s*', ' ', s)
+              s = re.sub(r'[^a-z0-9]+', ' ', s)
+              s = re.sub(r'\s+', ' ', s).strip()
+              return s
+
           merged = []
           xml_body = ''
           used_xml_ids = set()
 
-          # 1. PLEX-CA - 100% UNTOUCHED
-          for f in ['plex-ca.m3u8', 'plex-ca.m3u', 'plex-ca.m3u8']:
-              if os.path.exists(f):
-                  data = load_m3u(f)
-                  if len(data)>0:
-                      merged.extend(data)
-                      print(f"PLEX {f}: {len(data)}")
-                      break
-
+          # 1. PLEX-CA - align m3u tvg-id to plex-ca.xml id by title
+          #    Load XML FIRST so we can build title -> Luma ID map
+          plex_xml = ""
+          plex_title_to_id = {}
           for f in ['plex-ca.xml', 'plex-ca.xml.gz']:
               if os.path.exists(f):
                   plex_xml = extract_xml_body(f)
                   xml_body += plex_xml + '\n'
-                  for cid in re.findall(r'<channel\s+id="([^"]+)"', plex_xml):
+                  # <channel id="..."><display-name>...</display-name>
+                  for m in re.finditer(r'<channel\s+id="([^"]+)">\s*<display-name>([^<]+)</display-name>', plex_xml):
+                      cid = m.group(1)
+                      dname = m.group(2)
                       used_xml_ids.add(cid)
-                  print(f"PLEX XML {f}")
+                      key = norm_title(dname)
+                      if key and key not in plex_title_to_id:
+                          plex_title_to_id[key] = cid
+                  print(f"PLEX XML {f}: {len(plex_title_to_id)} channels mapped by title")
                   break
+
+          for f in ['plex-ca.m3u8', 'plex-ca.m3u']:
+              if os.path.exists(f):
+                  data = load_m3u(f)
+                  if len(data) > 0:
+                      fixed = []
+                      remapped = 0
+                      unmatched = []
+                      for extinf, url in data:
+                          m_name = re.search(r',([^,]+)$', extinf)
+                          name = m_name.group(1).strip() if m_name else ""
+                          new_id = plex_title_to_id.get(norm_title(name))
+                          if new_id:
+                              if 'tvg-id="' in extinf:
+                                  if f'tvg-id="{new_id}"' not in extinf:
+                                      extinf = re.sub(r'tvg-id="[^"]*"', f'tvg-id="{new_id}"', extinf)
+                                      remapped += 1
+                              else:
+                                  extinf = extinf.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-id="{new_id}"', 1)
+                                  remapped += 1
+                          else:
+                              if len(unmatched) < 10:
+                                  unmatched.append(name)
+                          fixed.append((extinf, url))
+                      merged.extend(fixed)
+                      print(f"PLEX {f}: {len(data)} - remapped {remapped} tvg-id to guide IDs")
+                      if unmatched:
+                          print(f"PLEX unmatched (first 10): {unmatched}")
+                      break
 
           # 2. EVERYTHING ELSE - ADD dc- to tvg-id ONLY
           for base in ['dcfull', 'tubiroku', 'free2view']:
@@ -167,5 +207,5 @@ jobs:
           git config user.email "bot@bot.com"
           git add dcmaster.m3u8 dcmaster.m3u dcmaster.xml -f
           git diff --cached --quiet && echo "No change" && exit 0
-          git commit -m "dcmaster: plex clean + roku 6000 fixed"
+          git commit -m "dcmaster: align plex tvg-id to guide IDs"
           git push
