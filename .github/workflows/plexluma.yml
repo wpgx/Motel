@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Build Plex Canada guide
+      - name: Build Plex Canada guide + playlist
         env:
           PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
         run: |
@@ -51,353 +51,178 @@ jobs:
           }
 
           def get_json(url):
-              req = urllib.request.Request(
-                  url,
-                  headers=HEADERS
-              )
-
+              req = urllib.request.Request(url, headers=HEADERS)
               with urllib.request.urlopen(req, timeout=60) as response:
-                  return json.loads(
-                      response.read().decode("utf-8")
-                  )
+                  return json.loads(response.read().decode("utf-8"))
 
           print("Getting Plex channel list...")
-
           channels = get_json(CATEGORY_URL)
-
           if not isinstance(channels, list):
-              raise RuntimeError(
-                  "Plex did not return a channel list."
-              )
-
+              raise RuntimeError("Plex did not return a channel list.")
           print(f"Found {len(channels)} Plex channels.")
 
           def xmltv_time(timestamp):
-              dt = datetime.datetime.fromtimestamp(
-                  int(timestamp),
-                  datetime.timezone.utc
-              )
-
-              return dt.strftime(
-                  "%Y%m%d%H%M%S +0000"
-              )
+              dt = datetime.datetime.fromtimestamp(int(timestamp), datetime.timezone.utc)
+              return dt.strftime("%Y%m%d%H%M%S +0000")
 
           def get_channel_key(channel):
               data = channel.get("data") or {}
-
-              key = str(
-                  data.get("key") or ""
-              ).strip()
-
-              match = re.search(
-                  r"-([A-Za-z0-9]+)\.m3u8",
-                  key
-              )
-
+              key = str(data.get("key") or "").strip()
+              match = re.search(r"-([A-Za-z0-9]+)\.m3u8", key)
               if match:
                   return match.group(1)
-
-              url = str(
-                  channel.get("url") or ""
-              ).strip()
-
-              match = re.search(
-                  r"/airings/([^?]+)",
-                  url
-              )
-
+              url = str(channel.get("url") or "").strip()
+              match = re.search(r"/airings/([^?]+)", url)
               if match:
                   return match.group(1)
-
               return ""
 
+          def get_stream_url(channel, channel_id):
+              # Prefer the real stream URL from Luma if present
+              data = channel.get("data") or {}
+              for field in ("key", "url", "streamUrl", "mediaUrl"):
+                  v = str(data.get(field) or channel.get(field) or "").strip()
+                  if v.startswith("http") and "plex.tv" in v:
+                      # If it's already a full parts URL, add token if missing
+                      if "X-Plex-Token" not in v:
+                          sep = "&" if "?" in v else "?"
+                          v = f"{v}{sep}X-Plex-Token={TOKEN}"
+                      return v
+              # Fallback: build from channel id, same format as before
+              return f"https://epg.provider.plex.tv/library/parts/{urllib.parse.quote(channel_id, safe='')}/?X-Plex-Token={TOKEN}"
+
+          def get_category(channel):
+              data = channel.get("data") or {}
+              for field in ("category", "genre", "genres"):
+                  v = channel.get(field) or data.get(field)
+                  if isinstance(v, list) and v:
+                      return str(v[0])
+                  if isinstance(v, str) and v.strip():
+                      return v.strip()
+              return "Other"
+
           def get_airings(channel):
-              title = str(
-                  channel.get("title") or ""
-              ).strip()
-
+              title = str(channel.get("title") or "").strip()
               key = get_channel_key(channel)
-
               if not key:
-                  print(
-                      f"No channel key: {title}"
-                  )
+                  print(f"No channel key: {title}")
                   return channel, []
-
-              url = (
-                  "https://luma.plex.tv/api/fragment/live-tv/airings/"
-                  + urllib.parse.quote(
-                      key,
-                      safe=""
-                  )
-              )
-
+              url = "https://luma.plex.tv/api/fragment/live-tv/airings/" + urllib.parse.quote(key, safe="")
               try:
                   data = get_json(url)
-
                   if isinstance(data, list):
                       return channel, data
-
                   if isinstance(data, dict):
-                      for field in (
-                          "airings",
-                          "items",
-                          "data"
-                      ):
-                          if isinstance(
-                              data.get(field),
-                              list
-                          ):
+                      for field in ("airings", "items", "data"):
+                          if isinstance(data.get(field), list):
                               return channel, data[field]
-
                   return channel, []
-
               except Exception as e:
-                  print(
-                      f"ERROR getting airings for {title}: {e}"
-                  )
+                  print(f"ERROR getting airings for {title}: {e}")
                   return channel, []
 
           print("Getting Plex airings...")
-
           results = []
-
-          with concurrent.futures.ThreadPoolExecutor(
-              max_workers=20
-          ) as executor:
-
-              futures = [
-                  executor.submit(
-                      get_airings,
-                      channel
-                  )
-                  for channel in channels
-              ]
-
-              for index, future in enumerate(
-                  concurrent.futures.as_completed(
-                      futures
-                  ),
-                  1
-              ):
+          with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+              futures = [executor.submit(get_airings, channel) for channel in channels]
+              for index, future in enumerate(concurrent.futures.as_completed(futures), 1):
                   channel, airings = future.result()
+                  results.append((channel, airings))
+                  if index % 25 == 0 or index == len(channels):
+                      print(f"Processed {index}/{len(channels)} channels")
 
-                  results.append(
-                      (channel, airings)
-                  )
+          print("Building XMLTV + M3U...")
 
-                  if (
-                      index % 25 == 0
-                      or index == len(channels)
-                  ):
-                      print(
-                          f"Processed "
-                          f"{index}/{len(channels)} channels"
-                      )
+          # Sort by title for stable chno 6500+
+          results_sorted = sorted(results, key=lambda x: str(x[0].get("title") or "").lower())
 
-          print("Building XMLTV...")
-
-          tv = ET.Element(
-              "tv",
-              {
-                  "generator-info-name": "Plex Luma",
-                  "source-info-name": "Plex Canada"
-              }
-          )
+          tv = ET.Element("tv", {"generator-info-name": "Plex Luma", "source-info-name": "Plex Canada"})
+          m3u_lines = ['#EXTM3U url-tvg="https://motel.deecee.ca/plex-ca.xml"']
 
           total_channels = 0
           total_programmes = 0
+          chno = 6500
 
-          for channel, airings in results:
-
-              channel_id = str(
-                  channel.get("id") or ""
-              ).strip()
-
-              title = str(
-                  channel.get("title") or ""
-              ).strip()
-
-              logo = str(
-                  channel.get("thumb") or ""
-              ).strip()
-
+          for channel, airings in results_sorted:
+              channel_id = str(channel.get("id") or "").strip()
+              title = str(channel.get("title") or "").strip()
+              logo = str(channel.get("thumb") or "").strip()
               if not channel_id or not title:
                   continue
 
-              channel_element = ET.SubElement(
-                  tv,
-                  "channel",
-                  {
-                      "id": channel_id
-                  }
-              )
-
-              display_name = ET.SubElement(
-                  channel_element,
-                  "display-name"
-              )
-
+              # --- XML channel ---
+              channel_element = ET.SubElement(tv, "channel", {"id": channel_id})
+              display_name = ET.SubElement(channel_element, "display-name")
               display_name.text = title
-
               if logo:
-                  ET.SubElement(
-                      channel_element,
-                      "icon",
-                      {
-                          "src": logo
-                      }
-                  )
-
+                  ET.SubElement(channel_element, "icon", {"src": logo})
               total_channels += 1
 
+              # --- XML programmes ---
               for airing in airings:
-
                   data = airing.get("data") or {}
-
-                  preview = (
-                      airing.get("previewData")
-                      or {}
-                  )
-
-                  begins = data.get(
-                      "beginsAt"
-                  )
-
-                  ends = data.get(
-                      "endsAt"
-                  )
-
+                  preview = airing.get("previewData") or {}
+                  begins = data.get("beginsAt")
+                  ends = data.get("endsAt")
                   if not begins or not ends:
                       continue
-
-                  programme = ET.SubElement(
-                      tv,
-                      "programme",
-                      {
-                          "channel": channel_id,
-                          "start": xmltv_time(
-                              begins
-                          ),
-                          "stop": xmltv_time(
-                              ends
-                          )
-                      }
-                  )
-
-                  program_title = (
-                      airing.get("title")
-                      or preview.get("title")
-                      or ""
-                  )
-
-                  title_element = ET.SubElement(
-                      programme,
-                      "title",
-                      {
-                          "lang": "en"
-                      }
-                  )
-
-                  title_element.text = str(
-                      program_title
-                  )
-
-                  subtitle = (
-                      preview.get("subtitle")
-                      or ""
-                  )
-
+                  programme = ET.SubElement(tv, "programme", {"channel": channel_id, "start": xmltv_time(begins), "stop": xmltv_time(ends)})
+                  program_title = airing.get("title") or preview.get("title") or ""
+                  title_element = ET.SubElement(programme, "title", {"lang": "en"})
+                  title_element.text = str(program_title)
+                  subtitle = preview.get("subtitle") or ""
                   if subtitle:
-                      subtitle_element = ET.SubElement(
-                          programme,
-                          "sub-title",
-                          {
-                              "lang": "en"
-                          }
-                      )
-
-                      subtitle_element.text = (
-                          subtitle
-                      )
-
-                  summary = (
-                      preview.get("summary")
-                      or ""
-                  )
-
+                      se = ET.SubElement(programme, "sub-title", {"lang": "en"})
+                      se.text = subtitle
+                  summary = preview.get("summary") or ""
                   if summary:
-                      desc_element = ET.SubElement(
-                          programme,
-                          "desc",
-                          {
-                              "lang": "en"
-                          }
-                      )
-
-                      desc_element.text = (
-                          summary
-                      )
-
-                  guid = data.get(
-                      "guid"
-                  ) or ""
-
+                      de = ET.SubElement(programme, "desc", {"lang": "en"})
+                      de.text = summary
+                  guid = data.get("guid") or ""
                   if guid:
-                      episode_num = ET.SubElement(
-                          programme,
-                          "episode-num",
-                          {
-                              "system": "plex"
-                          }
-                      )
-
-                      episode_num.text = str(
-                          guid
-                      )
-
+                      ep = ET.SubElement(programme, "episode-num", {"system": "plex"})
+                      ep.text = str(guid)
                   total_programmes += 1
 
-          output_file = "plexluma.xml"
+              # --- M3U channel - SAME id as XML ---
+              category = get_category(channel)
+              # Escape quotes in names/logos
+              safe_title = title.replace('"', '')
+              safe_logo = logo.replace('"', '')
+              safe_cat = str(category).replace('"', '')
+              stream = get_stream_url(channel, channel_id)
+              m3u_lines.append(f'#EXTINF:-1 channel-id="{channel_id}" tvg-id="{channel_id}" tvg-chno="{chno}" tvg-name="{safe_title}" tvg-logo="{safe_logo}" group-title="{safe_cat}",{title}')
+              m3u_lines.append(stream)
+              chno += 1
 
+          # Write XML to both names DCMaster / others expect
           tree = ET.ElementTree(tv)
-
           try:
-              ET.indent(
-                  tree,
-                  space="  "
-              )
+              ET.indent(tree, space="  ")
           except AttributeError:
               pass
+          tree.write("plex-ca.xml", encoding="UTF-8", xml_declaration=True)
+          tree.write("plexluma.xml", encoding="UTF-8", xml_declaration=True)
 
-          tree.write(
-              output_file,
-              encoding="UTF-8",
-              xml_declaration=True
-          )
+          # Write M3U
+          open("plex-ca.m3u", "w", encoding="utf-8").write("\n".join(m3u_lines) + "\n")
 
           print("")
-          print(
-              f"Channels: {total_channels}"
-          )
-          print(
-              f"Programmes: {total_programmes}"
-          )
-          print(
-              f"Output: {output_file}"
-          )
+          print(f"Channels: {total_channels}")
+          print(f"Programmes: {total_programmes}")
+          print(f"Output: plex-ca.m3u, plex-ca.xml, plexluma.xml")
           PY
 
-      - name: Commit updated guide
+      - name: Commit updated guide + playlist
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add plexluma.xml
+          git add plex-ca.m3u plex-ca.xml plexluma.xml
 
           if git diff --cached --quiet; then
             echo "No changes to Plex guide."
           else
-            git commit -m "Update Plex Luma guide"
+            git commit -m "Update Plex Luma guide + playlist from Luma"
             git push
           fi
