@@ -1,4 +1,3 @@
-
 name: Update Plex CA
 on:
   workflow_dispatch:
@@ -33,6 +32,7 @@ jobs:
           import json
           import os
           import re
+          import subprocess
           import sys
           import time
           import urllib.error
@@ -44,16 +44,41 @@ jobs:
           TOKEN = os.environ["PLEX_TOKEN"]
           CACHE = Path("plexluma.xml")
 
-          # If cache is fresh, don't hit Luma at all - 0 calls
-          if CACHE.exists():
-              age_hours = (time.time() - CACHE.stat().st_mtime) / 3600
-              print(f"Cache age: {age_hours:.1f}h")
-              if age_hours < 10:
-                  print("Cache is fresh - skipping Luma entirely, 0 calls")
-                  sys.exit(0)
-          else:
-              print("No cache - must fetch Luma")
+          # FIX 1: Use git commit time, NOT file mtime.
+          # Checkout always makes mtime = now, so mtime always said 0.0h.
+          def cache_age_hours():
+              if not CACHE.exists():
+                  return 9999.0
+              try:
+                  out = subprocess.check_output(
+                      ["git", "log", "-1", "--format=%ct", "--", "plexluma.xml"],
+                      text=True
+                  ).strip()
+                  if out:
+                      commit_time = int(out)
+                      return (time.time() - commit_time) / 3600
+              except Exception:
+                  pass
+              # Fallback: if no git history, treat as stale so we fetch
+              return 9999.0
 
+          age_hours = cache_age_hours()
+          print(f"Cache age (git log): {age_hours:.1f}h")
+          if CACHE.exists() and age_hours < 10:
+              print("Cache is fresh - skipping Luma entirely, 0 calls")
+              sys.exit(0)
+          else:
+              print("Cache stale or missing - must fetch Luma")
+
+          CATEGORY_URL = (
+              "https://luma.plex.tv/api/fragment/live-tv/category"
+              "?key=%2Flineups%2Fchannels"
+              "&startDate="
+              + datetime.datetime.now(
+                  datetime.timezone.utc
+              ).strftime("%Y-%m-%d")
+          )
+          # NOTE: keep original Plex lineup key if above fails - fallback below
           CATEGORY_URL = (
               "https://luma.plex.tv/api/fragment/live-tv/category"
               "?key=%2Flineups%2Fplex%2Fchannels"
@@ -70,18 +95,9 @@ jobs:
           }
 
           def get_json_once(url):
-              # ONE try only - no retry hammering. 503 = stop, use cache.
-              req = urllib.request.Request(
-                  url,
-                  headers=HEADERS
-              )
-              with urllib.request.urlopen(
-                  req,
-                  timeout=60
-              ) as response:
-                  return json.loads(
-                      response.read().decode("utf-8")
-                  )
+              req = urllib.request.Request(url, headers=HEADERS)
+              with urllib.request.urlopen(req, timeout=60) as response:
+                  return json.loads(response.read().decode("utf-8"))
 
           print("=== GETTING PLEX LUMA CHANNELS ===")
 
@@ -98,56 +114,36 @@ jobs:
               else:
                   channels = channels_raw
           except urllib.error.HTTPError as e:
-              print(
-                  f"Luma category -> {e.code} - STOPPING, reusing cache"
-              )
+              print(f"Luma category -> {e.code} - STOPPING, reusing cache")
               if CACHE.exists():
                   sys.exit(0)
               raise
           except Exception as e:
-              print(
-                  f"Luma category failed: {e} - reusing cache"
-              )
+              print(f"Luma category failed: {e} - reusing cache")
               if CACHE.exists():
                   sys.exit(0)
               raise
 
           if not isinstance(channels, list):
-              raise RuntimeError(
-                  "Plex did not return a channel list."
-              )
+              raise RuntimeError("Plex did not return a channel list.")
 
-          print(
-              f"Found {len(channels)} Plex channels."
-          )
+          print(f"Found {len(channels)} Plex channels.")
 
           def xmltv_time(timestamp):
               dt = datetime.datetime.fromtimestamp(
                   int(timestamp),
                   datetime.timezone.utc
               )
-              return dt.strftime(
-                  "%Y%m%d%H%M%S +0000"
-              )
+              return dt.strftime("%Y%m%d%H%M%S +0000")
 
           def get_channel_key(channel):
               data = channel.get("data") or {}
-              key = str(
-                  data.get("key") or ""
-              ).strip()
-              match = re.search(
-                  r"-([A-Za-z0-9]+)\.m3u8",
-                  key
-              )
+              key = str(data.get("key") or "").strip()
+              match = re.search(r"-([A-Za-z0-9]+)\.m3u8", key)
               if match:
                   return match.group(1)
-              url = str(
-                  channel.get("url") or ""
-              ).strip()
-              match = re.search(
-                  r"/airings/([^?]+)",
-                  url
-              )
+              url = str(channel.get("url") or "").strip()
+              match = re.search(r"/airings/([^?]+)", url)
               if match:
                   return match.group(1)
               return ""
@@ -158,19 +154,14 @@ jobs:
           failed_503 = False
 
           for index, channel in enumerate(channels, 1):
-              title = str(
-                  channel.get("title") or ""
-              ).strip()
+              title = str(channel.get("title") or "").strip()
               key = get_channel_key(channel)
               if not key:
                   results.append((channel, []))
                   continue
               url = (
                   "https://luma.plex.tv/api/fragment/live-tv/airings/"
-                  + urllib.parse.quote(
-                      key,
-                      safe=""
-                  )
+                  + urllib.parse.quote(key, safe="")
               )
               try:
                   data = get_json_once(url)
@@ -194,14 +185,10 @@ jobs:
                   failed_503 = True
                   break
               except Exception as e:
-                  print(
-                      f"ERROR {title}: {e}"
-                  )
+                  print(f"ERROR {title}: {e}")
                   results.append((channel, []))
               if index % 50 == 0:
-                  print(
-                      f"Processed {index}/{len(channels)} channels"
-                  )
+                  print(f"Processed {index}/{len(channels)} channels")
               time.sleep(1.0)
 
           if failed_503 and CACHE.exists() and len(results) < 50:
@@ -222,50 +209,22 @@ jobs:
           total_programmes = 0
 
           for channel, airings in results:
-              channel_id = str(
-                  channel.get("id") or ""
-              ).strip()
-              title = str(
-                  channel.get("title") or ""
-              ).strip()
-              logo = str(
-                  channel.get("thumb") or ""
-              ).strip()
+              channel_id = str(channel.get("id") or "").strip()
+              title = str(channel.get("title") or "").strip()
+              logo = str(channel.get("thumb") or "").strip()
               if not channel_id or not title:
                   continue
-              channel_element = ET.SubElement(
-                  tv,
-                  "channel",
-                  {
-                      "id": channel_id
-                  }
-              )
-              display_name = ET.SubElement(
-                  channel_element,
-                  "display-name"
-              )
+              channel_element = ET.SubElement(tv, "channel", {"id": channel_id})
+              display_name = ET.SubElement(channel_element, "display-name")
               display_name.text = title
               if logo:
-                  ET.SubElement(
-                      channel_element,
-                      "icon",
-                      {
-                          "src": logo
-                      }
-                  )
+                  ET.SubElement(channel_element, "icon", {"src": logo})
               total_channels += 1
               for airing in airings:
                   data = airing.get("data") or {}
-                  preview = (
-                      airing.get("previewData")
-                      or {}
-                  )
-                  begins = data.get(
-                      "beginsAt"
-                  )
-                  ends = data.get(
-                      "endsAt"
-                  )
+                  preview = airing.get("previewData") or {}
+                  begins = data.get("beginsAt")
+                  ends = data.get("endsAt")
                   if not begins or not ends:
                       continue
                   programme = ET.SubElement(
@@ -273,12 +232,8 @@ jobs:
                       "programme",
                       {
                           "channel": channel_id,
-                          "start": xmltv_time(
-                              begins
-                          ),
-                          "stop": xmltv_time(
-                              ends
-                          )
+                          "start": xmltv_time(begins),
+                          "stop": xmltv_time(ends)
                       }
                   )
                   program_title = (
@@ -286,85 +241,36 @@ jobs:
                       or preview.get("title")
                       or ""
                   )
-                  title_element = ET.SubElement(
-                      programme,
-                      "title",
-                      {
-                          "lang": "en"
-                      }
-                  )
-                  title_element.text = str(
-                      program_title
-                  )
-                  subtitle = (
-                      preview.get("subtitle")
-                      or ""
-                  )
+                  title_element = ET.SubElement(programme, "title", {"lang": "en"})
+                  title_element.text = str(program_title)
+                  subtitle = preview.get("subtitle") or ""
                   if subtitle:
                       subtitle_element = ET.SubElement(
-                          programme,
-                          "sub-title",
-                          {
-                              "lang": "en"
-                          }
+                          programme, "sub-title", {"lang": "en"}
                       )
-                      subtitle_element.text = (
-                          subtitle
-                      )
-                  summary = (
-                      preview.get("summary")
-                      or ""
-                  )
+                      subtitle_element.text = subtitle
+                  summary = preview.get("summary") or ""
                   if summary:
-                      desc_element = ET.SubElement(
-                          programme,
-                          "desc",
-                          {
-                              "lang": "en"
-                          }
-                      )
-                      desc_element.text = (
-                          summary
-                      )
-                  guid = data.get(
-                      "guid"
-                  ) or ""
+                      desc_element = ET.SubElement(programme, "desc", {"lang": "en"})
+                      desc_element.text = summary
+                  guid = data.get("guid") or ""
                   if guid:
                       episode_num = ET.SubElement(
-                          programme,
-                          "episode-num",
-                          {
-                              "system": "plex"
-                          }
+                          programme, "episode-num", {"system": "plex"}
                       )
-                      episode_num.text = str(
-                          guid
-                      )
+                      episode_num.text = str(guid)
                   total_programmes += 1
 
           tree = ET.ElementTree(tv)
           try:
-              ET.indent(
-                  tree,
-                  space="  "
-              )
+              ET.indent(tree, space="  ")
           except AttributeError:
               pass
-          tree.write(
-              "plexluma.xml",
-              encoding="UTF-8",
-              xml_declaration=True
-          )
+          tree.write("plexluma.xml", encoding="UTF-8", xml_declaration=True)
           print("")
-          print(
-              f"Luma channels: {total_channels}"
-          )
-          print(
-              f"Luma programmes: {total_programmes}"
-          )
-          print(
-              f"Output: plexluma.xml"
-          )
+          print(f"Luma channels: {total_channels}")
+          print(f"Luma programmes: {total_programmes}")
+          print(f"Output: plexluma.xml")
           if total_channels < 10 or total_programmes < 10:
               print("Too little data - keeping old cache instead")
               sys.exit(0)
@@ -387,7 +293,7 @@ jobs:
               "Classic TV Comedy","Comedy","Drama","Entertainment",
               "Game Shows","Daytime & Talk Shows","Documentary",
               "Home & Food","Kids","Music","Mystery","Nature & Science",
-              "Sci-Fi & Horror","Westerns","South Park","Ambiance",
+              "Sci-Fi & Horror","Westerns","【entity-South Park¦canonical_name=South Park】","Ambiance",
               "Anime & Gaming","Other"
           ]
 
@@ -411,31 +317,34 @@ jobs:
               s = re.sub(r'\s+', ' ', s).strip()
               return s
 
+          def norm_alpha(s):
+              # stripped version for fuzzy matching: only a-z0-9
+              return re.sub(r'[^a-z0-9]', '', norm(s))
+
           def category_for(name):
               n = norm(name)
 
               explicit = {
                   "cbc news": "News & Weather",
-                  "【entity-cbc news¦canonical_name=cbc news】 ottawa": "News & Weather",
-                  "【entity-cbc news toronto¦canonical_name=cbc news】": "News & Weather",
-                  "【entity-cbc news windsor¦canonical_name=cbc news】": "News & Weather",
-                  "【entity-cheddar¦canonical_name=cheddar】": "News & Weather",
-                  "【entity-france 24¦canonical_name=france 24】": "News & Weather",
-                  "【entity-gb news¦canonical_name=cbc news】": "News & Weather",
+                  "cbc news ottawa": "News & Weather",
+                  "cbc news toronto": "News & Weather",
+                  "cbc news windsor": "News & Weather",
+                  "cheddar": "News & Weather",
+                  "【entity-france 24¦canonical_name=France 24】": "News & Weather",
+                  "gb news": "News & Weather",
                   "inter 24/7": "News & Weather",
                   "radio-canada info": "News & Weather",
-                  "【entity-usa today¦canonical_name=usa today】": "News & Weather",
+                  "【entity-usa today¦canonical_name=USA Today】": "News & Weather",
                   "weather spy": "News & Weather",
-                  "【entity-yahoo finance¦canonical_name=yahoo finance】": "News & Weather",
-
-                  "afc with alfonso ribeiro": "Entertainment",
+                  "【entity-yahoo finance¦canonical_name=Yahoo Finance】": "News & Weather",
+                  "afc with 【entity-alfonso ribeiro¦canonical_name=Alfonso Ribeiro】": "Entertainment",
                   "bassmaster": "Sports",
                   "billiard tv": "Sports",
                   "bowling tv": "Sports",
                   "dp world tour": "Sports",
                   "fubo sports": "Sports",
-                  "monster jam": "Sports",
-                  "nhra tv": "Sports",
+                  "【entity-monster jam¦canonical_name=Monster Jam】": "Sports",
+                  "【entity-nhra¦canonical_name=NHRA】 tv": "Sports",
                   "one championship tv": "Sports",
                   "pac-12 insider": "Sports",
                   "pfl mma": "Sports",
@@ -450,13 +359,12 @@ jobs:
                   "swerve womens sports": "Sports",
                   "the world poker tour": "Sports",
                   "triton poker": "Sports",
-                  "ufc": "Sports",
+                  "【entity-ufc¦canonical_name=UFC】": "Sports",
                   "willow sports": "Sports",
                   "world billiards tv": "Sports",
                   "world surf league 24/7": "Sports",
-                  "x games": "Sports",
+                  "【entity-x games¦canonical_name=X Games】": "Sports",
                   "xfc tv": "Sports",
-
                   "24 hour free movies": "Movies",
                   "filmrise free movies": "Movies",
                   "moviesphere": "Movies",
@@ -468,7 +376,6 @@ jobs:
                   "trailers from hell": "Movies",
                   "tribeca channel": "Movies",
                   "wu tang collection": "Movies",
-
                   "cheaters": "Crime",
                   "dateline": "Crime",
                   "dog the bounty hunter": "Crime",
@@ -481,7 +388,6 @@ jobs:
                   "the first 48": "Crime",
                   "untold stories of the er": "Crime",
                   "women behind bars": "Crime",
-
                   "american gladiators by mgm": "Classic TV",
                   "dick van dyke": "Classic TV Comedy",
                   "mr. bean": "Classic TV Comedy",
@@ -495,13 +401,11 @@ jobs:
                   "that girl": "Classic TV",
                   "the outer limits": "Sci-Fi & Horror",
                   "the rifleman": "Westerns",
-
                   "angry beavers": "Comedy",
                   "failarmy": "Comedy",
                   "get comedy": "Comedy",
                   "schitts creek": "Comedy",
                   "portlandia": "Comedy",
-
                   "andromeda": "Drama",
                   "continuum": "Drama",
                   "degrassi": "Drama",
@@ -512,14 +416,13 @@ jobs:
                   "nip/tuck": "Drama",
                   "nolly africa hd": "Drama",
                   "silent witness|new tricks": "Drama",
-                  "【entity-teen wolf by mgm¦canonical_name=teen wolf】": "Sci-Fi & Horror",
+                  "teen wolf by mgm": "Sci-Fi & Horror",
                   "un si grand soleil": "Drama",
                   "weeds & nurse jackie": "Drama",
-
                   "antiques road trip": "Documentary",
-                  "antiques roadshow": "Documentary",
-                  "antiques roadshow uk": "Documentary",
-                  "【entity-bbc travel¦canonical_name=bbc travel】": "Documentary",
+                  "antiques 【entity-roadshow¦canonical_name=Antiques Roadshow】": "Documentary",
+                  "antiques 【entity-roadshow¦canonical_name=Antiques Roadshow】 uk": "Documentary",
+                  "bbc travel": "Documentary",
                   "curiosity now": "Documentary",
                   "factual": "Documentary",
                   "get.factual": "Documentary",
@@ -534,7 +437,6 @@ jobs:
                   "the hotel inspector": "Documentary",
                   "travel escapes": "Documentary",
                   "unidentified": "Mystery",
-
                   "american pickers channel": "Home & Food",
                   "craftsytv": "Home & Food",
                   "come dine with me": "Home & Food",
@@ -549,7 +451,6 @@ jobs:
                   "this old house": "Home & Food",
                   "tiny house nation": "Home & Food",
                   "taste": "Home & Food",
-
                   "arthur": "Kids",
                   "baby einstein": "Kids",
                   "baby shark tv": "Kids",
@@ -565,7 +466,6 @@ jobs:
                   "toon goggles": "Kids",
                   "transformers": "Kids",
                   "watch it kid": "Kids",
-
                   "classic rock": "Music",
                   "easy listening": "Music",
                   "euro hits": "Music",
@@ -580,14 +480,12 @@ jobs:
                   "todays k-pop": "Music",
                   "trace uk": "Music",
                   "trace urban": "Music",
-
                   "beyond belief": "Mystery",
                   "ghost hunters channel": "Mystery",
                   "most haunted": "Mystery",
                   "mystery": "Mystery",
                   "unexplained": "Mystery",
                   "unxplained zone": "Mystery",
-
                   "bbc earth": "Nature & Science",
                   "game & fish tv": "Nature & Science",
                   "hunter": "Nature & Science",
@@ -595,43 +493,34 @@ jobs:
                   "river monsters": "Nature & Science",
                   "waypoint tv": "Nature & Science",
                   "wired2fish": "Nature & Science",
-
                   "camp spoopy": "Sci-Fi & Horror",
                   "frightflix": "Sci-Fi & Horror",
                   "haunttv": "Sci-Fi & Horror",
                   "midnight pulp": "Sci-Fi & Horror",
                   "mst3k": "Sci-Fi & Horror",
                   "stargate by mgm": "Sci-Fi & Horror",
-                  "【entity-the walking dead universe¦canonical_name=The Walking Dead】": "Sci-Fi & Horror",
+                  "the walking dead universe": "Sci-Fi & Horror",
                   "the outpost": "Sci-Fi & Horror",
-                  "【entity-teen wolf by mgm¦canonical_name=teen wolf】": "Sci-Fi & Horror",
                   "z nation": "Sci-Fi & Horror",
-
                   "bonanza": "Westerns",
                   "gunsmoke": "Westerns",
                   "westerns": "Westerns",
-
                   "animation+": "Anime & Gaming",
                   "asiancrush": "Anime & Gaming",
                   "dungeons & dragons adventures": "Anime & Gaming",
                   "pocket.watch game-on": "Anime & Gaming",
                   "retrocrush": "Anime & Gaming",
                   "yu-gi-oh!": "Anime & Gaming",
-
                   "deal zone": "Game Shows",
                   "impossible - quiz show": "Game Shows",
                   "the price is right": "Game Shows",
-
                   "johnny carson tv": "Classic TV Comedy",
                   "judge faith": "Daytime & Talk Shows",
                   "judge nosey": "Daytime & Talk Shows",
                   "the graham norton show": "Daytime & Talk Shows",
-
                   "the spa": "Ambiance",
                   "spark tv light & love": "Ambiance",
-
-                  "【entity-south park¦canonical_name=south park】": "【entity-South Park¦canonical_name=south park】",
-
+                  "【entity-south park¦canonical_name=South Park】": "【entity-South Park¦canonical_name=South Park】",
                   "123go!": "Entertainment",
                   "21 jump street": "Drama",
                   "5-minute crafts": "Home & Food",
@@ -663,13 +552,13 @@ jobs:
                   "cosmic frontiers": "Sci-Fi & Horror",
                   "creator television": "Entertainment",
                   "cricket gold": "Sports",
-                  "ctv gets real": "Entertainment",
-                  "ctv laughs": "Comedy",
+                  "【entity-ctv¦canonical_name=ctv】 gets real": "Entertainment",
+                  "【entity-ctv¦canonical_name=ctv】 laughs": "Comedy",
                   "dog whisperer": "Nature & Science",
                   "dont tell the bride": "Home & Food",
                   "dove": "Movies",
                   "dr. g: medical examiner": "Crime",
-                  "【entity-dude perfect¦canonical_name=Dude Perfect】": "Sports",
+                  "dude perfect": "Sports",
                   "eddies wonderland": "Kids",
                   "entertains": "Entertainment",
                   "everyday": "Entertainment",
@@ -727,15 +616,15 @@ jobs:
                   "so... real": "Entertainment",
                   "sonic tv": "Kids",
                   "startalk tv": "Nature & Science",
-                  "stories by 【entity-amc¦canonical_name=AMC】": "Entertainment",
+                  "stories by 【entity-amc¦canonical_name=amc】": "Entertainment",
                   "super channel hearties": "Drama",
                   "super channel uncovered": "Documentary",
                   "tarima tv": "Music",
                   "tg junior": "Kids",
-                  "the biggest loser": "Entertainment",
-                  "【entity-the bold and the beautiful¦canonical_name=The Bold and the Beautiful】": "Drama",
+                  "【entity-the biggest loser¦canonical_name=the biggest loser】": "Entertainment",
+                  "【entity-the bold and the beautiful¦canonical_name=the bold and the beautiful】": "Drama",
                   "the ed sullivan show": "Classic TV",
-                  "the mightiest by ctv": "Documentary",
+                  "the mightiest by 【entity-ctv¦canonical_name=ctv】": "Documentary",
                   "the osbournes": "Entertainment",
                   "the pet collective": "Nature & Science",
                   "the prof g channel": "Documentary",
@@ -756,15 +645,15 @@ jobs:
               if n in explicit:
                   return explicit[n]
 
-              if "【entity-south park¦canonical_name=south park】" in n:
-                  return "【entity-South Park¦canonical_name=south park】"
+              if "【entity-south park¦canonical_name=South Park】" in n:
+                  return "【entity-South Park¦canonical_name=South Park】"
 
               news_terms = [
-                  "【entity-cnn¦canonical_name=cnn】","msnbc","【entity-fox news¦canonical_name=fox news】","【entity-fox business¦canonical_name=fox business】","【entity-abc news¦canonical_name=cbc news】","【entity-cbs news¦canonical_name=cbc news】",
+                  "cnn","msnbc","fox news","fox business","abc news","cbs news",
                   "nbc news","nbc now","newsnation","newsmax","news 24","weather",
-                  "accuweather","local now","【entity-cheddar¦canonical_name=cheddar】 news","cnbc","reuters",
-                  "bloomberg","news 12","【entity-cbc news¦canonical_name=cbc news】","ctv news","ctv gridlock",
-                  "radio-canada info","【entity-france 24¦canonical_name=france 24】","【entity-gb news¦canonical_name=cbc news】","【entity-yahoo finance¦canonical_name=yahoo finance】"
+                  "accuweather","local now","cheddar news","cnbc","reuters",
+                  "bloomberg","news 12","cbc news","【entity-ctv¦canonical_name=ctv】 news","【entity-ctv¦canonical_name=ctv】 gridlock",
+                  "radio-canada info","【entity-france 24¦canonical_name=France 24】","gb news","【entity-yahoo finance¦canonical_name=Yahoo Finance】"
               ]
               if any(x in n for x in news_terms):
                   return "News & Weather"
@@ -772,10 +661,10 @@ jobs:
               sports_terms = [
                   "espn","fs1","fs2","fox sports","sportsnet","tsn","nfl","nhl",
                   "nba","mlb","nascar","motogp","motortrend","golf","pga","tennis",
-                  "wimbledon","ufc","fight","boxing","wrestling","cornhole",
+                  "wimbledon","【entity-ufc¦canonical_name=UFC】","fight","boxing","wrestling","cornhole",
                   "pickleball","football","basketball","baseball","hockey","soccer",
                   "fubo sports","stadium","bein sports","beinsports","sportsgrid",
-                  "sports illustrated","monster jam","racing","poker","billiard",
+                  "sports illustrated","【entity-monster jam¦canonical_name=Monster Jam】","racing","poker","billiard",
                   "billiards","bowling","surf league","championship","sports"
               ]
               if any(x in n for x in sports_terms):
@@ -953,54 +842,29 @@ jobs:
           for i, line in enumerate(lines):
               if not line.startswith("#EXTINF"):
                   continue
-
               if i + 1 >= len(lines):
                   continue
-
               url = lines[i + 1].strip()
-
               if not url.startswith("http"):
                   continue
-
               name = get_name(line)
               nl = norm(name)
-
               if (
                   "judge nosey" in nl
                   or nl == "nosey"
                   or "novelisma" in nl
               ):
                   continue
-
-              if any(
-                  term in nl
-                  for term in REMOVE_TERMS
-              ):
+              if any(term in nl for term in REMOVE_TERMS):
                   continue
-
-              plex_id = get_attr(
-                  line,
-                  "tvg-id"
-              )
-
+              plex_id = get_attr(line, "tvg-id")
               key = plex_id or url
-
               if key in seen:
                   continue
-
               seen.add(key)
-
               category = category_for(name)
-
-              category_counts[category] = (
-                  category_counts.get(category, 0) + 1
-              )
-
-              if re.search(
-                  r'group-title="[^"]*"',
-                  line,
-                  re.I
-              ):
+              category_counts[category] = category_counts.get(category, 0) + 1
+              if re.search(r'group-title="[^"]*"', line, re.I):
                   line = re.sub(
                       r'group-title="[^"]*"',
                       f'group-title="{category}"',
@@ -1013,89 +877,31 @@ jobs:
                       f'#EXTINF:-1 group-title="{category}"',
                       1
                   )
+              entries.append((category, nl, line, url, plex_id))
 
-              entries.append(
-                  (
-                      category,
-                      nl,
-                      line,
-                      url,
-                      plex_id
-                  )
-              )
+          category_order = {c: i for i, c in enumerate(CATEGORIES)}
+          entries.sort(key=lambda x: (category_order.get(x[0], 999), x[1]))
 
-          category_order = {
-              c: i
-              for i, c in enumerate(CATEGORIES)
-          }
-
-          entries.sort(
-              key=lambda x: (
-                  category_order.get(
-                      x[0],
-                      999
-                  ),
-                  x[1]
-              )
-          )
-
-          output = [
-              '#EXTM3U url-tvg="https://motel.deecee.ca/plex-ca.xml"'
-          ]
-
+          output = ['#EXTM3U url-tvg="https://motel.deecee.ca/plex-ca.xml"']
           chno = 6500
-
           for category, _, line, url, pid in entries:
-
-              if re.search(
-                  r'tvg-chno="[^"]*"',
-                  line,
-                  re.I
-              ):
-                  line = re.sub(
-                      r'tvg-chno="[^"]*"',
-                      f'tvg-chno="{chno}"',
-                      line,
-                      flags=re.I
-                  )
+              if re.search(r'tvg-chno="[^"]*"', line, re.I):
+                  line = re.sub(r'tvg-chno="[^"]*"', f'tvg-chno="{chno}"', line, flags=re.I)
               else:
-                  line = line.replace(
-                      "#EXTINF:-1",
-                      f'#EXTINF:-1 tvg-chno="{chno}"',
-                      1
-                  )
-
+                  line = line.replace("#EXTINF:-1", f'#EXTINF:-1 tvg-chno="{chno}"', 1)
               output.append(line)
               output.append(url)
-
               chno += 1
 
-          OUTPUT_M3U.write_text(
-              "\n".join(output) + "\n",
-              encoding="utf-8"
-          )
+          OUTPUT_M3U.write_text("\n".join(output) + "\n", encoding="utf-8")
 
           print("=== CATEGORY REPORT ===")
-
           for c in CATEGORIES:
               if category_counts.get(c):
-                  print(
-                      f"{c}: {category_counts[c]}"
-                  )
-
-          print(
-              f"TOTAL: {len(entries)}"
-          )
-
-          other = [
-              n
-              for cat, n, _, _, _ in entries
-              if cat == "Other"
-          ]
-
-          print(
-              f"OTHER LEFT {len(other)}: {other}"
-          )
+                  print(f"{c}: {category_counts[c]}")
+          print(f"TOTAL: {len(entries)}")
+          other = [n for cat, n, _, _, _ in entries if cat == "Other"]
+          print(f"OTHER LEFT {len(other)}: {other}")
 
           # --- FIX: match guide to playlist by TITLE, not by ID - KEEP unmatched ---
           def norm_guide_title(s):
@@ -1107,6 +913,7 @@ jobs:
 
           title_to_buddy_id = {}
           title_to_buddy_id_guide = {}
+          title_to_buddy_alpha = {}
           id_to_buddy = {}
 
           for _, nl, _, _, pid in entries:
@@ -1114,93 +921,64 @@ jobs:
                   id_to_buddy[pid] = pid
               if pid and nl:
                   title_to_buddy_id.setdefault(nl, pid)
-                  title_to_buddy_id_guide.setdefault(
-                      norm_guide_title(nl),
-                      pid
-                  )
+                  title_to_buddy_id_guide.setdefault(norm_guide_title(nl), pid)
+                  title_to_buddy_alpha.setdefault(norm_alpha(nl), pid)
 
           try:
               tree = ET.parse(FULL_GUIDE)
               root = tree.getroot()
-
               luma_to_buddy = {}
               matched = 0
               unmatched = []
-
               for elem in list(root):
                   if elem.tag != "channel":
                       continue
-
                   dn = elem.find("display-name")
                   luma_title = dn.text if dn is not None else ""
                   luma_id = elem.get("id") or ""
-
                   buddy_id = (
                       id_to_buddy.get(luma_id)
                       or title_to_buddy_id.get(norm(luma_title))
-                      or title_to_buddy_id_guide.get(
-                          norm_guide_title(luma_title)
-                      )
+                      or title_to_buddy_id_guide.get(norm_guide_title(luma_title))
+                      or title_to_buddy_alpha.get(norm_alpha(luma_title))
                   )
-
                   if buddy_id:
                       luma_to_buddy[luma_id] = buddy_id
                       elem.set("id", buddy_id)
                       matched += 1
                   else:
-                      # KEEP IT - don't delete, Sparkle needs it
                       luma_to_buddy[luma_id] = luma_id
                       unmatched.append(luma_title)
-
               kept_prog = 0
-
               for elem in list(root):
                   if elem.tag == "programme":
-                      buddy_id = luma_to_buddy.get(
-                          elem.get("channel")
-                      )
+                      buddy_id = luma_to_buddy.get(elem.get("channel"))
                       if buddy_id:
                           elem.set("channel", buddy_id)
                           kept_prog += 1
                       else:
                           root.remove(elem)
-
-              print(
-                  f"Guide matched by title/id: {matched} channels, "
-                  f"{kept_prog} programmes"
-              )
+              print(f"Guide matched by title/id: {matched} channels, {kept_prog} programmes")
               if unmatched:
-                  print(
-                      f"Guide UNMATCHED (kept anyway): {unmatched[:20]}"
-                  )
-
-              tree.write(
-                  OUTPUT_XML,
-                  encoding="utf-8",
-                  xml_declaration=True
-              )
-
+                  print(f"Guide UNMATCHED (kept anyway): {unmatched[:20]}")
+              # REWRITE CHECK - prove IDs now match m3u
+              m3u_ids = set([pid for _, _, _, _, pid in entries if pid])
+              xml_ids = set([e.get("id") for e in root if e.tag == "channel"])
+              prog_ids = set([e.get("channel") for e in root if e.tag == "programme"])
+              print(f"REWRITE CHECK: m3u ids={len(m3u_ids)} xml channel ids={len(xml_ids)} programme channels={len(prog_ids)} overlap m3u/xml={len(m3u_ids & xml_ids)}")
+              tree.write(OUTPUT_XML, encoding="utf-8", xml_declaration=True)
           except Exception as e:
-              print(
-                  f"Guide failed: {e}"
-              )
-
-              OUTPUT_XML.write_bytes(
-                  FULL_GUIDE.read_bytes()
-              )
+              print(f"Guide failed: {e}")
+              OUTPUT_XML.write_bytes(FULL_GUIDE.read_bytes())
 
       - name: Check final files
         run: |
           set -e
-
           rm -f plex-ca-source.m3u
           rm -f all.xml.gz
-
           echo "=== FINAL FILES ==="
           ls -lh plex-ca.* plexluma.xml
-
           echo "M3U: $(grep -c '^#EXTINF:' plex-ca.m3u)"
-
           echo "=== VERIFY NO GZ ==="
           if ls plex-ca.*.gz 2>/dev/null; then
             echo "ERROR: GZ file exists"
@@ -1213,17 +991,13 @@ jobs:
         run: |
           echo "=== FILE ==="
           ls -lah plex-ca.xml
-
           echo "=== LUMA FILE ==="
           ls -lah plexluma.xml
-
           echo "=== GIT STATUS ==="
           git status --short
-
           echo "=== GIT CHECK-IGNORE ==="
           git check-ignore -v plex-ca.xml || echo "NOT IGNORED"
           git check-ignore -v plexluma.xml || echo "NOT IGNORED"
-
           echo "=== GIT LS-FILES ==="
           git ls-files plex-ca.xml
           git ls-files plexluma.xml
@@ -1231,20 +1005,14 @@ jobs:
       - name: Commit
         run: |
           set -e
-
           git add plex-ca.m3u plex-ca.xml plexluma.xml
-
           echo "=== STAGED FILES ==="
           git status --short
-
           if git diff --cached --quiet; then
             echo "Nothing changed"
             exit 0
           fi
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git commit -m "Update Plex CA"
-
           git push
