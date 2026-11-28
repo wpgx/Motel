@@ -30,7 +30,9 @@ jobs:
           import datetime
           import json
           import os
+          import random
           import re
+          import sys
           import time
           import urllib.error
           import urllib.parse
@@ -48,11 +50,14 @@ jobs:
 
           HEADERS = {
               "X-Plex-Token": TOKEN,
+              "X-Plex-Client-Identifier": "dcmaster-plex-guide",
+              "X-Plex-Product": "Plex",
+              "X-Plex-Platform": "Web",
               "Accept": "application/json",
-              "User-Agent": "Mozilla/5.0"
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
           }
 
-          def get_json(url, retries=5):
+          def get_json(url, retries=10):
               last_err = None
               for attempt in range(retries):
                   try:
@@ -62,25 +67,34 @@ jobs:
                   except urllib.error.HTTPError as e:
                       last_err = e
                       if e.code in (429, 502, 503, 504) and attempt < retries - 1:
-                          wait = 5 * (2 ** attempt)
-                          print(f"HTTP {e.code} retry {attempt+1}/{retries} in {wait}s")
+                          wait = min(120, 10 * (2 ** attempt)) + random.uniform(0, 5)
+                          print(f"HTTP {e.code} retry {attempt+1}/{retries} in {wait:.0f}s")
                           time.sleep(wait)
                           continue
                       raise
                   except Exception as e:
                       last_err = e
                       if attempt < retries - 1:
-                          wait = 5 * (2 ** attempt)
-                          print(f"Error {e} retry {attempt+1}/{retries} in {wait}s")
+                          wait = min(120, 10 * (2 ** attempt)) + random.uniform(0, 5)
+                          print(f"Error {e} retry {attempt+1}/{retries} in {wait:.0f}s")
                           time.sleep(wait)
                           continue
                       raise
               raise last_err
 
           print("Getting Plex channel list...")
-          channels = get_json(CATEGORY_URL)
+          try:
+              channels = get_json(CATEGORY_URL)
+          except Exception as e:
+              print(f"Luma is unavailable after retries: {e}")
+              print("Keeping existing plex-ca.m3u / plex-ca.xml - NOT overwriting with empty files.")
+              print("Run again later, Luma usually comes back in 30-60 min.")
+              sys.exit(0)
+
           if not isinstance(channels, list):
-              raise RuntimeError("Plex did not return a channel list.")
+              print("Plex did not return a channel list - keeping existing files.")
+              sys.exit(0)
+
           print(f"Found {len(channels)} Plex channels.")
 
           def xmltv_time(timestamp):
@@ -124,11 +138,10 @@ jobs:
               title = str(channel.get("title") or "").strip()
               key = get_channel_key(channel)
               if not key:
-                  print(f"No channel key: {title}")
                   return channel, []
               url = "https://luma.plex.tv/api/fragment/live-tv/airings/" + urllib.parse.quote(key, safe="")
               try:
-                  data = get_json(url)
+                  data = get_json(url, retries=3)
                   if isinstance(data, list):
                       return channel, data
                   if isinstance(data, dict):
@@ -142,7 +155,7 @@ jobs:
 
           print("Getting Plex airings...")
           results = []
-          with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
               futures = [executor.submit(get_airings, channel) for channel in channels]
               for index, future in enumerate(concurrent.futures.as_completed(futures), 1):
                   channel, airings = future.result()
